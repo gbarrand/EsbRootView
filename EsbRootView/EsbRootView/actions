@@ -31,7 +31,11 @@ inline inlib::sg::return_action action_vis_scenarios(inlib::sg::gui_viewer& a_gv
   dirs.push_back(a_gv.res_dir());
 
   std::vector<std::string> exts;
+#ifdef ANDROID
+  exts.push_back("esbrootview.scenarios");
+#else
   exts.push_back("EsbRootView.scenarios");
+#endif  
 
   std::vector<std::string> paths;
   inlib::get_files(a_gv.out(),dirs,exts,paths);
