@@ -1,0 +1,78 @@
+/* Copyright (C) 2010, Guy Barrand. All rights reserved. */
+/* See the file inlib.license for terms.                 */
+
+/*
+typedef struct {
+  GLboolean (*m_glIsEnabled)      (GLenum);
+  void      (*m_glBegin)          (GLenum);
+  void      (*m_glEnd)            ();
+  void      (*m_glGetFloatv)      (GLenum,GLfloat*);
+  void      (*m_glVertex3f)       (GLfloat,GLfloat,GLfloat);
+  void      (*m_glGetBooleanv)    (GLenum,GLboolean*);
+  void      (*m_glGetIntegerv)    (GLenum,GLint*);
+  GLint     (*m_glRenderMode)     (GLenum);
+  void      (*m_glFeedbackBuffer) (GLsizei,GLenum,GLfloat*);
+  void      (*m_glPassThrough)    (GLfloat);
+} gl2ps_gl_funcs_t;
+*/
+static GLboolean dummy_glIsEnabled      (GLenum a){a=0;return GL_FALSE;}
+static void      dummy_glBegin          (GLenum a){a=0;}
+static void      dummy_glEnd            (){}
+static void      dummy_glGetFloatv      (GLenum a,GLfloat* b){a=0;b=0;}
+static void      dummy_glVertex3f       (GLfloat a,GLfloat b,GLfloat c){a=b=c=0;}
+static void      dummy_glGetBooleanv    (GLenum a,GLboolean* b){a=0;b=0;}
+static void      dummy_glGetIntegerv    (GLenum a,GLint* b){a=0;b=0;}
+static GLint     dummy_glRenderMode     (GLenum a){a=0;return 0;}
+static void      dummy_glFeedbackBuffer (GLsizei a,GLenum b,GLfloat* c){a=0;b=0;c=0;}
+static void      dummy_glPassThrough    (GLfloat a){a=0;}
+
+static gl2ps_gl_funcs_t s_gl_funcs = {
+  dummy_glIsEnabled,
+  dummy_glBegin,
+  dummy_glEnd,
+  dummy_glGetFloatv,
+  dummy_glVertex3f,
+  dummy_glGetBooleanv,
+  dummy_glGetIntegerv,
+  dummy_glRenderMode,
+  dummy_glFeedbackBuffer,
+  dummy_glPassThrough
+};
+
+GL2PSDLL_API void gl2ps_set_gl_funcs(gl2ps_gl_funcs_t* a_funcs) {
+  s_gl_funcs.m_glIsEnabled = a_funcs->m_glIsEnabled;
+  s_gl_funcs.m_glBegin = a_funcs->m_glBegin;
+  s_gl_funcs.m_glEnd = a_funcs->m_glEnd;
+  s_gl_funcs.m_glGetFloatv = a_funcs->m_glGetFloatv;
+  s_gl_funcs.m_glVertex3f = a_funcs->m_glVertex3f;
+  s_gl_funcs.m_glGetBooleanv = a_funcs->m_glGetBooleanv;
+  s_gl_funcs.m_glGetIntegerv = a_funcs->m_glGetIntegerv;
+  s_gl_funcs.m_glRenderMode = a_funcs->m_glRenderMode;
+  s_gl_funcs.m_glFeedbackBuffer = a_funcs->m_glFeedbackBuffer;
+  s_gl_funcs.m_glPassThrough = a_funcs->m_glPassThrough;
+}
+
+GL2PSDLL_API void gl2ps_reset_gl_funcs() {
+  s_gl_funcs.m_glIsEnabled = dummy_glIsEnabled;
+  s_gl_funcs.m_glBegin = dummy_glBegin;
+  s_gl_funcs.m_glEnd = dummy_glEnd;
+  s_gl_funcs.m_glGetFloatv = dummy_glGetFloatv;
+  s_gl_funcs.m_glVertex3f = dummy_glVertex3f;
+  s_gl_funcs.m_glGetBooleanv = dummy_glGetBooleanv;
+  s_gl_funcs.m_glGetIntegerv = dummy_glGetIntegerv;
+  s_gl_funcs.m_glRenderMode = dummy_glRenderMode;
+  s_gl_funcs.m_glFeedbackBuffer = dummy_glFeedbackBuffer;
+  s_gl_funcs.m_glPassThrough = dummy_glPassThrough;
+}
+
+#define glIsEnabled      (*(s_gl_funcs.m_glIsEnabled))
+#define glBegin          (*(s_gl_funcs.m_glBegin))
+#define glEnd            (*(s_gl_funcs.m_glEnd))
+#define glGetFloatv      (*(s_gl_funcs.m_glGetFloatv))
+#define glVertex3f       (*(s_gl_funcs.m_glVertex3f))
+#define glGetBooleanv    (*(s_gl_funcs.m_glGetBooleanv))
+#define glGetIntegerv    (*(s_gl_funcs.m_glGetIntegerv))
+#define glRenderMode     (*(s_gl_funcs.m_glRenderMode))
+#define glFeedbackBuffer (*(s_gl_funcs.m_glFeedbackBuffer))
+#define glPassThrough    (*(s_gl_funcs.m_glPassThrough))
+

@@ -1,0 +1,242 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_EsbRootView_vis_plots
+#define EsbRootView_EsbRootView_vis_plots
+
+#include <inlib/sg/view_evd>
+#include <inlib/sg/plotarea>
+//#include <inlib/sg/view_sg_client>
+
+#include <inlib/esb/read_event>
+#include <inlib/sg/h2plot_cp>
+
+#include "dac"
+#include "strings"
+
+////////////////////////////////////
+////////////////////////////////////
+#include <inlib/histo/h2d>
+#include <inlib/sg/plotter_style>
+#include <exlib/xml/xml_style>
+#include <inlib/xml/wrap_viewplot_style> // inlib/xml/viewplot.style file embeded in an inline function.
+
+namespace EsbRootView {
+inline bool load_embeded_styles(inlib::xml::styles& a_styles) {
+  std::string ss;
+  unsigned int linen;
+  const char** lines = viewplot_style(linen);
+  for(unsigned int index=0;index<linen;index++) {
+    std::string s = lines[index];
+    inlib::replace(s,"@@double_quote@@","\"");
+    inlib::replace(s,"@@back_slash@@","\\");
+    ss += s + "\n";
+  }
+  return exlib::xml::load_style_string(a_styles,ss);
+}
+}
+
+////////////////////////////////////
+////////////////////////////////////
+////////////////////////////////////
+
+namespace EsbRootView {
+
+inline double rND() {return 300;}
+inline double lND() {return 1000;}
+
+inline void setup_plotarea(inlib::sg::gui_viewer& a_gv) {
+  inlib::sg::plotarea* _plotarea = inlib::sg::cast_plotarea(a_gv);
+  if(!_plotarea) return;
+  
+  inlib::sg::plots& plots = _plotarea->get_plots();
+  plots.set_regions(1,1);
+  plots.set_current_plotter(0);
+  
+  //////////////////////////////////////////////////////////
+  /// style : //////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  inlib::sg::plotter& sgp = plots.current_plotter();
+  
+  sgp.background_style().visible = true;
+
+  inlib::xml::styles styles(a_gv.out());
+  styles.add_colormap("default",inlib::sg::style_default_colormap());
+  styles.add_colormap("ROOT",inlib::sg::style_ROOT_colormap());
+  load_embeded_styles(styles);
+  inlib::sg::style_from_res(styles,"ROOT_default",sgp,true);
+
+  sgp.title_box_style().visible = false;
+  sgp.infos_style().visible = false;
+  
+  sgp.title_to_axis = 0.03;
+  sgp.title_style().visible = true;
+  sgp.title_style().scale = 3;
+  sgp.title_style().font = inlib::sg::font_arialbd_ttf();
+  sgp.title_style().font_modeling = inlib::sg::font_pixmap;
+
+  //hEvent->Draw("COLZ");
+  sgp.bins_style(0).color = inlib::colorf_red();
+  sgp.bins_style(0).modeling = inlib::sg::modeling_solid();
+  sgp.bins_style(0).painting = inlib::sg::painting_violet_to_red;
+  
+  //TEllipse* ellipse = new TEllipse();
+  //ellipse->SetLineWidth(2);
+  //ellipse->SetFillStyle(0);
+  //ellipse->DrawEllipse(0, 0, rND(), 0, 0, 360, 0);
+  //ellipse->DrawEllipse(rND()+lND()+rND(), 0, rND(), 0, 0, 360, 0);
+
+  sgp.add_primitive
+    (new inlib::sg::plottable_ellipse(0,0, rND(),rND(),
+                                      inlib::sg::plottable_ellipse::HOLLOW,inlib::colorf_white(),0,0,inlib::colorf_black(),2));
+  sgp.add_primitive
+    (new inlib::sg::plottable_ellipse(rND()+lND()+rND(),0, rND(), rND(),
+                                      inlib::sg::plottable_ellipse::HOLLOW,inlib::colorf_white(),0,0,inlib::colorf_black(),2));
+		
+  //TBox* box = new TBox();
+  //box->SetLineWidth(2);
+  //box->SetFillStyle(0);
+  //box->DrawBox(rND(), -rND()*TMath::Pi(), rND()+lND(), rND()*TMath::Pi());
+
+  sgp.add_primitive
+    (new inlib::sg::plottable_box(rND(), -rND()*inlib::pi(), rND()+lND(), rND()*inlib::pi(),
+                                  inlib::sg::plottable_box::HOLLOW,inlib::colorf_white(),0,0,inlib::colorf_black(),2));
+  
+  //TLatex* latex = new TLatex();
+  //latex->SetTextSize(0.06);
+  //latex->SetTextAlign(22);
+  //latex->DrawLatex(0                , rND()*TMath::Pi()+200, "BACK");
+  //latex->DrawLatex(rND()+lND()/2    , rND()*TMath::Pi()+200, "SIDE");
+  //latex->DrawLatex(rND()+lND()+rND(), rND()*TMath::Pi()+200, "FRONT");
+
+  // latex->SetTextAlign(h*10+v);
+  // horizontal :
+  //  2    TA_CENTER
+  //  3    TA_RIGHT
+  //  else TA_LEFT
+  // vertical :
+  //  1    TA_BASELINE
+  //  2    TA_TOP
+  //  3    TA_TOP
+  //  else TA_BASELINE
+
+  sgp.add_primitive
+    (new inlib::sg::plottable_text("BACK",0,rND()*inlib::pi()+200,
+                                   0.06,0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
+                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap));
+  sgp.add_primitive
+    (new inlib::sg::plottable_text("SIDE",rND()+lND()/2,rND()*inlib::pi()+200,
+                                   0.06,0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
+                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap));
+  sgp.add_primitive
+    (new inlib::sg::plottable_text("FRONT",rND()+lND()+rND(),rND()*inlib::pi()+200,
+                                   0.06,0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
+                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap));
+
+  sgp.set_axes_font_modeling(inlib::sg::font_pixmap);
+  
+}
+
+inline bool vis_plots(inlib::sg::gui_viewer& a_gv,inlib::rroot::tree& a_tree,inlib::uint64 a_event) {
+  inlib::sg::plotarea* _plotarea = inlib::sg::cast_plotarea(a_gv);
+  if(!_plotarea) return false;
+  
+  _plotarea->clear_plots();
+  
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) return false;
+
+  //if(!_viewer->is_evd()) _viewer->create_sg_evd(1500);
+
+  //////////////////////////////////////////////////////////
+  /// get data : ///////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  std::vector<inlib::EsbMCTrack*> tracks;
+  std::vector<inlib::EsbWCDetectorPoint*> points;
+  if(!inlib::esb::read_event(a_tree,a_event,tracks,points)) {
+    a_gv.out() << "EsbRootView::vis_plot : can't read event." << std::endl;
+    return false;
+  }
+
+  //////////////////////////////////////////////////////////
+  /// fill histo : /////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  // from EsbRoot/display_event_ND.C.
+ 
+  int event = 0;
+  std::string title;
+  inlib::sprintf(title,80,"Event #%d",event);
+    
+  inlib::histo::h2d hEvent(title,
+                           100, -rND()-50, rND() + lND() + 2*rND() + 50,
+                           100, -rND()*inlib::pi()-50, rND()*inlib::pi()+300);
+
+  size_t nPhotons = points.size();
+
+  //a_gv.out() << "nPhotons: " << nPhotons << std::endl;
+  
+  for(size_t n = 0; n < nPhotons; n++) {
+    inlib::EsbWCDetectorPoint* photon = points[n];
+    
+    double xP = photon->GetX();
+    double yP = photon->GetY();
+    double zP = photon->GetZ();
+    double rP = ::sqrt(xP*xP + yP*yP);
+    
+    // Find the location of the photon hit
+    int location = -1;
+    if(::fabs(zP - lND()/2.0) < 1) { // front
+      location = 1;
+    }
+    else if(::fabs(zP + lND()/2) < 1) { // back
+      location = 3;
+    }
+    else if (::fabs(rP - rND()) < 1) { // side
+      
+      location = 2;
+    } else {
+    
+      a_gv.out() << "Warning: hit was not on detector edge" << std::endl;
+      continue;
+    }
+
+    // Now we need to find out where to fill the hit
+    double x=0, y=0;
+
+    if(location == 3) { // back. Ellipse at left.
+      
+      x = -xP;
+      y =  yP;
+    } else if (location == 1) { // front. Ellipse at right.
+      
+      x = xP + lND() + 2*rND();
+      y = yP; 
+    } else if (location == 2) { // frontside
+      
+      x = zP + rND() + lND()/2.0; 
+      y = ::atan2(yP, -xP) * rND(); 
+    }
+    
+    hEvent.Fill(x, y);
+  }
+
+  inlib::raw_clear(tracks);
+  inlib::raw_clear(points);
+  
+  setup_plotarea(a_gv);
+ 
+  inlib::sg::plots& plots = _plotarea->get_plots();
+  inlib::sg::plotter& sgp = plots.current_plotter();
+  sgp.add_plottable(new inlib::sg::h2d2plot_cp(hEvent));
+
+  inlib::sg::separator& evt_sep = _evd->dynamic_sg();
+  evt_sep.add(_plotarea->create_plots_clearer_holder());
+
+  //dsep.add(_viewer->create_to_stop_event_anim_holder());
+
+  return true;
+}
+
+}
+
+#endif

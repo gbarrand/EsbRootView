@@ -1,0 +1,85 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_EsbRootView_vis_event
+#define EsbRootView_EsbRootView_vis_event
+
+#include <inlib/sg/view_evd>
+#include <inlib/sg/view_sg_client>
+
+#include <inlib/esb/read_event>
+
+#include "dac"
+
+namespace EsbRootView {
+
+inline bool vis_EsbWCDetectorPoints(inlib::sg::gui_viewer& a_gv,inlib::rroot::tree& a_tree,inlib::uint64 a_event) {
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) return false;
+
+  std::vector<inlib::EsbMCTrack*> tracks;
+  std::vector<inlib::EsbWCDetectorPoint*> points;
+  if(!inlib::esb::read_event(a_tree,a_event,tracks,points)) {
+    a_gv.out() << "EsbRootView::vis_EsbMCTracks : can't read event." << std::endl;
+    return false;
+  }
+
+  //a_gv.out() << "EsbRootView::vis_EsbMCTracks : #EsbMCTrack " << tracks.size() << std::endl;
+  //a_gv.out() << "EsbRootView::vis_EsbMCTracks : #EsbWCDetectorPoint " << points.size() << std::endl;
+
+  //////////////////////////////////////
+  /// vis data, at last ! //////////////
+  //////////////////////////////////////
+
+  inlib::sg::separator* sep = new inlib::sg::separator;
+  
+  sep->add(new inlib::sg::matrix);  //for move_manip.
+    
+  inlib::sg::draw_style* ds = new inlib::sg::draw_style;
+  ds->style = inlib::sg::draw_points;
+  ds->point_size = 1;
+  sep->add(ds);
+  
+  inlib::sg::rgba* mat = new inlib::sg::rgba();
+  mat->color = inlib::colorf_red();
+  sep->add(mat);
+    
+  inlib::sg::vertices* vtxs = new inlib::sg::vertices;
+  vtxs->mode = inlib::gl::points();
+  sep->add(vtxs);
+  
+  bool empty = true;
+
+  unsigned int ptn = 10;
+  float px,py,pz;
+
+  inlib_vforcit(inlib::EsbWCDetectorPoint*,points,it) {
+    vtxs->add((*it)->GetX(),(*it)->GetY(),(*it)->GetZ());
+    empty = false;
+  }
+  
+  inlib::raw_clear(tracks);
+  inlib::raw_clear(points);
+  
+  //out << "debug : points " << vtxs->number() << std::endl;
+
+  if(empty) {
+    delete sep;
+  } else {
+    inlib::sg::separator& evt_sep = _evd->dynamic_sg();
+    evt_sep.clear();
+    evt_sep.add(sep);
+
+    inlib::args opts;
+    opts.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_dynamic());
+
+    inlib::sg::view_sg_client* wc = inlib::sg::cast_view_sg_client(a_gv);
+    if(wc) {if(!wc->send_sg(*sep,opts)){}}
+  }
+
+  return true;
+}
+
+}
+
+#endif

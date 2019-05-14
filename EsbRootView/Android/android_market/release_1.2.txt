@@ -1,0 +1,1 @@
+Use the native steering (not the java one). It leads to a better reactivity of the apps, especially on tablets. A drawback is that an Android >= 2.3 is mendatory. Have a gsto button in the left camera menu to toggle usage of GPU/VBO. Have also a "^" button to toggle the light. Various internal improvements.

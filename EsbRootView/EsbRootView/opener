@@ -1,0 +1,121 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_EsbRootView_opener
+#define EsbRootView_EsbRootView_opener
+
+#include <inlib/sg/iopener>
+#include <inlib/rroot/file>
+#include <inlib/path>
+
+#include <inlib/sg/gui_viewer>
+#include <inlib/sg/view_evd>
+
+#include <exlib/zlib>
+
+#include "dac"
+
+//#include <inlib/S_STRING>
+
+namespace EsbRootView {
+
+class opener : public virtual inlib::iopener {
+  typedef inlib::iopener parent;
+
+  INLIB_SCLASS(EsbRootView::opener)
+public:
+  virtual parent* copy() const {return new opener(*this);}
+  virtual const std::string& s_cls() const {return s_class();}
+  virtual bool is(const std::string& a_path,bool& a_is) const {
+    std::string sfx;
+    inlib::suffix(a_path,sfx);
+    if(sfx=="dst") {a_is = true;return true;}
+#ifdef ANDROID
+    // case of a file given as a "DOCUMENT" (without suffix) by another app (file manager, gmail) :
+    std::string name;
+    inlib::base_name(a_path,name);
+    if(name=="DOCUMENT") {return inlib::file::is_root(a_path,a_is);}
+#endif
+    a_is = false;
+    return true;
+  }
+  virtual bool open(const std::string& a_path,
+                    inlib::sg::viewer& a_viewer,
+                    const inlib::args&,
+                    bool& a_done) const {
+    a_done = false;
+
+    dac* _dac = cast_dac(a_viewer);
+    if(!_dac) return false;
+    _dac->reset_file();
+  
+    inlib::sg::gui_viewer* _gv = inlib::sg::cast_gui_viewer(a_viewer);
+    if(!_gv) return false;
+    inlib::sg::gui_viewer& a_gv = *_gv;
+    inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_viewer);
+    if(!_evd) return false;
+
+    bool verbose = false;
+    inlib::rroot::file* rfile = new inlib::rroot::file(a_gv.out(),a_path,verbose);
+    if(!rfile) {
+      a_gv.map_warn("can't open");
+      return false;
+    }
+    rfile->add_unziper('Z',exlib::decompress_buffer);
+
+    //inlib::rroot::dump(out,*rfile,rfile->dir().keys(),true);
+
+    _dac->m_file = rfile;
+    //_dac->m_fac = new ::EsbRootView::fac(a_gv.out());
+    _dac->m_fac = new inlib::rroot::fac(a_gv.out());
+
+    _evd->event_index() = 0;
+
+    a_gv.hide_main_menu();
+
+    a_done = true;
+    return true;
+  }
+  virtual bool is(inlib::uint64,const char*,bool& a_is) const {
+    a_is = false;
+    return true;
+  }
+  virtual bool open(inlib::uint64,const char*,
+                    inlib::sg::viewer&,
+                    const inlib::args&,
+                    bool& a_done) const {
+    a_done = false;
+    return true;
+  }
+  virtual bool open(const std::string& a_path,
+                    inlib::sg::viewer&,
+                    const inlib::xml::scenario&,
+                    inlib::sg::cmaps_t&,
+                    const inlib::args& a_args,
+                    bool& a_done) const {
+    a_done = false;
+    return true;
+  }
+public:
+  opener(){
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif
+  }
+  virtual ~opener(){
+#ifdef INLIB_MEM
+    inlib::mem::decrement(s_class().c_str());
+#endif
+  }
+public:
+  opener(const opener& a_from):parent(a_from){
+#ifdef INLIB_MEM
+    inlib::mem::decrement(s_class().c_str());
+#endif
+  }
+  opener& operator=(const opener&){return *this;}  
+};
+
+}
+
+#endif

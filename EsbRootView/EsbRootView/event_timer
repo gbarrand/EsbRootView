@@ -1,0 +1,140 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_EsbRootView_event_timer
+#define EsbRootView_EsbRootView_event_timer
+
+#include "vis_event"
+#include "vis_plots"
+#include "dac"
+
+#include <inlib/event_timer>
+#include <inlib/rroot/branch_element>
+
+#ifdef INLIB_MEM
+#include <inlib/mem>
+#endif
+
+namespace EsbRootView {
+
+class event_timer : public inlib::event_timer {
+public:
+  virtual void start() {
+    m_event_count = 0;
+    inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(m_gv);
+    if(!_evd) return;
+    m_event_start = _evd->event_index();
+    base_timer::start();
+  }
+
+  virtual void action() {
+    inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(m_gv);
+    if(!_evd) {stop();return;}
+    dac* _dac = cast_dac(m_gv);
+    if(!_dac) {stop();return;}
+    if(!_dac->m_file) {stop();return;}
+    if(!_dac->m_tree) {stop();return;}
+    if(&(_dac->m_tree->file())!=_dac->m_file) {stop();return;}
+
+    //m_gv.out() << "debug : exlib::EsbRootView::event_timer::action." << std::endl;
+
+    if(m_event_count>=m_wanted_nevent) {
+      stop();
+      return;
+    }
+
+    if(_evd->event_index()>=m_number) {
+      if(m_bof) {
+        _evd->event_index() = 0;
+      } else {
+        stop();
+        return;
+      }
+    }
+      
+    if(!vis_EsbWCDetectorPoints(m_gv,*(_dac->m_tree),_evd->event_index())) {
+      m_gv.map_warn_failed();
+      stop();
+      return;
+    }
+
+    if(!vis_plots(m_gv,*(_dac->m_tree),_evd->event_index())) {} //it will add a plots_clearer_holder in the dynamic_sg.
+    
+    // new event scene graph created.
+    std::string stmp;
+    if(!inlib::num2s(_evd->event_index(),stmp)) {}
+    m_gv.show_console("event index "+stmp);
+
+    _evd->event_index()++;
+
+    m_event_count++;
+  }
+public:
+  INLIB_SCLASS(EsbRootView::event_timer)
+  virtual void* cast(const std::string& a_class) const {
+    if(void* p = inlib::cmp_cast<event_timer>(this,a_class)) return p;
+    return inlib::event_timer::cast(a_class);
+  }
+public:
+  event_timer(inlib::sg::gui_viewer& a_gv,
+              inlib::uint64 a_number,
+              unsigned int a_wanted_nevent,
+              bool a_bof,
+              unsigned int a_interval)
+  :inlib::event_timer(a_interval)
+  ,m_gv(a_gv)
+  ,m_number(a_number)
+
+  ,m_wanted_nevent(a_wanted_nevent)
+  ,m_bof(a_bof)
+
+  ,m_event_start(0)
+  ,m_event_count(0)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif
+  }
+  virtual ~event_timer(){
+#ifdef INLIB_MEM
+    inlib::mem::decrement(s_class().c_str());
+#endif
+  }
+protected:
+  event_timer(const event_timer& a_from)
+  :inlib::event_timer(a_from)
+  ,m_gv(a_from.m_gv)
+  ,m_number(a_from.m_number)
+
+  ,m_wanted_nevent(a_from.m_wanted_nevent)
+  ,m_bof(a_from.m_bof)
+
+  ,m_event_start(0)
+  ,m_event_count(0)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif
+  }
+  event_timer& operator=(const event_timer& a_from){
+    inlib::event_timer::operator=(a_from);
+    m_wanted_nevent = a_from.m_wanted_nevent;
+    m_bof = a_from.m_bof;
+
+    m_event_start = 0;
+    m_event_count = 0;
+    return *this;
+  }
+protected:
+  inlib::sg::gui_viewer& m_gv;
+  inlib::uint64 m_number;
+  unsigned int m_wanted_nevent;
+  bool m_bof;
+
+  unsigned int m_event_start;
+  unsigned int m_event_count;
+};
+
+}
+
+#endif

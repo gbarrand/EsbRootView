@@ -1,0 +1,1 @@
+EsbRootView is an event display for the LHC/LHCb experiment. With it you can view the detector, the magnetic field and load events.

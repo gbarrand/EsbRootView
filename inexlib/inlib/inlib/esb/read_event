@@ -1,0 +1,205 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_esb_read_event
+#define inlib_esb_read_event
+
+#include "event_model"
+
+#include <inlib/rroot/tree_manip>
+
+namespace inlib {
+namespace esb {
+
+inline bool read_EsbTracks(inlib::rroot::tree& a_tree,uint64 a_event,std::vector<inlib::EsbMCTrack*>& a_tracks) {
+  inlib::raw_clear(a_tracks);
+  
+  std::ostream& out = a_tree.out();
+
+  inlib::rroot::branch_element* be_MCTrack = a_tree.find_branch_element("MCTrack");
+  if(!be_MCTrack) {
+    out << "inlib::esb::read_EsbTracks : branch MCTrack not found or is not a branch_element." << std::endl;
+    return false;
+  }
+
+ {unsigned int n;
+  if(!be_MCTrack->find_entry(a_tree.file(),a_event,n)) {
+    out << "inlib::esb::read_EsbTracks : be_MCTrack.find_entry() failed." << std::endl;
+    return false;
+  }}
+  
+  inlib::rroot::branch_element* be_MCTrack_fPx = a_tree.find_branch_element("MCTrack.fPx",true);
+  if(!be_MCTrack_fPx) {
+    out << "inlib::esb::read_EsbTracks : branch MCTrack.fPx not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_MCTrack_fPy = a_tree.find_branch_element("MCTrack.fPy",true);
+  if(!be_MCTrack_fPy) {
+    out << "inlib::esb::read_EsbTracks : branch MCTrack.fPy not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_MCTrack_fPz = a_tree.find_branch_element("MCTrack.fPz",true);
+  if(!be_MCTrack_fPz) {
+    out << "inlib::esb::read_EsbTracks : branch MCTrack.fPz not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_MCTrack_fStartX = a_tree.find_branch_element("MCTrack.fStartX",true);
+  if(!be_MCTrack_fStartX) {
+    out << "inlib::esb::read_EsbTracks : branch MCTrack.fStartX not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_MCTrack_fStartY = a_tree.find_branch_element("MCTrack.fStartY",true);
+  if(!be_MCTrack_fStartY) {
+    out << "inlib::esb::read_EsbTracks : branch MCTrack.fStartY not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_MCTrack_fStartZ = a_tree.find_branch_element("MCTrack.fStartZ",true);
+  if(!be_MCTrack_fStartZ) {
+    out << "inlib::esb::read_EsbTracks : branch MCTrack.fStartZ not found or is not a branch_element." << std::endl;
+    return false;
+  }
+
+  inlib::rroot::stl_vector<double>* vec_fPx = be_MCTrack_fPx->object_to_stl_vector<double>();
+  if(!vec_fPx) {out << "inlib::esb::read_EsbTracks : can't find vec Px." << std::endl;return false;}
+  inlib::rroot::stl_vector<double>* vec_fPy = be_MCTrack_fPy->object_to_stl_vector<double>();
+  if(!vec_fPy) {out << "inlib::esb::read_EsbTracks : can't find vec Py." << std::endl;return false;}
+  inlib::rroot::stl_vector<double>* vec_fPz = be_MCTrack_fPz->object_to_stl_vector<double>();
+  if(!vec_fPz) {out << "inlib::esb::read_EsbTracks : can't find vec Pz." << std::endl;return false;}
+
+  if( (vec_fPx->size() != vec_fPy->size())
+   || (vec_fPx->size() != vec_fPz->size()) ) {
+    out << "inlib::esb::read_EsbTracks : not consistent vector size for fPx, fPy, fPz." << std::endl;
+    return false;
+  }
+
+  inlib::rroot::stl_vector<double>* vec_fStartX = be_MCTrack_fPx->object_to_stl_vector<double>();
+  if(!vec_fStartX) {out << "inlib::esb::read_EsbTracks : can't find vec Px." << std::endl;return false;}
+  inlib::rroot::stl_vector<double>* vec_fStartY = be_MCTrack_fPy->object_to_stl_vector<double>();
+  if(!vec_fStartY) {out << "inlib::esb::read_EsbTracks : can't find vec Py." << std::endl;return false;}
+  inlib::rroot::stl_vector<double>* vec_fStartZ = be_MCTrack_fPz->object_to_stl_vector<double>();
+  if(!vec_fStartZ) {out << "inlib::esb::read_EsbTracks : can't find vec Pz." << std::endl;return false;}
+  inlib::rroot::stl_vector<double>* vec_fStartT = be_MCTrack_fPz->object_to_stl_vector<double>();
+  if(!vec_fStartT) {out << "inlib::esb::read_EsbTracks : can't find vec Pz." << std::endl;return false;}
+
+  if( (vec_fStartX->size() != vec_fStartY->size())
+   || (vec_fStartX->size() != vec_fStartZ->size())
+   || (vec_fStartX->size() != vec_fStartT->size()) ) {
+    out << "inlib::esb::read_EsbTracks : not consistent vector size for fStartX, fStartY, fStartZ, fStartT." << std::endl;
+    return false;
+  }
+
+  if(vec_fStartX->size() != vec_fPx->size()) {
+    out << "inlib::esb::read_EsbTracks : not consistent vector size between fP[x,y,z] and fStart[X,Y,Z]." << std::endl;
+    return false;
+  }
+
+ {size_t number = vec_fPx->size();
+  for(size_t index=0;index<number;index++){
+    inlib::EsbMCTrack* track = new inlib::EsbMCTrack((*vec_fPx)[index],(*vec_fPy)[index],(*vec_fPz)[index],
+				       (*vec_fStartX)[index],(*vec_fStartY)[index],(*vec_fStartZ)[index],(*vec_fStartT)[index]);
+    a_tracks.push_back(track);
+  }}
+
+  return true;
+}
+
+inline bool read_EsbWCDetectorPoint(inlib::rroot::tree& a_tree,uint64 a_event,std::vector<inlib::EsbWCDetectorPoint*>& a_points) {
+  inlib::raw_clear(a_points);
+  
+  std::ostream& out = a_tree.out();
+
+  inlib::rroot::branch_element* be_EsbWCDetectorPoint = a_tree.find_branch_element("EsbWCDetectorPoint");
+  if(!be_EsbWCDetectorPoint) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : branch EsbWCDetectorPoint not found or is not a branch_element." << std::endl;
+    return false;
+  }
+
+ {unsigned int n;
+  if(!be_EsbWCDetectorPoint->find_entry(a_tree.file(),a_event,n)) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : be_EsbWCDetectorPoint.find_entry() failed." << std::endl;
+    return false;
+  }}
+
+  inlib::rroot::branch_element* be_EsbWCDetectorPoint_fPx = a_tree.find_branch_element("EsbWCDetectorPoint.fPx",true);
+  if(!be_EsbWCDetectorPoint_fPx) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : branch EsbWCDetectorPoint.fPx not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_EsbWCDetectorPoint_fPy = a_tree.find_branch_element("EsbWCDetectorPoint.fPy",true);
+  if(!be_EsbWCDetectorPoint_fPy) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : branch EsbWCDetectorPoint.fPy not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_EsbWCDetectorPoint_fPz = a_tree.find_branch_element("EsbWCDetectorPoint.fPz",true);
+  if(!be_EsbWCDetectorPoint_fPz) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : branch EsbWCDetectorPoint.fPz not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_EsbWCDetectorPoint_fX = a_tree.find_branch_element("EsbWCDetectorPoint.fX",true);
+  if(!be_EsbWCDetectorPoint_fX) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : branch EsbWCDetectorPoint.fX not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_EsbWCDetectorPoint_fY = a_tree.find_branch_element("EsbWCDetectorPoint.fY",true);
+  if(!be_EsbWCDetectorPoint_fY) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : branch EsbWCDetectorPoint.fY not found or is not a branch_element." << std::endl;
+    return false;
+  }
+  inlib::rroot::branch_element* be_EsbWCDetectorPoint_fZ = a_tree.find_branch_element("EsbWCDetectorPoint.fZ",true);
+  if(!be_EsbWCDetectorPoint_fZ) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : branch EsbWCDetectorPoint.fZ not found or is not a branch_element." << std::endl;
+    return false;
+  }
+
+ {inlib::rroot::stl_vector<double>* vec_fPx = be_EsbWCDetectorPoint_fPx->object_to_stl_vector<double>();
+  if(!vec_fPx) {out << "inlib::esb::read_EsbWCDetectorPoint : can't find vec Px." << std::endl;return false;}
+  inlib::rroot::stl_vector<double>* vec_fPy = be_EsbWCDetectorPoint_fPy->object_to_stl_vector<double>();
+  if(!vec_fPy) {out << "inlib::esb::read_EsbWCDetectorPoint : can't find vec Py." << std::endl;return false;}
+  inlib::rroot::stl_vector<double>* vec_fPz = be_EsbWCDetectorPoint_fPz->object_to_stl_vector<double>();
+  if(!vec_fPz) {out << "inlib::esb::read_EsbWCDetectorPoint : can't find vec Pz." << std::endl;return false;}
+
+  if( (vec_fPx->size() != vec_fPy->size())
+   || (vec_fPx->size() != vec_fPz->size()) ) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : not consistent vector size for fPx, fPy, fPz." << std::endl;
+    return false;
+  }
+
+  inlib::rroot::stl_vector<double>* vec_fX = be_EsbWCDetectorPoint_fX->object_to_stl_vector<double>();
+  if(!vec_fX) {out << "inlib::esb::read_EsbWCDetectorPoint : can't find vec Px." << std::endl;return false;}
+  inlib::rroot::stl_vector<double>* vec_fY = be_EsbWCDetectorPoint_fY->object_to_stl_vector<double>();
+  if(!vec_fY) {out << "inlib::esb::read_EsbWCDetectorPoint : can't find vec Py." << std::endl;return false;}
+  inlib::rroot::stl_vector<double>* vec_fZ = be_EsbWCDetectorPoint_fZ->object_to_stl_vector<double>();
+  if(!vec_fZ) {out << "inlib::esb::read_EsbWCDetectorPoint : can't find vec Pz." << std::endl;return false;}
+
+  if( (vec_fX->size() != vec_fY->size())
+   || (vec_fX->size() != vec_fZ->size()) ) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : not consistent vector size for fX, fY, fZ, fT." << std::endl;
+    return false;
+  }
+
+  if(vec_fX->size() != vec_fPx->size()) {
+    out << "inlib::esb::read_EsbWCDetectorPoint : not consistent vector size between fP[x,y,z] and f[X,Y,Z]." << std::endl;
+    return false;
+  }
+
+ {size_t number = vec_fPx->size();
+  for(size_t index=0;index<number;index++){
+    inlib::EsbWCDetectorPoint* point = new inlib::EsbWCDetectorPoint((*vec_fPx)[index],(*vec_fPy)[index],(*vec_fPz)[index],
+                                  (*vec_fX)[index],(*vec_fY)[index],(*vec_fZ)[index]);
+    a_points.push_back(point);
+  }}
+  } //end points.
+
+  return true;
+}
+
+inline bool read_event(inlib::rroot::tree& a_tree,uint64 a_event,std::vector<inlib::EsbMCTrack*>& a_tracks,std::vector<inlib::EsbWCDetectorPoint*>& a_points) {
+  if(!read_EsbTracks(a_tree,a_event,a_tracks)) return false;
+  if(!read_EsbWCDetectorPoint(a_tree,a_event,a_points)) return false;
+  return true;  
+}
+
+}}
+
+#endif
+

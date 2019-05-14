@@ -1,0 +1,39 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_EsbRootView_evt_bsg_opener
+#define EsbRootView_EsbRootView_evt_bsg_opener
+
+#include <exlib/bsg_opener>
+
+namespace EsbRootView {
+
+class evt_bsg_opener : public exlib::bsg_opener {
+  typedef exlib::bsg_opener parent;
+  INLIB_SCLASS(EsbRootView::evt_bsg_opener)
+public:
+  virtual bool open(const std::string& a_path,
+                    inlib::sg::viewer& a_viewer,
+                    const inlib::args& a_args,
+                    bool& a_done) const {
+    inlib::args _args(a_args);
+    _args.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_dynamic());
+    bool status = parent::open(a_path,a_viewer,_args,a_done);
+    inlib::sg::gui_viewer* _gv = inlib::sg::cast_gui_viewer(a_viewer);
+    if(_gv) _gv->hide_main_menu();
+    return status;
+  }
+public:
+  evt_bsg_opener(const inlib::sg::bsg_factories& a_fac):parent(a_fac){}
+  virtual ~evt_bsg_opener(){}
+public:
+  evt_bsg_opener(const evt_bsg_opener& a_from):parent(a_from){}
+  evt_bsg_opener& operator=(const evt_bsg_opener& a_from) {
+    parent::operator=(a_from);
+    return *this;
+  }  
+};
+
+}
+
+#endif

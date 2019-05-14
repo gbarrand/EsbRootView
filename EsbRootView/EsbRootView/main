@@ -1,0 +1,271 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_EsbRootView_main
+#define EsbRootView_EsbRootView_main
+
+#include <string>
+
+namespace EsbRootView {
+
+class context {
+public:
+  context(const std::string&) {}
+  virtual ~context() {}
+protected:
+  context(const context&){}
+  context& operator=(const context&){return *this;}
+};
+
+}
+
+#include "version"
+
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+
+#include <exlib/app/main>
+#include <exlib/png>
+#include <exlib/jpeg>
+
+#include <exlib/cbk/out>
+#include <inlib/cbk/sg_client>
+
+#include <inlib/ftp/cbk>
+#include <inlib/cbk/files>
+#include <inlib/cbk/sg_serv>
+#include <inlib/sg/plotarea>
+
+#include "dac"
+#include "actions"
+#include "opener"
+#include "evt_bsg_opener"
+#include "vis_geo"
+#include "vis_plots"
+
+namespace EsbRootView {
+
+class main
+:public exlib::app::main
+,public inlib::sg::view_evd
+,public inlib::sg::plotarea
+,public dac {
+  typedef exlib::app::main parent;
+  typedef inlib::sg::view_evd parent_evd;
+  typedef inlib::sg::plotarea parent_plotarea;
+public:
+  INLIB_SCLASS(EsbRootView::main)
+  virtual void* cast(const std::string& a_class) const {
+    if(void* p = inlib::cmp_cast<main>(this,a_class)) return p;
+    if(void* p = inlib::cmp_cast<view_evd>(this,a_class)) return p;
+    if(void* p = inlib::cmp_cast<dac>(this,a_class)) return p;
+    if(void* p = inlib::cmp_cast<parent_plotarea>(this,a_class)) return p;
+    return parent::cast(a_class);
+  }
+public:
+  static const std::string& s_version() {
+    static const std::string s_v(ESBROOTVIEW_VERSION);
+    return s_v;
+  }
+  static const std::string& s_args_help() {
+    static const std::string s_v;
+    return s_v;
+  }
+private:
+  //INLIB_CLASS_STRING_VALUE(ext_dst,.dst)
+  //INLIB_CLASS_STRING(format_dst)
+  INLIB_CLASS_STRING_VALUE(hide_plots,hide plots)
+  INLIB_CLASS_STRING_VALUE(show_plots,show plots)
+  INLIB_CLASS_STRING_VALUE(edit_plots,edit plots) 
+  INLIB_CLASS_STRING(plots)
+protected:
+  virtual inlib::sg::node* create_main_menu() {
+    //m_out << "EsbRootView::main::create_home_menu : " << std::endl;
+
+    inlib::sg::list* list = new inlib::sg::list(ttf());
+    set_style(*list);
+
+    //list->text_height_automated.value(true); //too slow.
+    //list->visible_items.value(10);
+
+    inlib::sg::add_white_item(*this,*list,"geo/wc",action_vis_geo);
+    inlib::sg::add_white_item(*this,*list,"floor",action_vis_floor);
+    inlib::sg::add_white_item(*this,*list,"avatars",action_vis_scenarios);
+    inlib::sg::add_image_item(*this,*list,s_show_plots(),"white.jpg",action_show_plots);
+    
+    inlib::sg::add_image_item(*this,*list,inlib::sg::s_files(),"files.jpg",inlib::cbk::action_files);
+    if(has_open_panel()) {
+      inlib::sg::add_image_item(*this,*list,"open...","files.jpg",inlib::sg::action_open_open_panel);
+    }
+
+    if(m_ftps.size()) {
+      inlib::sg::add_image_item
+        (*this,*list,"ftp","location_ftp.jpg",inlib::ftp::action_ftp,inlib::ftp::pos_data(m_ftps,false,0,0));
+    }
+
+    inlib::sg::add_white_item(*this,*list,"front",action_cam_front);
+    inlib::sg::add_white_item(*this,*list,"side",action_cam_side);
+    inlib::sg::add_image_item(*this,*list,"top","white.jpg",action_cam_top);
+  //inlib::sg::add_image_item(*this,*list,"3D","white.jpg",action_cam_3D);
+
+    inlib::sg::add_image_item(*this,*list,"next event","event.jpg",action_next);
+    inlib::sg::add_image_item(*this,*list,"vis events","vis_events.jpg",action_vis_events);
+    inlib::sg::add_image_item(*this,*list,"stop events","stop_events.jpg",inlib::sg::action_stop_event_anim);
+    
+  //inlib::sg::add_white_item(*this,*list,"exlib :",inlib::sg::action_none,a_data);
+    inlib::sg::add_image_item(*this,*list,s_hide_plots(),"white.jpg",action_hide_plots);
+  //inlib::sg::add_image_item(*this,*list,s_plots(),"set_current_region.jpg",inlib::sg::action_regions_main);
+  //inlib::sg::add_image_item(*this,*list,s_edit_plots(),"edit_plot.jpg",inlib::sg::action_edit_plot);
+
+    inlib::sg::add_image_item(*this,*list,"anim","object_rotate_left.jpg",inlib::sg::action_start_anim_around_focal);
+
+    inlib::sg::add_image_item(*this,*list,"clear detector","edit_clear.jpg",inlib::sg::action_clear_static_sg);
+    inlib::sg::add_image_item(*this,*list,"clear event","clear_event.jpg",inlib::sg::action_clear_dynamic_sg);
+    inlib::sg::add_image_item(*this,*list,"reset","edit_undo.jpg",inlib::sg::action_reset_camera);
+
+    //if(m_walls._walls().size()) {
+    inlib::sg::add_image_item(*this,*list,inlib::sg::s_to_serv(),"connect_to_wall.jpg",inlib::cbk::action_sg_client_main);
+    //}
+    inlib::sg::add_white_item(*this,*list,inlib::sg::s_sg_serv(),inlib::cbk::action_sg_serv_main);
+    
+    inlib::sg::add_image_item(*this,*list,"export","document_export.jpg",exlib::out::action_main);
+    inlib::sg::add_image_item(*this,*list,"utils","tools.jpg",inlib::sg::action_view_evd_utils);
+
+   {std::vector<std::string> about;
+    about.push_back("App : EsbRootView");
+    about.push_back("Version : "+std::string(ESBROOTVIEW_VERSION));
+    about.push_back("Author : Guy Barrand");
+    inlib::sg::add_image_item(*this,*list,"about","icon.jpg",inlib::sg::action_about,about);}
+
+    if(!inlib::device::stop_app_button()){
+      inlib::sg::add_image_item(*this,*list,"exit","application_exit.jpg",inlib::sg::action_set_to_exit);
+    }
+
+    return list;
+  }
+
+  virtual void create_camenu_items(unsigned int a_nb,float a_wcw,float a_wch,float a_wb,float a_hb) {
+    parent::create_camenu_items(a_nb,a_wcw,a_wch,a_wb,a_hb);
+
+    inlib::sg::create_main_button(m_out,m_res_dir,parent::m_params,m_image_readers,m_ttf,
+                       m_camenu_sep,a_wcw,a_wch,a_wb,a_hb,0,
+                       0,3,"next","","event.jpg",
+                       new inlib::sg::gv_cbk(*this,action_next));
+
+    inlib::sg::create_main_button(m_out,m_res_dir,parent::m_params,m_image_readers,m_ttf,
+                       m_camenu_sep,a_wcw,a_wch,a_wb,a_hb,0,
+                       2,1,"clear","","edit_clear.jpg",
+                       new inlib::sg::gv_cbk(*this,inlib::sg::action_clear_dynamic_sg));
+  }
+
+public:
+  virtual bool insh_dispatch(const std::string& a_cmd,const std::vector<std::string>& a_args) {
+    if(a_cmd=="open_default_file"){
+    //std::string path = res_dir()+inlib::sep()+"evetest"+s_ext_dst();
+      std::string path = res_dir()+inlib::sep()+"evetest"+inlib::file::s_ext_root();
+      EsbRootView::opener _opener;
+      inlib::args args;
+      bool done;
+      if(!_opener.open(path,*this,args,done)) set_to_exit();
+      return true;
+    }
+
+    if(a_cmd=="next_event"){
+      action_next(*this);
+      return true;
+    }
+    
+    if(parent_evd::insh__dispatch(a_cmd,a_args)) return true;
+    return parent::insh_dispatch(a_cmd,a_args);
+  }
+public:
+  main(std::ostream& a_out,
+       inlib::sg::render_manager& a_gl_mgr,
+       const inlib::sg::base_freetype& a_ttf,
+       const inlib::sg::selection& a_selection,
+       const std::string& a_data_dir,
+       const std::string& a_res_dir,
+       const std::string& a_out_dir,
+       const std::string& a_tmp_dir,
+       bool a_verbose,
+       unsigned int a_mem_limit)
+  :parent("EsbRootView",ESBROOTVIEW_VERSION,a_out,a_gl_mgr,a_ttf,a_selection,
+          a_data_dir,a_res_dir,a_out_dir,a_tmp_dir,a_verbose,a_mem_limit)
+  ,parent_evd(parent::get_me())
+  ,parent_plotarea(parent::get_me())
+  ,dac(parent::get_me())
+  {
+    m_opener.clear_exts();
+  //m_opener.add_ext(s_ext_dst());
+  //m_opener.add_opener(s_format_dst(),new EsbRootView::opener());
+    m_opener.add_ext(inlib::file::s_ext_root());
+    m_opener.add_opener(inlib::file::s_format_root(),new EsbRootView::opener());
+
+    m_opener.add_ext(inlib::file::s_ext_bsg());
+   {inlib::sg::bsg_factories bfac;
+    inlib::sg::add_factories(bfac);
+    exlib::sg::add_factories(bfac);
+    m_opener.add_opener(inlib::file::s_format_bsg(),new EsbRootView::evt_bsg_opener(bfac));}
+
+    m_image_readers.add_reader(inlib::file::s_format_jpeg(),new exlib::jpeg::reader());
+    m_image_readers.add_reader(inlib::file::s_format_png(),new exlib::png::reader());
+
+  //if(inlib::device::is_Android()) {
+  //  // When triggering a camenu button, we receive AMOTION_EVENT_ACTION_MOVE, which
+  //  // will induce scene rotation if m_param.m_touch_move is true (see gui_viewer::touch_move()).
+  //  m_params.m_touch_move = false;
+  //}
+
+    //inlib::sg::set_empty_scene_3D(*this,*this,1500);
+    create_sg_evd(1500);
+    
+    inlib::sg::ortho* camera = new inlib::sg::ortho();
+    camera->height = 1500;
+    camera->znear = 1;
+    camera->zfar = 100000;
+    camera->focal = 1000;
+    camera->dx = 10;
+    camera->da = inlib::fdeg2rad(); //one degree.
+    camera->ds = 0.99;
+    camera->position = inlib::vec3f(0,0,1000);
+    replace_camera(camera);
+    
+    //set_meta_zone_had_not_been_shown();
+
+    //set_scene_clear_color(inlib::colorf_black());
+    m_params.m_scene_screen_color = inlib::colorf_black();
+    
+    scene().add(create_to_stop_event_anim_holder());
+    
+    //////////////////////////////////////////////////////
+    /// plots ////////////////////////////////////////////
+    //////////////////////////////////////////////////////
+  //set_layout_factors(0.32f,-0.32f,0.3f,0.3f);
+  //set_layout_factors(0.38f,-0.38f,0.2f,0.2f);
+    set_layout_factors(0.3f,0.35f,0.3f,0.2f);
+    add_plots_to_scene();
+    hide_plots();
+
+    show_main_menu();
+  }
+  virtual ~main() {}
+protected:
+  main(const main& a_from)
+  :parent(a_from)
+  ,parent_evd(a_from)
+  ,parent_plotarea(a_from)
+  ,dac(a_from)
+  {}
+private:
+  main& operator=(const main& a_from){
+    parent::operator=(a_from);
+    parent_evd::operator=(a_from);
+    parent_plotarea::operator=(a_from);
+    return *this;
+  }
+};
+
+}
+
+#endif

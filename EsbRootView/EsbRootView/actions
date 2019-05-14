@@ -1,0 +1,309 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_EsbRootView_actions
+#define EsbRootView_EsbRootView_actions
+
+#include <exlib/scenarios_opener>
+#include <exlib/rroot/opener>
+#include <exlib/bsg_opener>
+
+#include <exlib/sg/rbsg_factories>
+#include <inlib/sg/rbsg_factories>
+
+#include <inlib/sg/draw_style>
+#include <inlib/sg/xy_grid>
+
+#include <inlib/dirmanip>
+#include <inlib/rroot/tree_manip>
+#include <inlib/rroot/fac>
+
+#include <inlib/sg/opener>
+#include <inlib/cbk/timer>
+
+#include "event_timer"
+#include "strings"
+
+namespace EsbRootView {
+
+inline inlib::sg::return_action action_vis_scenarios(inlib::sg::gui_viewer& a_gv) {
+  std::vector<std::string> dirs = a_gv.data_dirs();
+  dirs.push_back(a_gv.res_dir());
+
+  std::vector<std::string> exts;
+  exts.push_back("EsbRootView.scenarios");
+
+  std::vector<std::string> paths;
+  inlib::get_files(a_gv.out(),dirs,exts,paths);
+
+  if(paths.empty()) {
+    a_gv.map_warn("no EsbRootView.scenarios file found.");
+    return inlib::sg::return_to_render;     
+  }
+
+  inlib::args args;
+  //args.add(inlib::sg::s_adapt_camera_sg_was_empty());
+
+  inlib::opener _opener(a_gv,0);
+ {inlib::sg::bsg_factories bfac;
+  inlib::sg::add_factories(bfac);
+  exlib::sg::add_factories(bfac);
+  _opener.add_opener(inlib::file::s_format_bsg(),new exlib::bsg_opener(bfac));}
+  _opener.add_opener(inlib::file::s_format_root(),new exlib::rroot::opener());
+  _opener.add_opener(inlib::file::s_format_scenarios(),new exlib::scenarios_opener(_opener.openers()));
+  bool done;
+  _opener.open(paths[0],inlib::file::s_format_scenarios(),args,done);
+
+  return inlib::sg::return_to_render;
+}
+
+inline inlib::sg::return_action action_vis_floor(inlib::sg::gui_viewer& a_gv) {
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) return inlib::sg::return_none;
+
+  if(!_evd->is_evd()) {
+    float scene_radius = 1500;
+    _evd->create_sg_evd(scene_radius);
+  }
+  
+  inlib::sg::separator& dsep = _evd->static_sg();
+
+  inlib::sg::separator* sep = new inlib::sg::separator;
+  dsep.add(sep);
+  
+  inlib::sg::matrix* _mtx = new inlib::sg::matrix;
+  _mtx->set_translate(0,-300,0);
+  _mtx->mul_rotate(1,0,0,inlib::fhalf_pi());
+  sep->add(_mtx);
+    
+  inlib::sg::draw_style* ds = new inlib::sg::draw_style;
+  ds->style = inlib::sg::draw_lines;
+  ds->line_width = 1;
+  sep->add(ds);
+  
+  inlib::sg::rgba* mat = new inlib::sg::rgba();
+  mat->color = inlib::colorf_lightgrey();
+  sep->add(mat);
+    
+  inlib::sg::xy_grid* _grid = new inlib::sg::xy_grid;
+  _grid->sx = 100;
+  _grid->nx = 10;
+  _grid->sy = 100;
+  _grid->ny = 10;
+  sep->add(_grid);
+
+  inlib::args opts;
+  opts.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_static());
+
+  inlib::sg::view_sg_client* wc = inlib::sg::cast_view_sg_client(a_gv);
+  if(wc) {if(!wc->send_sg(*sep,opts)){}}
+  
+  a_gv.hide_main_menu();
+  return inlib::sg::return_to_render;
+}
+
+inline inlib::sg::return_action action_cam_side(inlib::sg::gui_viewer& a_gv) {
+  // side with +z toward left :
+  inlib::sg::base_camera* camera = a_gv.scene_camera();
+  if(camera) {
+    camera->position = inlib::vec3f(1000,0,0);
+    camera->orientation = inlib::rotf(inlib::vec3f(0,1,0),inlib::fhalf_pi());
+  }
+  a_gv.hide_main_menu();
+  return inlib::sg::return_to_render;
+}
+  
+inline inlib::sg::return_action action_cam_front(inlib::sg::gui_viewer& a_gv) {
+  inlib::sg::base_camera* camera = a_gv.scene_camera();
+  if(camera) {
+    camera->position = inlib::vec3f(0,0,1000);
+    camera->orientation = inlib::rotf(inlib::vec3f(0,1,0),0);
+  }
+  a_gv.hide_main_menu();
+  return inlib::sg::return_to_render;
+}
+  
+inline inlib::sg::return_action action_cam_top(inlib::sg::gui_viewer& a_gv) {
+  // top with +z toward down and +y pointing toward us :
+  inlib::sg::base_camera* camera = a_gv.scene_camera();
+  if(camera) {
+    camera->position = inlib::vec3f(0,1000,0);
+    camera->orientation = inlib::rotf(inlib::vec3f(1,0,0),-inlib::fhalf_pi());
+  }
+  a_gv.hide_main_menu();
+  return inlib::sg::return_to_render;
+}
+
+/*
+inline inlib::sg::return_action action_cam_3D(inlib::sg::gui_viewer& a_gv) {
+  inlib::sg::base_camera* camera = a_gv.scene_camera();
+  if(camera) {
+    camera->position = inlib::vec3f(-13000,6000,0);
+    inlib::rotf r(inlib::vec3f(0,1,0),-2.35f);
+    r *= inlib::rotf(inlib::vec3f(1,0,0),0.2f);
+    r *= inlib::rotf(inlib::vec3f(0,0,1),-0.2f);
+    camera->orientation = r;
+  }
+  a_gv.hide_main_menu();
+  return inlib::sg::return_to_render;
+}
+*/
+
+/*
+inline inlib::sg::return_action action_send_det(inlib::sg::gui_viewer& a_gv) {
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) return inlib::sg::return_none;
+  inlib::sg::view_sg_client* wc = inlib::sg::cast_view_sg_client(a_gv);
+  if(!wc) return inlib::sg::return_none;
+
+  //float scene_radius = a_gv.scene_camera_radius();
+  inlib::args opts;
+  opts.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_static());
+  opts.add(inlib::sg::s_send_radius(),"20000");
+
+  if(!wc->send_sg(_evd->static_sg(),opts)){}
+
+  return inlib::sg::return_to_render;
+}
+*/
+
+inline bool set_dac_tree(inlib::sg::gui_viewer& a_gv,dac& a_dac) {
+  if(!a_dac.m_file) {
+    a_gv.map_warn("no event file open.");
+    return false;
+  }
+  if(a_dac.m_tree && (&(a_dac.m_tree->file())!=a_dac.m_file) ){
+    delete a_dac.m_tree;
+    a_dac.m_tree = 0;
+  }
+  if(!a_dac.m_tree) {
+    bool map_objs = true;
+    a_dac.m_tree = inlib::rroot::find_tree(*(a_dac.m_file),*(a_dac.m_fac),s_tree_cbmsim(),map_objs);      
+    if(!a_dac.m_tree) {
+      a_gv.map_warn("tree "+s_tree_cbmsim()+" not found");
+      return false;
+    }
+    std::string stmp;
+    if(!inlib::numas<inlib::uint64>(a_dac.m_tree->entries(),stmp)){}
+    a_gv.show_console(stmp+" events");
+  }
+  return true;
+}
+
+inline inlib::sg::return_action action_start_events(inlib::sg::gui_viewer& a_gv,inlib::sg::entries& a_widget) {
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) return inlib::sg::return_none;
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return inlib::sg::return_none;
+
+  unsigned int start_event;
+  if(!inlib::to<unsigned int>(a_widget.values[0],start_event)) {
+    a_gv.map_warn_nan();
+    return inlib::sg::return_to_render;     
+  }
+
+  unsigned int wanted_nevent;
+  if(!inlib::to<unsigned int>(a_widget.values[1],wanted_nevent)) {
+    a_gv.map_warn_nan();
+    return inlib::sg::return_to_render;     
+  }
+
+  bool bof;
+  if(!inlib::to(a_widget.values[2],bof)) {
+    a_gv.map_warn_nab();
+    return inlib::sg::return_to_render;     
+  }
+
+  if(!inlib::to(a_widget.values[3],_evd->next_event_sleep())) {
+    a_gv.map_warn_nab();
+    return inlib::sg::return_to_render;     
+  }
+
+  if(!set_dac_tree(a_gv,*_dac)) return inlib::sg::return_to_render;     
+
+  inlib::uint64 number = _dac->m_tree->entries();
+  if(!number) {
+    a_gv.map_warn("no event in file.");
+    return inlib::sg::return_to_render;     
+  }
+
+  if(!wanted_nevent) {
+    a_gv.map_warn("nothing to do.");
+    return inlib::sg::return_to_render;     
+  }
+
+  _evd->event_index() = start_event;
+
+  a_gv.stop_event_anim();
+
+  if(!_evd->is_evd()) {
+    float scene_radius = 1500;
+    _evd->create_sg_evd(scene_radius);
+  }
+
+  event_timer* timer = new event_timer(a_gv,number,wanted_nevent,bof,_evd->next_event_sleep());
+
+  a_gv.set_event_anim(timer);
+
+  a_gv.hide_main_menu();
+  return inlib::sg::return_to_render;
+}
+
+inline inlib::sg::return_action action_vis_events(inlib::sg::gui_viewer& a_gv) {
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) return inlib::sg::return_none;
+
+  inlib::sg::entries* entries = new inlib::sg::entries(a_gv.ttf());
+  a_gv.set_style(*entries);
+
+  entries->add_uint("start at",_evd->event_index());
+  entries->add_uint("num events",100);
+  entries->add_bool("eof->bof",false);
+  entries->add_uint("next event sleep (msec)",_evd->next_event_sleep());
+
+  inlib::sg::add_callback(a_gv,*entries,action_start_events);
+
+  a_gv.push_list(entries);
+  return inlib::sg::return_to_render;
+}
+
+inline inlib::sg::return_action action_next(inlib::sg::gui_viewer& a_gv) {
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) return inlib::sg::return_none;
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return inlib::sg::return_none;
+
+  if(!set_dac_tree(a_gv,*_dac)) return inlib::sg::return_to_render;     
+
+  inlib::uint64 number = _dac->m_tree->entries();
+  if(!number) {
+    a_gv.map_warn("no event.");
+    return inlib::sg::return_to_render;     
+  }
+  
+  if(_evd->event_index()>=(unsigned int)number) {
+    _evd->event_index() = 0;
+    //a_gv.map_warn("end of file");
+    //return inlib::sg::return_to_render;     
+  }
+
+  if(!_evd->is_evd()) {
+    float scene_radius = 1500;
+    _evd->create_sg_evd(scene_radius);
+  }
+
+  if(vis_EsbWCDetectorPoints(a_gv,*(_dac->m_tree),_evd->event_index())) {
+    if(!vis_plots(a_gv,*(_dac->m_tree),_evd->event_index())) {} //it will add a plots_clearer_holder in the dynamic_sg.
+    std::string  stmp;
+    if(!inlib::numas<unsigned int>(_evd->event_index(),stmp)) {}
+    a_gv.show_console("event index "+stmp);
+    _evd->event_index()++;
+    a_gv.hide_main_menu();
+  }
+  
+  return inlib::sg::return_to_render;
+}
+
+}
+
+#endif
