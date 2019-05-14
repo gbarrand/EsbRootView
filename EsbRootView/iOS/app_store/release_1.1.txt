@@ -1,3 +1,0 @@
-Modifications to be able to send scenes on our wall of screens from a smartphone or tablet.
-
-On the camera panel, there is now a "viewing/picking" mode button. When in picking mode, you can select by touch/click an object and the selection map a contextual popup menu that permits, among other things, to grab and drag the object.
