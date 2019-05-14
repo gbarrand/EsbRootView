@@ -3,5 +3,5 @@
 # validity :  22 October 2033
 #  (33+1)-10 = 24*365 = 8760 "rounded" to 10000
 
-keytool -genkeypair -keystore EsbRootView.jks -alias EsbRootView -validity 10000
+keytool -genkeypair -keystore EsbRootView.jks -alias EsbRootView -keysize 1024 -validity 10000
 
