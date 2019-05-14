@@ -106,11 +106,11 @@ fi
 items=
 items="${items} freetype jpeg png expat gl2ps zip zlib csz"
 #items="${items} glutess"
-if [ ${app} = g4exa ] ; then items="${items} AIDA";fi
-if [ ${app} = g4view ] ; then items="${items} pythia8";fi
+if [ ${app} = g4exa    ] ; then items="${items} AIDA";fi
+if [ ${app} = g4view   ] ; then items="${items} pythia8";fi
 if [ ${app} = TouchSky ] ; then items="${items} cfitsio hdf5 wcslib lua";fi
-if [ ${app} = gopaw ] ; then items="${items} KUIP Getline Python hdf5 cfitsio";fi
-if [ ${app} = ioda ] ; then
+if [ ${app} = gopaw    ] ; then items="${items} KUIP Getline Python hdf5 cfitsio";fi
+if [ ${app} = ioda     ] ; then
   items="${items} CoinGL HEPVis"
   items="${items} graphviz Python lua"
   items="${items} hdf5 cfitsio wcslib"
@@ -187,6 +187,7 @@ if [ ${app} = g4view ] ; then
   /bin/mkdir -p ${to}/inexlib/exlib/exlib/yacc
   /bin/cp -R ${exlib_home}/exlib/yacc   ${to}/inexlib/exlib/exlib/.
   /bin/cp ${inlib_home}/inlib/mathT  ${to}/inexlib/inlib/inlib/.
+  /bin/cp ${bush_home}/app_README_g4 ${to}/README
 fi
 
 if [ ${app} = g4exa ] ; then
@@ -197,6 +198,7 @@ if [ ${app} = g4exa ] ; then
   /bin/cp ${exlib_home}/examples/geant4/A01/set_plots ${to}/inexlib/exlib/examples/geant4/A01/.
   /bin/cp ${exlib_home}/examples/geant4/A01/plots ${to}/inexlib/exlib/examples/geant4/A01/.
   /bin/cp ${inlib_home}/inlib/svalues  ${to}/inexlib/inlib/inlib/.
+  /bin/cp ${bush_home}/app_README_g4 ${to}/README
 fi
 
 if [ ${app} = MEMPHYS_vis ] ; then
@@ -205,6 +207,7 @@ if [ ${app} = MEMPHYS_vis ] ; then
   /bin/cp -R ../../MEMPHYS/MEMPHYS ${to}/MEMPHYS/.
   /bin/cp -R ../../MEMPHYS/source  ${to}/MEMPHYS/.
   /bin/cp ../doc/README_for_pack ${to}/README
+  /bin/cp ${bush_home}/app_README_g4 ${to}/README
 fi
 
 if [ ${app} = TouchSky ] ; then
