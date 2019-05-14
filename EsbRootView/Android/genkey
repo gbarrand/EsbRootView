@@ -5,3 +5,4 @@
 
 keytool -genkeypair -keystore EsbRootView.jks -alias EsbRootView -keysize 1024 -validity 10000
 
+#keytool -importkeystore -srckeystore EsbRootView.jks -destkeystore EsbRootView.jks -deststoretype pkcs12
