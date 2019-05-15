@@ -158,6 +158,10 @@
 		1775C96E12A7C1AC004D8E0F /* wrppm.c in Sources */ = {isa = PBXBuildFile; fileRef = 1775C92512A7C1AC004D8E0F /* wrppm.c */; };
 		1775C96F12A7C1AC004D8E0F /* wrrle.c in Sources */ = {isa = PBXBuildFile; fileRef = 1775C92612A7C1AC004D8E0F /* wrrle.c */; };
 		1775C97012A7C1AC004D8E0F /* wrtarga.c in Sources */ = {isa = PBXBuildFile; fileRef = 1775C92712A7C1AC004D8E0F /* wrtarga.c */; };
+		17792F94228C632C00B0D992 /* edit_plot.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 17792F90228C632B00B0D992 /* edit_plot.jpg */; };
+		17792F95228C632C00B0D992 /* set_current_region.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 17792F91228C632B00B0D992 /* set_current_region.jpg */; };
+		17792F96228C632C00B0D992 /* geo_full.root in Resources */ = {isa = PBXBuildFile; fileRef = 17792F92228C632B00B0D992 /* geo_full.root */; };
+		17792F97228C632C00B0D992 /* evetest.root in Resources */ = {isa = PBXBuildFile; fileRef = 17792F93228C632B00B0D992 /* evetest.root */; };
 		1785285F12B3DA1700966EB2 /* EsbRootView.icns in Resources */ = {isa = PBXBuildFile; fileRef = 1785285E12B3DA1700966EB2 /* EsbRootView.icns */; };
 		1793E74612A7C5E1006D1153 /* ftbase.c in Sources */ = {isa = PBXBuildFile; fileRef = 1793E74312A7C5E1006D1153 /* ftbase.c */; };
 		1793E74712A7C5E1006D1153 /* ftbbox.c in Sources */ = {isa = PBXBuildFile; fileRef = 1793E74412A7C5E1006D1153 /* ftbbox.c */; };
@@ -347,6 +351,10 @@
 		1775C92512A7C1AC004D8E0F /* wrppm.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = wrppm.c; sourceTree = "<group>"; };
 		1775C92612A7C1AC004D8E0F /* wrrle.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = wrrle.c; sourceTree = "<group>"; };
 		1775C92712A7C1AC004D8E0F /* wrtarga.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = wrtarga.c; sourceTree = "<group>"; };
+		17792F90228C632B00B0D992 /* edit_plot.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = edit_plot.jpg; sourceTree = "<group>"; };
+		17792F91228C632B00B0D992 /* set_current_region.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = set_current_region.jpg; sourceTree = "<group>"; };
+		17792F92228C632B00B0D992 /* geo_full.root */ = {isa = PBXFileReference; lastKnownFileType = file; path = geo_full.root; sourceTree = "<group>"; };
+		17792F93228C632B00B0D992 /* evetest.root */ = {isa = PBXFileReference; lastKnownFileType = file; path = evetest.root; sourceTree = "<group>"; };
 		1785285E12B3DA1700966EB2 /* EsbRootView.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = EsbRootView.icns; sourceTree = "<group>"; };
 		1793E74312A7C5E1006D1153 /* ftbase.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftbase.c; sourceTree = "<group>"; };
 		1793E74412A7C5E1006D1153 /* ftbbox.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ftbbox.c; sourceTree = "<group>"; };
@@ -478,6 +486,10 @@
 		17616E9717FD56D400CF91EA /* comres */ = {
 			isa = PBXGroup;
 			children = (
+				17792F90228C632B00B0D992 /* edit_plot.jpg */,
+				17792F93228C632B00B0D992 /* evetest.root */,
+				17792F92228C632B00B0D992 /* geo_full.root */,
+				17792F91228C632B00B0D992 /* set_current_region.jpg */,
 				17F0F00520D53E9400B6D61C /* stop_object_rotate_left.jpg */,
 				17AE828C1FEA803100BD0F4F /* courbd.ttf */,
 				17AE828E1FEA803100BD0F4F /* favicon.ico */,
@@ -1016,9 +1028,12 @@
 				17616EC317FD56D400CF91EA /* clear_event.jpg in Resources */,
 				17616EC417FD56D400CF91EA /* close.jpg in Resources */,
 				17616EC517FD56D400CF91EA /* connect_to_wall.jpg in Resources */,
+				17792F95228C632C00B0D992 /* set_current_region.jpg in Resources */,
 				17AE82921FEA803100BD0F4F /* favicon.ico in Resources */,
 				17616EC617FD56D400CF91EA /* console.jpg in Resources */,
+				17792F96228C632C00B0D992 /* geo_full.root in Resources */,
 				17616EC717FD56D400CF91EA /* crazyeye_run.jpg in Resources */,
+				17792F97228C632C00B0D992 /* evetest.root in Resources */,
 				17616EC817FD56D400CF91EA /* cursor.jpg in Resources */,
 				17616EC917FD56D400CF91EA /* document_export.jpg in Resources */,
 				17616ECA17FD56D400CF91EA /* edit.jpg in Resources */,
@@ -1029,6 +1044,7 @@
 				17616ECF17FD56D400CF91EA /* flip_flop.jpg in Resources */,
 				17616ED017FD56D400CF91EA /* go_home_large.jpg in Resources */,
 				17616ED117FD56D400CF91EA /* helvetica.ttf in Resources */,
+				17792F94228C632C00B0D992 /* edit_plot.jpg in Resources */,
 				17616ED517FD56D400CF91EA /* location_ftp.jpg in Resources */,
 				17616ED617FD56D400CF91EA /* move2red.jpg in Resources */,
 				17616ED717FD56D400CF91EA /* movie_camera.jpg in Resources */,
