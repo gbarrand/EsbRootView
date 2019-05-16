@@ -35,7 +35,7 @@
   cygwin> ./bin_visual/distrib/<app>/<version>/bin/<app>.exe
 
   For the WebGL or tntnet version displaying within a web browser :
-    UNIX> ./bin_[webgl,tntnet]/distrib/<app>/<version>/bin/<app>.exe -verbose -host=0.0.0.0 -port=8000
+    UNIX> ./bin_[webgl,tntnet]/distrib/<app>/<version>/bin/<app> -verbose -host=0.0.0.0 -port=8000
  and then open a page with 0.0.0.0:8000 into a web browser supporting WebGL. (it works for us
  with Safari, Chrome, Firefox running on macOS).
 
