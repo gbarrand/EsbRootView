@@ -41,13 +41,12 @@ public:
 };
 
 inline bool save_ftps(sg::gui_viewer& a_gv,const ftps& a_ftps) {
-  //save ftps in <first_data_dir>/<app>.ftp.
+  //save ftps in <doc_dir>/<app>.ftp.
   //(On devices the res_dir is not writeable).
-  std::string data_dir;
-  a_gv.first_data_dir(data_dir);
-  if(data_dir.empty()) return false;
+  const std::string& doc_dir = a_gv.doc_dir();
+  if(doc_dir.empty()) return false;
   std::string _path;
-  _path = data_dir;
+  _path = doc_dir;
   _path += sep();
   //_path += a_gv.app_name()+".ftp";
   _path += "ftps";
@@ -81,19 +80,18 @@ inline sg::return_action action_open(sg::gui_viewer& a_gv,file_chooser& a_widget
   bool verbose = a_gv.verbose();
 
   // target path :
-  std::string data_dir;
-  a_gv.first_data_dir(data_dir);
-  if(data_dir.empty()) {
-    a_gv.pop_warn(a_data,"no data dir");
+  const std::string& doc_dir = a_gv.doc_dir();
+  if(doc_dir.empty()) {
+    a_gv.pop_warn(a_data,"no doc dir");
     return sg::return_to_render;     
   }
 
-  if(!check_dir(a_gv.out(),data_dir)) {
-    a_gv.pop_warn(a_data,"can't create data dir");
+  if(!check_dir(a_gv.out(),doc_dir)) {
+    a_gv.pop_warn(a_data,"can't create doc dir");
     return sg::return_to_render;     
   }
 
-  std::string _path = data_dir;
+  std::string _path = doc_dir;
   _path += sep();
   _path += base_name(path);
   //file::std_remove(_path);

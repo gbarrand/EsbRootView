@@ -43,7 +43,9 @@ public:
 inline sg::return_action viewer_popup_action_move(sg::gui_viewer& a_gv,const pointer_data& a_data) {
   a_gv.hide_popup();
   sg::node* _node = (sg::node*)a_data.m_data;
-  move_manip::toggle_manip(a_gv,a_gv.out(),a_gv.scene(),*_node,a_gv.verbose());
+  float hcam;
+  a_gv.camera_height_at_focal(hcam);
+  move_manip::toggle_manip(a_gv,a_gv.out(),a_gv.scene(),*_node,hcam,a_gv.verbose());
   return sg::return_to_render;     
 }
 
@@ -57,14 +59,18 @@ inline sg::return_action viewer_popup_action_reset(sg::gui_viewer& a_gv,const po
 inline sg::return_action viewer_popup_action_up(sg::gui_viewer& a_gv,const pointer_data& a_data) {
   a_gv.hide_popup();
   sg::node* _node = (sg::node*)a_data.m_data;
-  move_manip::manip_up(a_gv,a_gv.out(),a_gv.scene(),*_node,a_gv.verbose());
+  float hcam;
+  a_gv.camera_height_at_focal(hcam);
+  move_manip::manip_up(a_gv,a_gv.out(),a_gv.scene(),*_node,hcam,a_gv.verbose());
   return sg::return_to_render;     
 }
 
 inline sg::return_action viewer_popup_action_top(sg::gui_viewer& a_gv,const pointer_data& a_data) {
   a_gv.hide_popup();
   sg::node* _node = (sg::node*)a_data.m_data;
-  move_manip::manip_top(a_gv,a_gv.out(),a_gv.scene(),*_node,a_gv.verbose());
+  float hcam;
+  a_gv.camera_height_at_focal(hcam);
+  move_manip::manip_top(a_gv,a_gv.out(),a_gv.scene(),*_node,hcam,a_gv.verbose());
   return sg::return_to_render;     
 }
 
@@ -1059,19 +1065,24 @@ inline sg::return_action viewer_popup_action_show(sg::gui_viewer& a_gv,sg::node&
   /// add items ////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   sg::add_item(a_gv,*list,a_node.s_cls(),viewer_popup_action_cancel);
-  sg::add_item(a_gv,*list,"edit field",viewer_popup_action_edit,popup_data(a_node,ex,ey));
+
+  if(!a_node.draw_in_frame_buffer()) {
+    popup_data data(a_node,ex,ey);
+    data.m_state = a_event_action.saved_state();
+    data.m_z = a_z;
+    data.m_w = a_w;
+    sg::add_item(a_gv,*list,"center",viewer_popup_action_center,data);
+  }
+  
+  sg::add_item(a_gv,*list,"infos",viewer_popup_action_infos,popup_data(a_node,ex,ey));
+
   sg::add_item(a_gv,*list,"move",viewer_popup_action_move,pointer_data(&a_node));
   sg::add_item(a_gv,*list,"reset",viewer_popup_action_reset,pointer_data(&a_node));
   sg::add_item(a_gv,*list,"up",viewer_popup_action_up,pointer_data(&a_node));
   sg::add_item(a_gv,*list,"top",viewer_popup_action_top,pointer_data(&a_node));
-
- {popup_data data(a_node,ex,ey);
-  data.m_state = a_event_action.saved_state();
-  data.m_z = a_z;
-  data.m_w = a_w;
-  sg::add_item(a_gv,*list,"center",viewer_popup_action_center,data);}
-
-  sg::add_item(a_gv,*list,"infos",viewer_popup_action_infos,popup_data(a_node,ex,ey));
+  
+  sg::add_item(a_gv,*list,"edit field",viewer_popup_action_edit,popup_data(a_node,ex,ey));
+  
   sg::add_item(a_gv,*list,"color",viewer_popup_action_color,popup_data(a_node,ex,ey));
   sg::add_item(a_gv,*list,"draw style",viewer_popup_action_draw_style,popup_data(a_node,ex,ey));
   sg::add_item(a_gv,*list,"shade model",viewer_popup_action_shade_model,popup_data(a_node,ex,ey));

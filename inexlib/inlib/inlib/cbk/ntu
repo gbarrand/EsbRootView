@@ -936,16 +936,16 @@ public:
         sgp->shape_automated = false;
 	
         sgp->x_axis_automated = false;
-        sgp->x_axis_min = xmn;
-        sgp->x_axis_max = xmx;
+        sgp->x_axis_min = float(xmn);
+        sgp->x_axis_max = float(xmx);
 	
         sgp->y_axis_automated = false;
-        sgp->y_axis_min = ymn;
-        sgp->y_axis_max = ymx;
+        sgp->y_axis_min = float(ymn);
+        sgp->y_axis_max = float(ymx);
 	
         sgp->z_axis_automated = false;
-        sgp->z_axis_min = zmn;
-        sgp->z_axis_max = zmx;
+        sgp->z_axis_min = float(zmn);
+        sgp->z_axis_max = float(zmx);
 	
         sgp->points_style(0).color = colorf_blue();
         sgp->points_style(0).modeling = sg::modeling_markers();

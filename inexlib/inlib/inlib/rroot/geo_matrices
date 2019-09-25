@@ -34,7 +34,6 @@ public: //iro
     if(!a_buffer.check_byte_count(s,c,s_store_class())) return false;
     return true;
   }
-
 public:
   static cid id_class() {return geo_identity_cid();}
   virtual void* cast(cid a_class) const {
@@ -43,6 +42,10 @@ public:
   }
   virtual cid id_cls() const {return id_class();}
 
+public:  
+  virtual void dump(std::ostream& a_out) const {
+    a_out << "geo_identity" << std::endl;
+  }
 public:
   geo_identity(ifac& a_fac):geo_matrix(a_fac){
 #ifdef INLIB_MEM
@@ -88,7 +91,6 @@ public: //iro
     if(!a_buffer.check_byte_count(s,c,s_store_class())) return false;
     return true;
   }
-
 public:
   static cid id_class() {return geo_translation_cid();}
   virtual void* cast(cid a_class) const {
@@ -96,7 +98,10 @@ public:
     else return geo_matrix::cast(a_class);
   }
   virtual cid id_cls() const {return id_class();}
-
+public:
+  virtual void dump(std::ostream& a_out) const {
+    a_out << "geo_translation " << m_trans[0] << " " << m_trans[1] << " " << m_trans[2] << std::endl;
+  }
 public:
   geo_translation(ifac& a_fac)
   :geo_matrix(a_fac)
@@ -168,6 +173,10 @@ public:
   virtual cid id_cls() const {return id_class();}
 
 public:
+  virtual void dump(std::ostream& a_out) const {
+    a_out << "geo_scale " << m_scale[0] << " " << m_scale[1] << " " << m_scale[2] << std::endl;
+  }
+public:
   geo_scale(ifac& a_fac)
   :geo_matrix(a_fac)
   {
@@ -236,6 +245,12 @@ public:
   }
   virtual cid id_cls() const {return id_class();}
 
+public:
+  //virtual void dump(std::ostream& a_out) const {
+  //  a_out << "geo_rotation " << m_matrix[0] << " " << m_matrix[1] << " " << m_martix[2] << std::endl;
+  //  a_out << "geo_rotation " << m_matrix[3] << " " << m_matrix[4] << " " << m_martix[5] << std::endl;
+  //  a_out << "geo_rotation " << m_matrix[6] << " " << m_matrix[7] << " " << m_martix[8] << std::endl;
+  //}
 public:
   geo_rotation(ifac& a_fac)
   :geo_matrix(a_fac)

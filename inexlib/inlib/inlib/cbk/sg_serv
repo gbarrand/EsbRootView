@@ -79,7 +79,7 @@ inline inlib::sg::return_action action_sg_serv_finalize(inlib::sg::gui_viewer& a
   return inlib::sg::return_none;
 }
 
-inline inlib::sg::return_action action_sg_serv_main(inlib::sg::gui_viewer& a_gv) {
+inline inlib::sg::return_action action_menu_sg_serv(inlib::sg::gui_viewer& a_gv) {
   inlib::sg::list* list = new inlib::sg::list(a_gv.ttf());
   a_gv.set_style(*list);
 
@@ -89,6 +89,8 @@ inline inlib::sg::return_action action_sg_serv_main(inlib::sg::gui_viewer& a_gv)
   a_gv.push_list(list);
   return inlib::sg::return_to_render;
 }
+
+inline sg::return_action action_sg_serv_main(sg::gui_viewer& a_gv) {return action_menu_sg_serv(a_gv);} //deprecated.
 
 }}
 

@@ -9,6 +9,7 @@
 #include "../smatch"
 #include "../sout"
 #include "../forit"
+#include "../sbeg"
 
 namespace inlib {
 namespace xml {
@@ -33,6 +34,9 @@ public:
 public:
   std::ostream& out() const {return m_out;}
 
+  const sg::cmaps_t& cmaps() const {return m_cmaps;}
+  sg::cmaps_t& cmaps() {return m_cmaps;}
+  
   typedef std::pair<std::string,std::string> style_item_t;
   typedef std::vector<style_item_t> style_t;
   typedef std::pair<std::string,style_t> named_style_t;
@@ -50,6 +54,18 @@ public:
     }
     return 0;
   }
+
+/*
+  style_t* find_style(const std::string& a_name) {
+    inlib_vforit(named_style_t,m_named_styles,it){
+      if((*it).first==a_name) return &((*it).second);
+    }
+    return 0;
+  }
+  void remove_item_in_style(style_t& a_style,const std::string& a_item) {
+    remove<std::string,std::string>(a_style,a_item);
+  }
+*/
 
   void find_styles(const std::string& a_pattern,std::vector<std::string>& a_v) const {
     a_v.clear();
@@ -304,6 +320,29 @@ public:
         m_out << " " << (*vit).first << " " << (*vit).second << std::endl;
       }
 
+    }
+  }
+
+  void print_plotter_style(std::ostream& a_out,const std::string& a_style) { //used in Geant4.
+    std::string _beg = a_style+".";
+    inlib_vforcit(named_style_t,m_named_styles,it) {
+      const std::string& _name = (*it).first;
+      if((_name==a_style)||is_beg(_name,_beg)) {
+        a_out << (*it).first << " :" << std::endl;
+        const style_t& sty = (*it).second;
+        inlib_vforcit(style_item_t,sty,vit) {
+          if((*vit).first=="tag") continue;
+          a_out << " " << (*vit).first << " " << (*vit).second << std::endl;
+        }
+      }
+    }
+  }
+
+  void list_plotter_styles(std::ostream& a_out) {
+    inlib_vforcit(named_style_t,m_named_styles,it) {
+      const style_t& sty = (*it).second;
+      if(!styles::is_plotter_style(sty)) continue;
+      a_out << (*it).first << std::endl;
     }
   }
 protected:

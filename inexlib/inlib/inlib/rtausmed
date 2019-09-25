@@ -5,7 +5,7 @@
 #define inlib_rtausmed
 
 // G.Barrand : not so clear if 0 and 1 are included.
-//             With a simple program, we saw not hits with "if(r.shoot()==0)" or "if(r.shoot()==1)".
+//             With a simple program, we saw no hits with "if(r.shoot()==0)" or "if(r.shoot()==1)".
 //             (See inlib/tests/rand.cpp).
 
 #include "rtausmeui"

@@ -113,21 +113,21 @@ namespace rroot {
 template <class LEAF>
 inline bool find_leaf(tree& a_tree,const std::string& a_name,branch*& a_branch,LEAF*& a_leaf) {
   //used in MEMPHYS sim.
-  base_leaf* base_leaf = a_tree.find_leaf(a_name);
-  if(!base_leaf) {
+  base_leaf* _base_leaf = a_tree.find_leaf(a_name);
+  if(!_base_leaf) {
     a_tree.out() << "inlib::rroot::find_leaf : base_leaf " << sout(a_name) << " not found." << std::endl;
     a_branch = 0;
     a_leaf = 0;
     return false;
   }
-  a_branch = a_tree.find_leaf_branch(*base_leaf);
+  a_branch = a_tree.find_leaf_branch(*_base_leaf);
   if(!a_branch) {
     a_tree.out() << "inlib::rroot::find_leaf : branch of base_leaf " << sout(a_name) << " not found." << std::endl;
     a_branch = 0;
     a_leaf = 0;
     return false;
   }
-  a_leaf = safe_cast<rroot::base_leaf,LEAF>(*base_leaf); //rroot:: is needed, why ?
+  a_leaf = safe_cast<base_leaf,LEAF>(*_base_leaf);
   if(!a_leaf) {
     a_tree.out() << "inlib::rroot::find_leaf : base_leaf " << sout(a_name) << " is not a LEAF." << std::endl;
     a_branch = 0;

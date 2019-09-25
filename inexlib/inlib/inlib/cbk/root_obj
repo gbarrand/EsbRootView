@@ -113,8 +113,10 @@ public:
          {std::string svds = nosuffix(m_file.path());
           svds += ".vds";
           if(svds.size()) {
+            std::vector<std::string> dirs;
+            dirs.push_back(m_gv.doc_dir());
             std::string _path;
-            if(!find_with_dirs(out,m_gv.data_dirs(),svds,_path)){
+            if(!find_with_dirs(out,dirs,svds,_path)){
               //not fatal, arrange without a .vds file.
               //out << "cbk::root_obj::action :"
               //    << " vds file " << svds << " not found."

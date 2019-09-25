@@ -27,6 +27,8 @@ INLIB_GLOBAL_STRING_VALUE(arg_no_decos,-no_decos)
 INLIB_GLOBAL_STRING_VALUE(arg_solid,-solid)
 INLIB_GLOBAL_STRING_VALUE(arg_monitor,-monitor)
 INLIB_GLOBAL_STRING_VALUE(arg_monitors,-monitors)
+INLIB_GLOBAL_STRING_VALUE(arg_terminal,-terminal)
+INLIB_GLOBAL_STRING_VALUE(arg_arg0,-arg0)
 
 }
 

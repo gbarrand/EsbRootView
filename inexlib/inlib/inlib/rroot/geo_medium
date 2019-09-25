@@ -41,6 +41,8 @@ public:
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
 
+    //::printf("debug : geo_mediumn::stream : v %d\n",v);
+    
     std::string name;
     std::string title;  
     if(!Named_stream(a_buffer,name,title)) return false;

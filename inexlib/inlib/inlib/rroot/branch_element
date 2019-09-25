@@ -6,7 +6,9 @@
 
 #include "branch"
 #include "stl_vector"
-//#include "clones_array"
+
+#include "info"
+#include "obj_list"
 
 //#define INLIB_RROOT_BRANCH_ELEMENT_DUMP
 
@@ -109,13 +111,15 @@ public:
   }
 public: //branch
 
-  virtual bool read_leaves(buffer& a_buffer){
+  virtual bool read_leaves(ifile& a_file,buffer& a_buffer){
 
     // For k<type> value, see the below commented enum EReadWrite from ROOT-6.12.06 code.
     static int kInt      = 3;
+    static int kDouble   = 8;
     static int kDouble32 = 9;
     static int kUInt     = 13;
     static int kBits     = 15;  // In v4-00-01 version 8, it is Long64_t.
+    static int kObject   = 61;
     static int kObjectP  = 64;
 
     if(fType==3) { // TClonesArray master branch (has only the number of elements).
@@ -148,6 +152,59 @@ public: //branch
       return true;	    
 	    
     } else if(fType==31) { // TClonesArray sub-branch (contains the elements).
+      if(fStreamerType==kObject) { //to read EsbRoot fgd_dig.root.
+        int ndata = fBranchCount->get_ndata();
+#ifdef INLIB_RROOT_BRANCH_ELEMENT_DUMP	
+        ::printf("debug : %s : fClassName %s : fID %d : kObject : ndata %d\n",m_name.c_str(),fClassName.c_str(),fID,ndata);
+#endif
+        streamer_info* _info = a_file.find_streamer_info(fClassName);
+        if(!_info) {
+          m_out << "inlib::rroot::branch_element::read_leaves : " << sout(m_name) << " :"
+                << " read(kObject) : streamer_infos for ref_cls " << fClassName << " not found."
+                << std::endl;
+          return false;		
+        }
+        streamer_element* _element = _info->find_streamer_element(fID);
+        if(!_element) {
+          m_out << "inlib::rroot::branch_element::read_leaves : " << sout(m_name) << " :"
+                << " read(kObject) : for ref_cls " << fClassName << ", fID " << fID << " streamer element not found."
+                << std::endl;
+          return false;		
+        }
+        //::printf("debug : element type name %s\n",_element->type_name().c_str());
+
+        obj_list* _list = 0;
+        if(!m_obj) {
+          _list = new obj_list(m_fac);
+          m_obj = _list;
+        } else {
+          _list = id_cast<iro,obj_list>(*m_obj);
+          if(!_list) {
+            m_out << "inlib::rroot::branch_element::read_leaves : " << sout(m_name) << " :"
+                  << " read(kObject) : m_obj is not an obj_list."
+                  << std::endl;
+            return false;		  
+          }
+        }
+	
+        _list->safe_clear();
+	
+        for(int index=0;index<ndata;index++) {
+          ifac::args args;
+          iro* _obj = m_fac.create(_element->type_name(),args);
+          if(!_obj) {_list->safe_clear();return false;}
+          if(!_obj->stream(a_buffer)){
+            m_out << "inlib::rroot::branch_element::read_leaves : " << sout(m_name) << " :"
+                  << " kObject : obj stream of class " << sout(_element->type_name())
+                  << " failed at index " << index << " (" << ndata << ")." << std::endl;
+            _list->safe_clear();
+            return false;
+          }
+          _list->add_object(_obj); //give ownership.
+        }
+	
+        return true;
+      }
       if(fStreamerType==kObjectP) return true;
       //from v4-00-01
       if(fStreamerType==kDouble32) {
@@ -176,9 +233,42 @@ public: //branch
             m_out << "inlib::rroot::branch_element::read_leaves : " << sout(m_name) << " :"
                   << " read(float) failed."
                   << std::endl;
+            vec->clear();
+            return false;
           }
           //::printf("debug : zzzz %g\n",afloat);
           (*vec)[ii] = afloat;
+        }
+	
+        return true;
+	
+      } else if(fStreamerType==kDouble) {
+        int ndata = fBranchCount->get_ndata();
+#ifdef INLIB_RROOT_BRANCH_ELEMENT_DUMP	
+        ::printf("debug : %s : fID %d : double : ndata %d\n",m_name.c_str(),fID,ndata);
+#endif
+        stl_vector<double>* vec = 0;
+        if(!m_obj) {
+          vec = new stl_vector<double>;
+          m_obj = vec;
+        } else {
+          vec = id_cast<iro, stl_vector<double> >(*m_obj);
+          if(!vec) {
+            m_out << "inlib::rroot::branch_element::read_leaves : " << sout(m_name) << " :"
+                  << " read(kDouble) : m_obj is not a stl_vector<double>."
+                  << std::endl;
+            return false;		  
+          }
+        }
+	
+        vec->resize(ndata);
+        double* _value = vec_data(*vec);
+        if(!a_buffer.read_fast_array(_value,ndata)) {
+          m_out << "inlib::rroot::branch_element::read_leaves : " << sout(m_name) << " :"
+                << " read_fast_array(double) failed."
+                << std::endl;
+          vec->clear();
+          return false;
         }
 	
         return true;
@@ -208,12 +298,13 @@ public: //branch
           m_out << "inlib::rroot::branch_element::read_leaves : " << sout(m_name) << " :"
                 << " read_fast_array(int) failed."
                 << std::endl;
+          vec->clear();
           return false;
         }
 	
         return true;
 
-     } else if((fStreamerType==kUInt)||(fStreamerType==kBits)) {
+      } else if((fStreamerType==kUInt)||(fStreamerType==kBits)) {
         int ndata = fBranchCount->get_ndata();
 #ifdef INLIB_RROOT_BRANCH_ELEMENT_DUMP	
         if(fStreamerType==kUInt) ::printf("debug : %s : fID %d : uint : ndata %d\n",m_name.c_str(),fID,ndata);
@@ -239,6 +330,7 @@ public: //branch
           m_out << "inlib::rroot::branch_element::read_leaves : " << sout(m_name) << " :"
                 << " read_fast_array(uint) failed."
                 << std::endl;
+          vec->clear();
           return false;
         }
 	
@@ -564,13 +656,28 @@ public:
     stl_vector<T>* od = id_cast<iro, stl_vector<T> >(*m_obj);
     if(!od) {
       m_out << "inlib::rroot::branch_element::object_to_stl_vector :"
-            << " object not a inlib::rroot::stl_vector<T>."
+            << " object of class " << sout(m_obj->s_cls()) << " not a inlib::rroot::stl_vector<T>."
 	    << std::endl;
       return 0;
     }
     return od; //WARNING : we are not owner.
   }
-  
+
+  obj_list* object_to_obj_list() const {
+    if(!m_obj) {
+      m_out << "inlib::rroot::branch_element::object_to_obj_list : there is no object." << std::endl;
+      return 0;
+    }
+    obj_list* od = id_cast<iro,obj_list>(*m_obj);
+    if(!od) {
+      m_out << "inlib::rroot::branch_element::object_to_obj_list :"
+            << " object of class " << sout(m_obj->s_cls()) << " not a inlib::rroot::obj_list."
+	    << std::endl;
+      return 0;
+    }
+    return od; //WARNING : we are not owner.
+  }
+ 
   template <class T>
   stl_vector<T>* find_entry_vec(ifile& a_file,uint64 a_event) {
     unsigned int n;

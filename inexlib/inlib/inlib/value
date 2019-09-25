@@ -797,6 +797,50 @@ public:
     }
   }
 
+/*
+  size_t header_size() const {return header_size(*this);} //used in base_evaluator::dump()
+  static size_t header_size(const value& a_v){
+    switch(a_v.m_type) {
+    case NONE:           return 5;
+
+    case BOOL:           return 5;
+  //case UNSIGNED_CHAR:  return 1;
+  //case CHAR:           return 1;
+    
+    case INT:
+    case UNSIGNED_SHORT:
+    case SHORT:
+    case FLOAT:
+    case UNSIGNED_INT:   return 8;
+    
+    
+    case DOUBLE:
+    case INT64:
+    case UNSIGNED_INT64:
+    case VOID_STAR:
+    case DOUBLE_STAR:
+    case FLOAT_STAR:
+    case INT_STAR:
+    case STRING:         return 12;
+
+    //case ARRAY_UNSIGNED_CHAR:
+    //case ARRAY_CHAR:
+  
+    case ARRAY_UNSIGNED_SHORT:
+    case ARRAY_SHORT:
+    case ARRAY_UNSIGNED_INT:
+    case ARRAY_INT:
+    case ARRAY_UNSIGNED_INT64:
+    case ARRAY_INT64:
+    case ARRAY_FLOAT:
+    case ARRAY_DOUBLE:
+    case ARRAY_BOOL:
+    case ARRAY_STRING:   return 5; //size("array")
+    default: return 8;
+    }
+  }
+*/
+
   bool to_double(double& a_d) const {
     switch(m_type) {
     case INT:

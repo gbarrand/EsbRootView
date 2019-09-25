@@ -287,7 +287,7 @@ inline sg::return_action action_disconnect(sg::gui_viewer& a_gv) {
   return sg::return_none;
 }
 
-inline sg::return_action action_sg_client_main(sg::gui_viewer& a_gv) {
+inline sg::return_action action_menu_sg_client(sg::gui_viewer& a_gv) {
   sg::view_sg_client* vsc = sg::cast_view_sg_client(a_gv);
   if(!vsc) return sg::return_none;
 
@@ -308,6 +308,9 @@ inline sg::return_action action_sg_client_main(sg::gui_viewer& a_gv) {
   a_gv.push_list(list);
   return sg::return_to_render;
 }
+
+inline sg::return_action action_sg_client_main(sg::gui_viewer& a_gv) {return action_menu_sg_client(a_gv);} //deprecated.
+
 
 }}
 

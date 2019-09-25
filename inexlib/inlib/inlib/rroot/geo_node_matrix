@@ -34,6 +34,8 @@ public: //iro
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
 
+    //::printf("debug : geo_node_matrix::stream : v %d\n",v);
+    
     if(!geo_node::stream(a_buffer)) return false;
 
     //TGeoMatrix* fMatrix; // transf. matrix of fNode in fMother system

@@ -384,7 +384,7 @@ public:
   geo_composite_shape(ifac& a_fac)
   :geo_bbox(a_fac)
   ,m_node(0) //not owner
-  ,m_node_created(0)
+  ,m_node_created(false)
   {
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
@@ -398,16 +398,17 @@ public:
   }
 public:
 protected:
+private:
   geo_composite_shape(const geo_composite_shape& a_from)
   :iro(a_from) 
   ,geo_bbox(a_from)
   ,m_node(a_from.m_node)
-  ,m_node_created(a_from.m_node)
+  ,m_node_created(a_from.m_node_created)
   {}
   geo_composite_shape& operator=(const geo_composite_shape& a_from){
     geo_bbox::operator=(a_from);
     m_node = a_from.m_node;
-    m_node_created = a_from.m_node;
+    m_node_created = a_from.m_node_created;
     return *this;
   }
 public:

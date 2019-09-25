@@ -116,6 +116,14 @@ inline const char* os() {
   return s_s;
 }
 
+inline bool _WIN32_defined() {
+#ifdef _WIN32
+  return true;
+#else
+  return false;
+#endif
+}
+
 inline const char* processor() {
 
 #if defined(__GNUC__)

@@ -263,7 +263,7 @@ public: //from a_path
     return cm;
   }
 
-  static bool set_manip(sg::alert& a_ui,std::ostream& a_out,const path_t& a_path,sg::node& a_node,bool a_verbose){
+  static bool set_manip(sg::alert& a_ui,std::ostream& a_out,const path_t& a_path,sg::node& a_node,float a_hcam,bool a_verbose){
     if(a_path.empty()) return false;
   //dump(a_out,a_path);
     sg::group* grp;
@@ -277,19 +277,19 @@ public: //from a_path
       a_out << "inlib::cbk::move_manip::set_manip : found matrix" << std::endl;
     }
     sg::node* asg = a_path[a_path.size()-1];
-    return _set_manip(a_ui,a_out,*asg,a_node,*grp,mtx,a_path,gidx,a_verbose);
+    return _set_manip(a_ui,a_out,*asg,a_node,*grp,mtx,a_path,gidx,a_hcam,a_verbose);
   }
 
 
 public: //from a_node
-  static bool set_manip(sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,sg::node& a_node,bool a_verbose){
+  static bool set_manip(sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,sg::node& a_node,float a_hcam,bool a_verbose){
     sg::search_action sa(a_out);
     const path_t& path = sg::find_path(sa,a_sg,a_node,a_verbose);
-    return set_manip(a_ui,a_out,path,a_node,a_verbose);
+    return set_manip(a_ui,a_out,path,a_node,a_hcam,a_verbose);
   }
 
 
-  static bool toggle_manip(sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,sg::node& a_node,bool a_verbose){
+  static bool toggle_manip(sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,sg::node& a_node,float a_hcam,bool a_verbose){
     sg::search_action sa(a_out);
     const path_t& path = sg::find_path(sa,a_sg,a_node,a_verbose);
     sg::cube_manip* cm = is_maniped(a_out,path,a_node,a_verbose);
@@ -313,7 +313,7 @@ public: //from a_node
       }
       return true;
     } else {
-      return set_manip(a_ui,a_out,path,a_node,a_verbose);
+      return set_manip(a_ui,a_out,path,a_node,a_hcam,a_verbose);
     }
   }
 
@@ -368,7 +368,7 @@ public: //from a_node
     return true;
   }
 
-  static bool manip_up(sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,sg::node& a_node,bool a_verbose){
+  static bool manip_up(sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,sg::node& a_node,float a_hcam,bool a_verbose){
     sg::cube_manip* cm = is_maniped(a_out,a_sg,a_node,a_verbose);
     if(!cm) {
       a_ui.warn("not under a manip");
@@ -407,13 +407,13 @@ public: //from a_node
       return false;
     }
 
-    bool status = _set_manip(a_ui,a_out,a_sg,a_node,*grp,mtx,cm->m_path,gidx,a_verbose);
+    bool status = _set_manip(a_ui,a_out,a_sg,a_node,*grp,mtx,cm->m_path,gidx,a_hcam,a_verbose);
     delete cm;
 
     return status;   
   }
 
-  static bool manip_top(sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,sg::node& a_node,bool a_verbose){
+  static bool manip_top(sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,sg::node& a_node,float a_hcam,bool a_verbose){
     sg::cube_manip* cm = is_maniped(a_out,a_sg,a_node,a_verbose);
     if(!cm) {
       a_ui.warn("not under a manip");
@@ -452,7 +452,7 @@ public: //from a_node
       return false;
     }
 
-    bool status = _set_manip(a_ui,a_out,a_sg,a_node,*grp,mtx,cm->m_path,gidx,a_verbose);
+    bool status = _set_manip(a_ui,a_out,a_sg,a_node,*grp,mtx,cm->m_path,gidx,a_hcam,a_verbose);
     delete cm;
 
     return status;   
@@ -465,6 +465,7 @@ protected:
                          sg::matrix* a_mtx,
                          const path_t& a_path,
                          int a_gidx,
+			 float a_hcam,
                          bool a_verbose){
     // get bbox "after a_mtx in a_grp".
  
@@ -497,10 +498,20 @@ protected:
     //ba.box().dump(a_out);
 
     float dx,dy,dz;
+    /*  the below does not handle properly a single point which has a not empty zero size bbox.
     if(!ba.box().get_cube_size(dx,dy,dz)) {
       a_out << "empty bbox." << std::endl;
       a_ui.warn("empty bounding box");
       return false;
+    }*/
+    if(ba.box().is_empty()) {
+      a_out << "empty bbox." << std::endl;
+      a_ui.warn("empty bounding box");
+      return false;
+    } else {
+      if(!ba.box().get_cube_size(dx,dy,dz)) {  //for example on a single point.
+	dx = dy = dz = a_hcam*0.05f;
+      }
     }
 
     vec3f bc;
@@ -511,9 +522,7 @@ protected:
     }
 
     if(a_verbose) {
-      a_out << "inlib::cbk::move_manip::_set_manip :"
-            << " bbox :"
-            << std::endl;
+      a_out << "inlib::cbk::move_manip::_set_manip : bbox :" << std::endl;
       ba.box().dump(a_out);
     }
 

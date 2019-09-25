@@ -5,6 +5,7 @@
 #define inlib_rroot_fac
 
 #include "../sout"
+#include "../S_STRING"
 
 #include "branch_element"
 #include "branch_object"
@@ -13,7 +14,9 @@
 #include "tree_index"
 #include "stl_vector"
 #include "dummy"
-#include "list"
+#include "obj_list"
+#include "vector3"
+#include "matrix"
 
 #ifdef INLIB_MEM
 #include "../mem"
@@ -24,10 +27,7 @@ namespace rroot {
 
 class fac : public virtual ifac {
 public:
-  static const std::string& s_class() {
-    static const std::string s_v("inlib::rroot::fac");
-    return s_v;
-  }
+  INLIB_SCLASS(inlib::rroot::fac)
 public: //ifac
   virtual std::ostream& out() const {return m_out;}
   virtual iro* create(const std::string& a_class,const args&) {
@@ -77,6 +77,11 @@ public: //ifac
 
     } else if(a_class=="TList") {
       return new obj_list(*this);
+    } else if(a_class=="TVector3") {
+      return new vector3();
+    } else if(a_class=="TMatrix") {
+      return new matrix();
+
     } else if(a_class=="TNamed") {
       return new named();
 

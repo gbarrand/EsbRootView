@@ -50,6 +50,15 @@ public: //iro
     if(!a_buffer.check_byte_count(s,c,s_store_class())) return false;
     return true;
   }
+  virtual void dump(std::ostream& a_out) const {
+    a_out << " d_x=" << m_d_x
+          << " d_y=" << m_d_y
+          << " d_z=" << m_d_z
+          << " o_x=" << m_origin[0]
+          << " o_y=" << m_origin[1]
+          << " o_z=" << m_origin[2]
+          << std::endl;
+  }
 
 public:
   static cid id_class() {return geo_bbox_cid();}
@@ -97,7 +106,10 @@ public:
   double d_x() const {return m_d_x;}
   double d_y() const {return m_d_y;}
   double d_z() const {return m_d_z;}
-  const double* origin() const {return m_origin;}
+  //const double* origin() const {return m_origin;}
+  double origin_x() const {return m_origin[0];}
+  double origin_y() const {return m_origin[1];}
+  double origin_z() const {return m_origin[2];}
 
   void set_d_x(double a_v) {m_d_x = a_v;}
   void set_d_y(double a_v) {m_d_y = a_v;}

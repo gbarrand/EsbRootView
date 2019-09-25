@@ -26,6 +26,7 @@ namespace inlib {
 namespace rroot {
 
 class ntuple : public virtual read::intuple {
+  typedef read::intuple parent;
 public:
   static const std::string& s_class() {
     static const std::string s_v("inlib::rroot::ntuple");
@@ -78,7 +79,7 @@ public:
     virtual ~column_ref(){}
   protected:
     column_ref(const column_ref& a_from)
-    :read::intuple(a_from)
+    :read::icol(a_from)
     ,parent(a_from)
     ,m_file(a_from.m_file)
     ,m_branch(a_from.m_branch) 
@@ -129,7 +130,8 @@ public:
     virtual ~column(){}
   protected:
     column(const column& a_from)
-    :read::intuple(a_from)
+    :read::icol(a_from)
+    ,read::icolumn<T>(a_from)
     ,parent(a_from)
     ,m_value(a_from.m_value)
     {}
@@ -145,6 +147,7 @@ public:
   };
 
   class column_string_ref : public virtual read::icol {
+    typedef read::icol parent;
   public:
     static cid id_class() {
       static const std::string s_v;
@@ -170,7 +173,7 @@ public:
     virtual ~column_string_ref(){}
   protected:
     column_string_ref(const column_string_ref& a_from)
-    :read::icol(a_from)
+    :parent(a_from)
     ,m_file(a_from.m_file)
     ,m_branch(a_from.m_branch)
     ,m_leaf(a_from.m_leaf) 
@@ -357,7 +360,7 @@ public:
     virtual ~std_vector_column_ref(){}
   protected:
     std_vector_column_ref(const std_vector_column_ref& a_from)
-    :read::intuple(a_from)
+    :read::icol(a_from)
     ,parent(a_from)
     ,m_file(a_from.m_file)
     ,m_branch(a_from.m_branch) 
@@ -416,7 +419,7 @@ public:
     virtual ~column_element_ref(){}
   protected:
     column_element_ref(const column_element_ref& a_from)
-    :read::intuple(a_from),parent(a_from)
+    :read::icol(a_from),parent(a_from)
     ,m_file(a_from.m_file)
     ,m_be(a_from.m_be)
     ,m_leaf(a_from.m_leaf) 
@@ -465,7 +468,8 @@ public:
     virtual ~column_element(){}
   protected:
     column_element(const column_element& a_from)
-    :read::intuple(a_from)
+    :read::icol(a_from)
+    ,read::icolumn<T>(a_from)
     ,parent(a_from)
     ,m_value(a_from.m_value)
     {}
@@ -494,7 +498,7 @@ public:
   }
 protected:
   ntuple(const ntuple& a_from)
-  :read::intuple(a_from),m_tree(a_from.m_tree){
+  :parent(a_from),m_tree(a_from.m_tree){
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
 #endif
@@ -526,7 +530,8 @@ public:
       }
 
       //a_out << "inlib::rroot::ntuple::initialize :"
-      //      << " entries " << bl->branch().entry_number() << "."
+      //      << " branch " << _branch->name()
+      //      << ", entries " << _branch->entry_number() << "."
       //      << std::endl;
 
 #define INLIB_RROOT_NTUPLE_CREATE_COL(a__type) \
@@ -696,6 +701,14 @@ public:
             << std::endl;
       return false;
     }
+
+   {inlib_vforcit(column_binding,a_bd.columns(),it) {
+      if(!find_named<read::icol>(m_cols,(*it).name())) {
+        a_out << "inlib::rroot::ntuple::initialize :"
+              << " warning : for column binding with name " << sout((*it).name()) << ", no ntuple column found."
+              << std::endl;
+      }
+    }}
 
     //a_out << "inlib::rroot::ntuple::initialize :"
     //      << " number of columns " << num << "."

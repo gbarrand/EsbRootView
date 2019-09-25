@@ -86,7 +86,8 @@ public:
   ,m_buffer(a_buffer) //don't get ownership.
   ,m_pos(a_buffer)
   ,m_klen(a_klen) //to compute refs (used in read_class, read_object)
-  ,m_map_objs(false)
+//,m_map_objs(false)
+  ,m_map_objs(true)
   {
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
@@ -312,6 +313,12 @@ public:
       obj_offset -= kMapOffset();
       obj_offset -= m_klen;
 
+      if(!m_map_objs) {
+        m_out << "inlib::rroot::buffer::read_object : warning :"
+              << " class " << sout(sclass) << ", is_ref but map objs is not enabled on this buffer."
+              << std::endl;
+      }
+      
       if(m_map_objs) {
 #ifdef INLIB_RROOT_OBJ_MAP_HASH_TABLE
         if(m_objs.find(obj_offset,a_obj)) {
@@ -558,9 +565,7 @@ public:
     return true;
   }
 
-  bool check_byte_count(uint32 a_start_pos,
-                        uint32 a_byte_count,
-                        const std::string& a_store_cls){
+  bool check_byte_count(uint32 a_start_pos,uint32 a_byte_count,const std::string& a_store_cls){
     if(!a_byte_count) return true;
 
     size_t len = a_start_pos + a_byte_count + sizeof(unsigned int);

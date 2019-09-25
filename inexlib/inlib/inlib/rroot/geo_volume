@@ -13,6 +13,7 @@
 #include "geo_volume_cls"
 
 #include "geo_node"
+#include "../forit"
 
 namespace inlib {
 namespace rroot {
@@ -48,6 +49,8 @@ public:
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
 
+    //::printf("debug : geo_volumne::stream : v %d\n",v);
+    
     if(!Named_stream(a_buffer,m_name,m_title)) return false;
 
     if(!GeoAtt_stream(a_buffer)) return false;
@@ -326,11 +329,7 @@ inline T* cast_volume(geo_volume& a_volume) {
   return id_cast<geo_volume,T>(a_volume);
 }
   
-inline bool vol_depth(const geo_volume& a_vol,
-                      unsigned int a_depth,
-                      const std::string& a_name,
-                      int& a_vol_depth) {
-
+inline bool vol_depth(const geo_volume& a_vol,unsigned int a_depth,const std::string& a_name,int& a_vol_depth) {
   if(rcmp(a_name,a_vol.name())) {
     a_vol_depth = (int)a_depth;
     //std::cout << " found at " << a_depth << std::endl;
@@ -338,9 +337,8 @@ inline bool vol_depth(const geo_volume& a_vol,
   }
 
   const std::vector<geo_node*>* nodes = a_vol.nodes();
-  if(nodes) { 
-    std::vector<geo_node*>::const_iterator it;
-    for(it=nodes->begin();it!=nodes->end();++it) {
+  if(nodes) {
+    inlib_vforcit(geo_node*,*nodes,it) {
       if(!vol_depth(*((*it)->volume()),a_depth+1,
                     a_name,a_vol_depth)) return false;
     }
@@ -348,28 +346,21 @@ inline bool vol_depth(const geo_volume& a_vol,
   return true;
 }
 
-inline void tree_voln(const geo_volume& a_vol,
-                      unsigned int a_depth,
-                      unsigned int& a_number) {
+inline void tree_voln(const geo_volume& a_vol,unsigned int a_depth,unsigned int& a_number) {
   a_number++;
   const std::vector<geo_node*>* nodes = a_vol.nodes();
   if(nodes) {
-    std::vector<geo_node*>::const_iterator it;
-    for(it=nodes->begin();it!=nodes->end();++it) {
+    inlib_vforcit(geo_node*,*nodes,it) {
       tree_voln(*((*it)->volume()),a_depth+1,a_number);
     }
   }
 }
 
-inline void vds(const geo_volume& a_vol,
-                unsigned int a_depth,
-                std::vector< std::pair<std::string,unsigned int> >& a_vds){
-
+inline void vds(const geo_volume& a_vol,unsigned int a_depth,std::vector< std::pair<std::string,unsigned int> >& a_vds){
   //must not clear a_vds since this function is recursive.
-
- {std::vector< std::pair<std::string,unsigned int> >::const_iterator it;
-  const std::string& name = a_vol.name();
+ {const std::string& name = a_vol.name();
   bool found = false; 
+  std::vector< std::pair<std::string,unsigned int> >::const_iterator it;
   for(it=a_vds.begin();it!=a_vds.end();++it) {
     if(rcmp((*it).first,name)) {found=true;break;}
   }
@@ -379,12 +370,50 @@ inline void vds(const geo_volume& a_vol,
 
  {const std::vector<geo_node*>* nodes = a_vol.nodes();
   if(nodes) {
-    std::vector<geo_node*>::const_iterator it;
-    for(it=nodes->begin();it!=nodes->end();++it) {
+    inlib_vforcit(geo_node*,*nodes,it) {
       vds(*((*it)->volume()),a_depth+1,a_vds);
     }
   }}
 }
+
+inline const geo_volume* find_by_name(const geo_volume& a_vol,const std::string& a_name) {
+  if(a_vol.name()==a_name) return &a_vol;
+  const std::vector<geo_node*>* nodes = a_vol.nodes();
+  if(nodes) {
+    inlib_vforcit(geo_node*,*nodes,it) {
+      const geo_volume* vol = find_by_name(*((*it)->volume()),a_name);
+      if(vol) return vol;
+    }
+  }
+  return 0;
+}
+
+inline void find_and_dump_volume(std::ostream& a_out,const geo_volume& a_master,const std::string& a_name) {
+  const geo_volume* vol = find_by_name(a_master,a_name);
+  if(!vol) {
+    a_out << "volume " << sout(a_name) << " not found." << std::endl;
+    return;
+  }
+  const geo_shape* shape = vol->shape();
+  if(!shape) {
+    a_out << "volume " << sout(a_name) << " has no shape." << std::endl;
+    return;
+  }
+  a_out << "volume " << sout(a_name) << " :" << std::endl;
+  a_out << "shape class " << sout(shape->s_cls()) << std::endl;
+  shape->dump(a_out);
+}
+  
+/* example :
+   {const inlib::rroot::geo_volume* vol = inlib::rroot::find_by_name(*master,"wc");
+    if(vol) {
+      const inlib::rroot::geo_shape* shape = vol->shape();
+      ::printf("debug : wc shape %s\n",shape->s_cls().c_str());
+      const inlib::rroot::geo_tube* tube = inlib::rroot::cast_shape<inlib::rroot::geo_tube>(*shape);
+      if(tube) ::printf("debug : tube %g %g %g\n",tube->rmin(),tube->rmax(),tube->dz());
+      
+    }}
+*/
 
 }}
 
@@ -393,15 +422,11 @@ inline void vds(const geo_volume& a_vol,
 namespace inlib {
 namespace rroot {
 
-inline void max_depth(const geo_volume& a_vol,
-                          unsigned int a_depth,
-                          unsigned int& a_max_depth) {
+inline void max_depth(const geo_volume& a_vol,unsigned int a_depth,unsigned int& a_max_depth) {
   a_max_depth = max_of(a_depth+1,a_max_depth);
-
   const std::vector<geo_node*>* nodes = a_vol.nodes();
   if(nodes) {
-    std::vector<geo_node*>::const_iterator it;
-    for(it=nodes->begin();it!=nodes->end();++it) {
+    inlib_vforcit(geo_node*,*nodes,it) {
       max_depth(*((*it)->volume()),a_depth+1,a_max_depth);
     }
   }

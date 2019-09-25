@@ -90,6 +90,14 @@ inline bool find(const std::map<K,V>& a_map,const K& a_key,V& a_value) {
   return true;
 }
 
+template <class K,class V>
+inline bool is_key(const std::map<K,V>& a_map,const K& a_key) {
+  typedef typename std::map<K,V>::const_iterator it_t;
+  it_t it = a_map.find(a_key);
+  if(it==a_map.end()) return false;
+  return true;
+}
+
 }
 
 #endif

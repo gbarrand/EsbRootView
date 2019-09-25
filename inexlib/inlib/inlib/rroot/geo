@@ -68,9 +68,7 @@ public:
     end_update_sg(a_out);
   }
 
-  virtual const std::string& volume_name(const geo_volume& a_vol) const {
-    return a_vol.name();
-  }
+  virtual const std::string& volume_name(const geo_volume& a_vol) const {return a_vol.name();}
 
   virtual bool volume_material_color(std::ostream& a_out,const geo_volume& a_vol,colorf& a_color) {
     short coli = a_vol.line_color();
@@ -85,11 +83,7 @@ public:
     return true;
   }
 
-  virtual bool add_shape(std::ostream& a_out,
-                         const geo_volume& a_vol,
-                         const mat4f& a_matrix,
-                         sg::separator& a_sep,
-                         bool a_solid) {
+  virtual bool add_shape(std::ostream& a_out,const geo_volume& a_vol,const mat4f& a_matrix,sg::separator& a_sep,bool a_solid) {
     if(!sep_add_shape(a_out,a_sep,*(a_vol.shape()),a_matrix,a_solid)) {
       a_out << "inlib::rroot::geo::add_shape :" 
             << " sep_add_shape failed."
@@ -102,10 +96,7 @@ public:
     return true;
   }
 
-  virtual bool vis_children(std::ostream& a_out,
-                            const geo_volume& a_vol,
-                            const mat4f& a_matrix,
-                            unsigned int a_depth) {
+  virtual bool vis_children(std::ostream& a_out,const geo_volume& a_vol,const mat4f& a_matrix,unsigned int a_depth) {
 
     const std::vector<geo_node*>* nodes = a_vol.nodes();
     if(!nodes) return true;
@@ -217,8 +208,7 @@ public:
   
           mtx = a_matrix;
 
-          mtx.mul_translate(0,0,
-                          patz->is_reflected()?-float(offset):-float(offset));
+          mtx.mul_translate(0,0,patz->is_reflected()?-float(offset):float(offset));
   
           if(!_vis_volume(a_out,*vol,mtx,a_depth+1)) return false;
   
@@ -259,7 +249,7 @@ public:
           // See TGeoPatternTrapZ::cd().
           mtx.mul_translate(float(offset*trapz->txz()),
                             float(offset*trapz->tyz()),
-                           trapz->is_reflected()?-float(offset):float(offset));
+                            trapz->is_reflected()?-float(offset):float(offset));
   
           if(!_vis_volume(a_out,*vol,mtx,a_depth+1)) return false;
   

@@ -98,7 +98,7 @@ inline void removep(std::vector<T*>& a_vec,const T* a_elem) {
 }
 
 template <class T>
-inline bool is_in(const std::vector<T*>& a_vec,const T* a_item){
+inline bool is_inp(const std::vector<T*>& a_vec,const T* a_item){
   typedef typename std::vector<T*>::const_iterator it_t;
   it_t it;
   for(it=a_vec.begin();it!=a_vec.end();++it) {
@@ -167,6 +167,16 @@ inline void unique(std::vector<T>& a_vec) {
       }
     }
   }
+}
+
+template <class T>
+inline bool is_in(const std::vector<T>& a_vec,const T& a_item){
+  typedef typename std::vector<T>::const_iterator it_t;
+  it_t it;
+  for(it=a_vec.begin();it!=a_vec.end();++it) {
+    if(*it==a_item) return true;
+  }
+  return false;
 }
 
 template <class T>

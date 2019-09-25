@@ -38,7 +38,8 @@ public: //iro
     if(!a_buffer.check_byte_count(s,c,s_store_class())) return false;
     return true;
   }
-
+public:
+  virtual void dump(std::ostream&) const {}
 public:
   static cid id_class() {return geo_matrix_cid();}
   virtual void* cast(cid a_class) const {

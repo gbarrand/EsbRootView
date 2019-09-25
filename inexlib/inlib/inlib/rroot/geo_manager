@@ -7,7 +7,7 @@
 #include "../sout"
 #include "../vpair"
 #include "named"
-#include "list"
+#include "hash_list"
 #include "dummy"
 
 #include "geo_matrices"
@@ -148,6 +148,8 @@ public: //ifac
       return create<geo_medium>();
 
     //geo_material :
+    } else if(rcmp(a_class,"TGeoElement")) {
+      return create<geo_element>();
     } else if(rcmp(a_class,"TGeoMaterial")) {
       return create<geo_material>();
     } else if(rcmp(a_class,"TGeoMixture")) {
@@ -665,6 +667,7 @@ public:
   int nlevel() const {return m_nLevel;}
   int max_vis_nodes() const {return m_max_vis_nodes;}
 
+  const iros& volumes() const {return m_volumes;}
 public:
   const geo_fac& factory() const {return m_fac;}
   //geo_fac& factory() {return m_fac;}
@@ -716,7 +719,7 @@ public:
         }
         if(!found) {
           a_names.push_back(_name);
-          const rroot::geo_shape* shape = vol->shape();
+          const geo_shape* shape = vol->shape();
           a_shapes.push_back(shape?shape->s_cls():"no shape");
         }
       }

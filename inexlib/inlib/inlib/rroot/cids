@@ -48,6 +48,10 @@ inline cid stl_vector_cid()        {return base_cid()+33;} //+12=45
 inline cid stl_vector_vector_cid() {return base_cid()+46;} //+12=58
 
 inline cid clones_array_cid()   {return base_cid()+60;}
+inline cid vector3_cid()        {return base_cid()+61;}
+
+inline cid stl_vector_obj_cid() {return base_cid()+100;}
+
 }}
 
 #endif

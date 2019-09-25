@@ -56,7 +56,7 @@ public:
         txt.push_back(s);
       }}
 
-      m_gv.gui_text(txt);
+      m_gv.gui_scroll_text(txt);
 
       return sg::return_to_render;     
     }
