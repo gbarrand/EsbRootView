@@ -4,10 +4,10 @@
 #ifndef EsbRootView_EsbRootView_version
 #define EsbRootView_EsbRootView_version
 
-#define ESBROOTVIEW_MAJOR_VERSION 1
+#define ESBROOTVIEW_MAJOR_VERSION 2
 #define ESBROOTVIEW_MINOR_VERSION 0
 #define ESBROOTVIEW_PATCH_VERSION 0
-#define ESBROOTVIEW_VERSION "1.0.0"
-#define ESBROOTVIEW_VERSION_VRP "v1r0p0"
+#define ESBROOTVIEW_VERSION "2.0.0"
+#define ESBROOTVIEW_VERSION_VRP "v2r0p0"
 
 #endif

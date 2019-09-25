@@ -6,8 +6,6 @@
    macOS> ./build -x11 -bin_x11  # to build the X11 version.
     UNIX> ./build -offscreen -bin_offscreen  # to build the pure offscreen version.
     UNIX> ./build -webgl -bin_webgl    # to display within a web browser.
-    UNIX> ./build -tntnet -bin_tntnet  # to display within a web browser by having
-                                       # a full-fledged web server. (Not available on Windows).
     
  (here UNIX is for Linux, macOS, Windows-10/cygwin)
 

@@ -1,3 +1,54 @@
+ - insh cmds : handle -color -point_size options.
+ - insh cmds : handle -cut option.
+ - insh cmds : handle -<key>=<value> options.
+ - plot_wc_cherenkov_time.
+ - picking infos on MCTrack_not_cherenkov arrows.
+ - EsbRootView.style : have the default styles :
+    MCTracks_not_cherenkov, MCTracks_cherenkov, one_cherenkov,
+    WCDetectorPoints_cherenkov, WCDetectorPoints_not_cherenkov,
+    FgdDetectorPoints_gamma, FgdDetectorPoints_not_gamma, FgdDetectorPoints
+    FgdHits, FgdDigis,
+    anim_by_time, MCTrack_arrow,
+    geo_near, geo_far, geo_fgd.
+ - anim by time.
+ - camera panel left : add the "vis event" button (0,3) to redraw the current event (and/or exec again the vis_event.insh script).
+ - background_popup : "event infos" menu item.
+ - startup.insh, vis_event.insh.
+ - insh commands :
+   open_default_file => evetest_near.root
+   open_file, open_data_res_file
+   load_style_file
+   next_event
+   show_plots, hide_plots
+   # vis detector items (nodes put in the "static scene graph" :
+   set_neard_camera, vis_neard_geo_wc, vis_neard_floor, vis_neard_sarah, vis_neard_plot_wc_points
+   set_fard_camera, vis_fard_geo_wc, vis_fard_floor, vis_fard_sarah, vis_fard_plot_wc_points
+   vis_Esb_SuperFGD
+   # vis event items (nodes put in the "dynamic scene graph" :
+   vis_WCDetectorPoints_cherenkov
+   vis_WCDetectorPoints_not_cherenkov
+   vis_WCDetectorPoints
+   vis_plots
+   vis_EsbFgdDetectorPoints
+   vis_MCTracks_not_cherenkov
+   vis_MCTracks_cherenkov
+   vis_FgdDetectorPoints
+   vis_FgdDetectorPoints_gamma
+   vis_FgdDetectorPoints_not_gamma
+   vis_FgdHits
+   vis_FgdDigis
+ - menu items :
+   near/wc, far/wc, Esb/SuperFGD.
+   setup near, setup far.
+   flooar near, floor far.
+ - avatars : sarah near, sarah far.   
+ - have in resources :
+   evetest_[near,far,fgd].root
+   geo_full_[near,far,fgd].root
+ - handle FgdHit and FgdDigi.
+ - vis_EsbMCTracks_no_cherenkov.
+ - event_model, read_event : from inlib now in EsbRootView.
+
 1.0.0 :
  - have 2D plot.
  - Cocoa : have icons. Copy the ones of MEMPHYS_vis.

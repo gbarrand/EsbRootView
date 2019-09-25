@@ -12,8 +12,29 @@ bush_home=../../bush
 #//////////////////////////////////////////////////////
 #//////////////////////////////////////////////////////
 
+cppfiles="${cppfiles} ${inlib_home}/inlib/yacc/cexpr_lexer.cpp"
+cppfiles="${cppfiles} ${inlib_home}/inlib/yacc/cexpr_eval.cpp"
+
+if [ ${build_x11} = yes ] ; then
+  cppflags="${cppflags} -DEXLIB_APP_HAS_TERM -DEXLIB_APP_TERM_INSH"
+  use_Getline=yes
+fi
+if [ ${build_sdk_mac} = yes ] ; then
+  cppflags="${cppflags} -DEXLIB_APP_HAS_TERM -DEXLIB_APP_TERM_INSH"
+  use_Getline=yes
+fi
+if [ ${build_visual} = yes ] ; then
+  cppflags="${cppflags} -DEXLIB_APP_HAS_TERM -DEXLIB_APP_TERM_INSH"
+  use_Getline=yes
+fi
+
+#//////////////////////////////////////////////////////
+#//////////////////////////////////////////////////////
+#//////////////////////////////////////////////////////
+
 use_csz=yes
 
+. ${bush_home}/use/Getline
 . ${bush_home}/use/csz
 
 . ${bush_home}/app_trailer_use
