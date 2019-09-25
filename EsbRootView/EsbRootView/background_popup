@@ -1,0 +1,67 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef EsbRootView_background_popup
+#define EsbRootView_background_popup
+
+#include "dac"
+
+#include <inlib/cbk/dummy>
+#include <inlib/cbk/popup>
+#include <inlib/sg/background>
+
+namespace EsbRootView {
+
+inline inlib::sg::return_action action_event_infos(inlib::sg::gui_viewer& a_gv,const inlib::sg::pos_data& a_data) {
+  inlib::sg::list* list = new inlib::sg::list(a_gv.ttf());
+  a_gv.set_style(*list);
+  list->label.value("event infos");
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac || _dac->event_infos().empty()) {
+    list->add("no infos",new inlib::cbk::dummy);
+  } else {
+    inlib_vforcit(std::string,_dac->event_infos(),it) list->add(*it,new inlib::cbk::dummy);
+  }
+  a_gv.show_widget(a_data,list);
+  return inlib::sg::return_to_render;
+}
+
+inline inlib::sg::return_action action_geo_infos(inlib::sg::gui_viewer& a_gv,const inlib::sg::pos_data& a_data) {
+  inlib::sg::list* list = new inlib::sg::list(a_gv.ttf());
+  a_gv.set_style(*list);
+  list->label.value("geo infos");
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac || _dac->geo_infos().empty()) {
+    list->add("no infos",new inlib::cbk::dummy);
+  } else {
+    inlib_vforcit(std::string,_dac->geo_infos(),it) list->add(*it,new inlib::cbk::dummy);
+  }
+  a_gv.show_widget(a_data,list);
+  return inlib::sg::return_to_render;
+}
+
+class background_popup : public inlib::cbk::popup {
+  typedef inlib::cbk::popup parent;
+public:
+  virtual void add_items(inlib::sg::ilist& a_list,int a_x,int a_y) const {
+    inlib::sg::add_item(m_gv,a_list,"event infos",action_event_infos,inlib::sg::pos_data(true,a_x,a_y));
+    inlib::sg::add_item(m_gv,a_list,"geo infos",action_geo_infos,inlib::sg::pos_data(true,a_x,a_y));
+    inlib::sg::add_item_insh(m_gv,a_list,"show plots","plots_show");
+    inlib::sg::add_item_insh(m_gv,a_list,"hide plots","plots_hide");
+  }
+public:
+  virtual inlib::sg::bcbk* copy() const {return new background_popup(*this);}
+public:
+  background_popup(inlib::sg::gui_viewer& a_gv)
+  :parent(inlib::sg::background::s_class(),0),m_gv(a_gv){}
+  virtual ~background_popup(){}
+protected:
+  background_popup(const background_popup& a_from):parent(a_from),m_gv(a_from.m_gv){}
+  background_popup& operator=(const background_popup& a_from){parent::operator=(a_from);return *this;}
+protected:
+  inlib::sg::gui_viewer& m_gv;
+};
+
+}
+
+#endif

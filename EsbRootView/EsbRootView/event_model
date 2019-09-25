@@ -1,0 +1,504 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef EsbRootView_event_model
+#define EsbRootView_event_model
+
+#ifdef INLIB_MEM
+#include <inlib/mem>
+#include <inlib/S_STRING>
+#endif //INLIB_MEM
+
+#include <cmath>
+#include <cfloat>
+
+#include <inlib/hep/pdgs>
+#include <inlib/hep/pdg>
+#include <inlib/hep/spdg>
+#include <inlib/num2s>
+
+class EsbMCTrack {
+#ifdef INLIB_MEM
+  INLIB_SCLASS(EsbMCTrack)
+#endif
+public:
+  typedef double double32; //ROOT stuff, a double, but stored in file as float (!).
+public:
+  EsbMCTrack(int a_pdg_code,int a_mother_id,
+             double a_px,double a_py,double a_pz,
+             double a_x,double a_y,double a_z,double a_t,
+             int a_npoints,int a_container_index)
+  :fPdgCode(a_pdg_code),fMotherId(a_mother_id)
+  ,fPx(a_px),fPy(a_py),fPz(a_pz)
+  ,fStartX(a_x),fStartY(a_y),fStartZ(a_z),fStartT(a_t)
+  ,fNPoints(a_npoints)
+  ,m_container_index(a_container_index)
+  ,m_inited(false)
+  ,m_mass(0),m_energy(0),m_rapidity(0),m_name()
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  virtual ~EsbMCTrack() {
+#ifdef INLIB_MEM
+    inlib::mem::decrement(s_class().c_str());
+#endif    
+  }
+public:
+protected:
+  EsbMCTrack(const EsbMCTrack& a_from)
+  :fPdgCode(a_from.fPdgCode),fMotherId(a_from.fMotherId)
+  ,fPx(a_from.fPx),fPy(a_from.fPy),fPz(a_from.fPz)
+  ,fStartX(a_from.fStartX),fStartY(a_from.fStartY),fStartZ(a_from.fStartZ),fStartT(a_from.fStartT)
+  ,fNPoints(a_from.fNPoints)
+  ,m_container_index(-1)
+  ,m_inited(false)
+  ,m_mass(0),m_energy(0),m_rapidity(0),m_name()
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  EsbMCTrack& operator=(const EsbMCTrack& a_from) {
+    fPdgCode = a_from.fPdgCode;
+    fMotherId = a_from.fMotherId;
+    fPx = a_from.fPx;
+    fPy = a_from.fPy;
+    fPz = a_from.fPz;
+    fStartX = a_from.fStartX;
+    fStartY = a_from.fStartY;
+    fStartZ = a_from.fStartZ;
+    fStartT = a_from.fStartT;
+    fNPoints = a_from.fNPoints;
+    m_container_index = -1;
+    m_inited = false;
+    m_mass = 0;
+    m_energy = 0;
+    m_rapidity = 0;
+    m_name.clear();
+    return *this;
+  }
+public:
+  int GetPdgCode()  const { return fPdgCode;}
+  int GetMotherId() const { return fMotherId;}
+  double GetPx()       const { return fPx; }
+  double GetPy()       const { return fPy; }
+  double GetPz()       const { return fPz; }
+  double GetStartX()   const { return fStartX; }
+  double GetStartY()   const { return fStartY; }
+  double GetStartZ()   const { return fStartZ; }
+  double GetStartT()   const { return fStartT; }
+
+  int container_index() const {return m_container_index;}
+
+  //bool inited() const {return m_inited;}
+public:
+  double GetPt() const {return ::sqrt(fPx*fPx+fPy*fPy);}
+  double GetP() const {return ::sqrt(fPx*fPx+fPy*fPy+fPz*fPz);}
+public:  
+  void initialize(const inlib::hep::pdgs& a_pdgs) {
+    if(m_inited) return;    
+    const inlib::hep::particle* pdef = a_pdgs.find_particle(fPdgCode);
+    if(pdef) {
+      m_mass = pdef->mass();
+      set_energy_and_rapidity();
+      m_name = pdef->name();
+    } else if(fPdgCode==inlib::pdg::cherenkov()) {
+      m_mass = 0;
+      set_energy_and_rapidity();
+      m_name = inlib::hep::s_opticalphoton();
+    } else {
+      int ion_s,ion_z,ion_a;
+      if(pdg_is_ion(fPdgCode,ion_s,ion_z,ion_a)) {
+        //a_pdgs.out() << "EsbMCTrack::initialize :"
+        //             << " pdg code " << fPdgCode << " is ion :"
+        //             << " s " << ion_s << " z " << ion_z << " a " << ion_a << "."
+        //             << std::endl;
+        const inlib::hep::particle* proton = a_pdgs.find_particle(inlib::pdg::proton());
+        const inlib::hep::particle* neutron = a_pdgs.find_particle(inlib::pdg::neutron());
+        if(!proton || !neutron) {
+          a_pdgs.out() << "EsbMCTrack::initialize :"
+                       << " proton or neutron not found in inlib::hep::pdgs." << std::endl;
+          m_mass = 0;
+          m_energy = 0;
+          m_rapidity = 0;
+          m_name = "??";
+	} else {
+          m_mass = (ion_a-ion_z)*neutron->mass()+ion_z*proton->mass();
+          set_energy_and_rapidity();
+          inlib::num2s(fPdgCode,m_name);
+	}
+      } else {
+        a_pdgs.out() << "EsbMCTrack::initialize :"
+                     << " pdg code " << fPdgCode << " not in inlib::hep::pdgs." << std::endl;
+        m_mass = 0;
+        m_energy = 0;
+        m_rapidity = 0;
+        m_name = "?";
+      }
+    }
+    m_inited = true;
+  }
+  double GetMass() const {return m_mass;}
+  double GetEnergy() const {return m_energy;}
+  double GetRapidity() const {return m_rapidity;}
+  const std::string& name() const {return m_name;}
+protected:
+  static bool pdg_is_ion(int a_pdg,int& a_s,int& a_z,int& a_a) {
+    // in FairParticle ion cstor, we have : fpdg(1000000000+10000000*s+10000*z+10*a).
+    //if(a_pdg<0) return false;
+    int div,rest = a_pdg;
+    div = rest/1000000000;rest = rest-div*1000000000;
+    div = rest/10000000;rest = rest-div*10000000;a_s = div;
+    div = rest/10000;rest = rest-div*10000;a_z = div;
+    div = rest/10;rest = rest-div*10;a_a = div;
+    return (1000000000+10000000*a_s+10000*a_z+10*a_a==a_pdg?true:false);
+  }
+  void set_energy_and_rapidity() {
+    m_energy = ::sqrt(m_mass*m_mass + fPx*fPx + fPy*fPy + fPz*fPz);
+    if(m_energy==fPz) {
+      m_rapidity = DBL_MAX;
+    } else {
+      m_rapidity = 0.5 * ::log( (m_energy+fPz) / (m_energy-fPz) );
+    }
+  }  
+protected:
+  int fPdgCode;
+  int fMotherId;  // Index of mother track. -1 for primary particles.
+  double32 fPx, fPy, fPz; // Momentum components at start vertex [GeV].
+  double32 fStartX, fStartY, fStartZ, fStartT; // Coordinates of start vertex [cm, ns].
+  int fNPoints;
+  int m_container_index;
+  // optimisation :
+  bool m_inited;
+  double m_mass;
+  double m_energy;
+  double m_rapidity;
+  std::string m_name;
+};
+
+class EsbDetectorPoint {
+#ifdef INLIB_MEM
+  INLIB_SCLASS(EsbDetectorPoint)
+#endif  
+public:
+  typedef double double32; //ROOT stuff, a double, but stored in file as float (!).
+public:
+  EsbDetectorPoint(unsigned int a_event_id,int a_track_id,
+                   double a_px,double a_py,double a_pz,
+                   double a_time,
+                   double a_x,double a_y,double a_z,
+                   double a_length,double a_eloss,int a_detector_id,int a_container_index)
+  :fEventId(a_event_id),fTrackID(a_track_id)
+  ,fPx(a_px),fPy(a_py),fPz(a_pz)
+  ,fTime(a_time)
+  ,fX(a_x),fY(a_y),fZ(a_z)
+  ,fLength(a_length),fELoss(a_eloss),fDetectorID(a_detector_id)
+  ,m_container_index(a_container_index)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  virtual ~EsbDetectorPoint() {
+#ifdef INLIB_MEM
+    inlib::mem::decrement(s_class().c_str());
+#endif    
+  }
+protected:
+  EsbDetectorPoint(const EsbDetectorPoint&)
+  :m_container_index(-1)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  EsbDetectorPoint& operator=(const EsbDetectorPoint&) {
+    m_container_index = -1;
+    return *this;
+  }
+public:
+  unsigned int GetEventID() const {return fEventId;}
+  int GetTrackID() const {return fTrackID; }
+  double GetPx()  const {return fPx; }
+  double GetPy()  const {return fPy; }
+  double GetPz()  const {return fPz; }
+  double GetTime() const {return fTime;}
+  double GetX()   const {return fX; }
+  double GetY()   const {return fY; }
+  double GetZ()   const {return fZ; }
+  double GetLength() const { return fLength;}
+  double GetEnergyLoss() const {return fELoss;}
+  int GetDetectorID() const {return fDetectorID;}
+  int container_index() const {return m_container_index;}
+public:  
+  double GetP() const {return ::sqrt(fPx*fPx+fPy*fPy+fPz*fPz);}
+protected:
+  int fTrackID;            ///< Track index
+  unsigned int fEventId;   ///< MC Event id
+  double32 fPx, fPy, fPz;  ///< Momentum of track at entrance [GeV].
+  double32 fTime;          ///< Time since event start [ns]
+  double32 fX, fY, fZ;     ///< Position of hit [cm]
+  double32 fLength;        ///< Track length since creation [cm]
+  double32 fELoss;         ///< Energy loss at this point [GeV]
+  int fDetectorID;         ///< Detector unique identifier
+  int m_container_index;
+};
+
+class EsbHit {
+#ifdef INLIB_MEM
+  INLIB_SCLASS(EsbHit)
+#endif  
+public:
+  typedef double double32; //ROOT stuff, a double, but stored in file as float (!).
+public:
+  EsbHit(double a_dx,double a_dy,double a_dz,
+         int a_ref_index,int a_detector_id,
+         double a_x,double a_y,double a_z,
+         double a_time_stamp,double a_time_stamp_error)
+  :fDx(a_dx),fDy(a_dy),fDz(a_dz)
+  ,fRefIndex(a_ref_index)
+  ,fDetectorID(a_detector_id)
+  ,fX(a_x),fY(a_y),fZ(a_z)
+  ,m_time_stamp(a_time_stamp),m_time_stamp_error(a_time_stamp_error)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  virtual ~EsbHit() {
+#ifdef INLIB_MEM
+    inlib::mem::decrement(s_class().c_str());
+#endif    
+  }
+public:
+  EsbHit(const EsbHit& a_from)
+  :fDx(a_from.fDx)
+  ,fDy(a_from.fDy)
+  ,fDz(a_from.fDz)
+  ,fRefIndex(a_from.fRefIndex)
+  ,fDetectorID(a_from.fDetectorID)
+  ,fX(a_from.fX)
+  ,fY(a_from.fY)
+  ,fZ(a_from.fZ)
+  ,m_time_stamp(a_from.m_time_stamp)
+  ,m_time_stamp_error(a_from.m_time_stamp_error)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  EsbHit& operator=(const EsbHit& a_from) {
+    fDx = a_from.fDx;
+    fDy = a_from.fDy;
+    fDz = a_from.fDz;
+    fRefIndex = a_from.fRefIndex;
+    fDetectorID = a_from.fDetectorID;
+    fX = a_from.fX;
+    fY = a_from.fY;
+    fZ = a_from.fZ;
+    m_time_stamp = a_from.m_time_stamp;
+    m_time_stamp_error = a_from.m_time_stamp_error;
+    return *this;
+  }
+public:
+  double GetDx()  const {return fDx; }
+  double GetDy()  const {return fDy; }
+  double GetDz()  const {return fDz; }
+  int GetRefIndex() const {return fRefIndex; }
+  int GetDetectorID() const {return fDetectorID;}
+  double GetX()   const {return fX; }
+  double GetY()   const {return fY; }
+  double GetZ()   const {return fZ; }
+  double GetTimeStamp() const {return m_time_stamp;}
+  double GetTimeStampError() const {return m_time_stamp_error;}
+protected:
+  double32 fDx, fDy, fDz;  ///< Errors of position [cm]
+  int fRefIndex;           ///< Index of FairMCPoint for this hit
+  int fDetectorID;         ///< Detector unique identifier
+  double32 fX, fY, fZ;     ///< Position of hit [cm]
+  double m_time_stamp;
+  double m_time_stamp_error;
+};
+
+class EsbFgdHit : public EsbHit {
+  typedef EsbHit parent;
+#ifdef INLIB_MEM
+  INLIB_SCLASS(EsbFgdHit)
+#endif  
+public:
+  EsbFgdHit(double a_dx,double a_dy,double a_dz,
+            int a_ref_index,int a_detector_id,
+            double a_x,double a_y,double a_z,
+            double a_time_stamp,double a_time_stamp_error,
+            double a_mppc_x,double a_mppc_y,double a_mppc_z,
+            double a_photoE_x,double a_photoE_y,double a_photoE_z,int a_container_index)
+  :parent(a_dx,a_dy,a_dz,a_ref_index,a_detector_id,a_x,a_y,a_z,a_time_stamp,a_time_stamp_error)
+  ,m_mppc_x(a_mppc_x),m_mppc_y(a_mppc_y),m_mppc_z(a_mppc_z)
+  ,m_photoE_x(a_photoE_x),m_photoE_y(a_photoE_y),m_photoE_z(a_photoE_z)
+  ,m_container_index(a_container_index)
+  ,m_added(0)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  virtual ~EsbFgdHit() {
+#ifdef INLIB_MEM
+    inlib::mem::decrement(s_class().c_str());
+#endif    
+  }
+public:
+  EsbFgdHit(const EsbFgdHit& a_from)
+  :parent(a_from)
+  ,m_mppc_x(a_from.m_mppc_x)
+  ,m_mppc_y(a_from.m_mppc_y)
+  ,m_mppc_z(a_from.m_mppc_z)
+  ,m_photoE_x(a_from.m_photoE_x)
+  ,m_photoE_y(a_from.m_photoE_y)
+  ,m_photoE_z(a_from.m_photoE_z)
+  ,m_container_index(a_from.m_container_index)
+  ,m_added(a_from.m_added)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  EsbFgdHit& operator=(const EsbFgdHit& a_from) {
+    parent::operator=(a_from);
+    m_mppc_x = a_from.m_mppc_x;
+    m_mppc_y = a_from.m_mppc_y;
+    m_mppc_z = a_from.m_mppc_z;
+    m_photoE_x = a_from.m_photoE_x;
+    m_photoE_y = a_from.m_photoE_y;
+    m_photoE_z = a_from.m_photoE_z;
+    m_container_index = a_from.m_container_index;
+    m_added = a_from.m_added;
+    return *this;
+  }
+public:  
+  double mppc_x() const {return m_mppc_x;}
+  double mppc_y() const {return m_mppc_y;}
+  double mppc_z() const {return m_mppc_z;}
+  double photoE_x() const {return m_photoE_x;}
+  double photoE_y() const {return m_photoE_y;}
+  double photoE_z() const {return m_photoE_z;}
+  int container_index() const {return m_container_index;}
+public:  
+  double photoE() const {return m_photoE_x+m_photoE_y+m_photoE_z;}
+  bool absorbed() const {return m_added==0?true:false;}
+public:
+  void add_photoE_x(double a_value) {m_photoE_x += a_value;}
+  void add_photoE_y(double a_value) {m_photoE_y += a_value;}
+  void add_photoE_z(double a_value) {m_photoE_z += a_value;}
+  void increment_added() {m_added++;}
+  unsigned int added() const {return m_added;}
+protected:
+  double m_mppc_x,m_mppc_y,m_mppc_z;
+  double m_photoE_x,m_photoE_y,m_photoE_z;
+  int m_container_index;
+  unsigned int m_added;
+};
+
+#include <inlib/vmanip>
+#include <inlib/mnmx>
+
+class one_event {
+#ifdef INLIB_MEM
+  INLIB_SCLASS(one_event)
+#endif
+public:
+  one_event()
+  :m_event_index(0)
+  ,m_time_min(DBL_MAX)
+  ,m_time_max(-DBL_MAX)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  virtual ~one_event() {
+    clear();
+#ifdef INLIB_MEM
+    inlib::mem::decrement(s_class().c_str());
+#endif    
+  }
+public:
+protected:
+  one_event(const one_event& a_from)
+  :m_mc_tracks(a_from.m_mc_tracks)
+  ,m_wc_points(a_from.m_wc_points)
+  ,m_fgd_points(a_from.m_fgd_points)
+  ,m_fgd_hits(a_from.m_fgd_hits)
+  ,m_event_index(a_from.m_event_index)
+  ,m_time_min(a_from.m_time_min)
+  ,m_time_max(a_from.m_time_max)
+  {
+#ifdef INLIB_MEM
+    inlib::mem::increment(s_class().c_str());
+#endif    
+  }
+  one_event& operator=(const one_event& a_from) {
+    m_mc_tracks = a_from.m_mc_tracks;
+    m_wc_points = a_from.m_wc_points;
+    m_fgd_points = a_from.m_fgd_points;
+    m_fgd_hits = a_from.m_fgd_hits;
+    m_event_index = a_from.m_event_index;
+    m_time_min = a_from.m_time_min;
+    m_time_max = a_from.m_time_max;
+    return *this;
+  }
+public:
+  void clear() {
+    inlib::raw_clear(m_mc_tracks);
+    inlib::raw_clear(m_wc_points);
+    inlib::raw_clear(m_fgd_points);
+    inlib::raw_clear(m_fgd_hits);
+    m_event_index = 0;
+  }
+  const std::vector<EsbMCTrack*>& mc_tracks() const {return m_mc_tracks;}
+  const std::vector<EsbDetectorPoint*>& wc_points() const {return m_wc_points;}
+  const std::vector<EsbDetectorPoint*>& fgd_points() const {return m_fgd_points;}
+  const std::vector<EsbFgdHit*>& fgd_hits() const {return m_fgd_hits;}
+  unsigned int event_index() const {return m_event_index;}
+
+  double time_min() const {return m_time_min;}
+  double time_max() const {return m_time_max;}
+public:
+  // when reading the event :
+  std::vector<EsbMCTrack*>& mc_tracks() {return m_mc_tracks;}
+  std::vector<EsbDetectorPoint*>& wc_points() {return m_wc_points;}
+  std::vector<EsbDetectorPoint*>& fgd_points() {return m_fgd_points;}
+  std::vector<EsbFgdHit*>& fgd_hits() {return m_fgd_hits;}
+  void set_event_index(unsigned int a_index) {m_event_index = a_index;}
+  
+  void initialize() {
+    m_time_min = DBL_MAX;
+    m_time_max = -DBL_MAX;
+   {inlib_vforcit(EsbMCTrack*,m_mc_tracks,it) {
+      m_time_min = inlib::min_of(m_time_min,(*it)->GetStartT());
+      m_time_max = inlib::max_of(m_time_max,(*it)->GetStartT());
+    }}
+   {inlib_vforcit(EsbDetectorPoint*,m_wc_points,it) {
+      m_time_min = inlib::min_of(m_time_min,(*it)->GetTime());
+      m_time_max = inlib::max_of(m_time_max,(*it)->GetTime());
+    }}
+   {inlib_vforcit(EsbDetectorPoint*,m_fgd_points,it) {
+      m_time_min = inlib::min_of(m_time_min,(*it)->GetTime());
+      m_time_max = inlib::max_of(m_time_max,(*it)->GetTime());
+    }}
+  }
+protected:
+  std::vector<EsbMCTrack*> m_mc_tracks;
+  std::vector<EsbDetectorPoint*> m_wc_points;
+  std::vector<EsbDetectorPoint*> m_fgd_points;
+  std::vector<EsbFgdHit*> m_fgd_hits;
+  unsigned int m_event_index;
+  double m_time_min;
+  double m_time_max;
+};
+
+inline int no_mother() {return -1;}
+
+#endif

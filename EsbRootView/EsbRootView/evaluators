@@ -1,0 +1,255 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_EsbRootView_evaluators
+#define EsbRootView_EsbRootView_evaluators
+
+#include "event_model"
+
+#include <inlib/yacc/base_evaluator>
+
+namespace EsbRootView {
+
+class EsbMCTrack_evaluator : public inlib::base_evaluator<EsbMCTrack> {
+  typedef inlib::base_evaluator<EsbMCTrack> parent;
+protected:
+  virtual void get_variables(const EsbMCTrack& a_data) {
+    m_value_pdg.set(a_data.GetPdgCode());
+    m_value_x.set(a_data.GetStartX());
+    m_value_y.set(a_data.GetStartY());
+    m_value_z.set(a_data.GetStartZ());
+    m_value_t.set(a_data.GetStartT());
+    m_value_px.set(a_data.GetPx());
+    m_value_py.set(a_data.GetPy());
+    m_value_pz.set(a_data.GetPz());
+    m_value_p.set(a_data.GetP());
+    m_value_m.set(a_data.GetMass());    
+    m_value_E.set(a_data.GetEnergy());    
+    m_value_rapidity.set(a_data.GetRapidity());    
+    m_value_name.set(a_data.name());
+    
+    m_value_mother_id.set(a_data.GetMotherId());
+
+   {bool is_secondary = false;
+    int mother_id = a_data.GetMotherId();
+    if((mother_id>=0)&&(mother_id<int(m_event.mc_tracks().size()))) {
+      if(m_event.mc_tracks()[mother_id]->GetMotherId()==(-1)) is_secondary = true;
+    }
+    m_value_is_secondary.set(is_secondary);}
+
+    m_value_container_index.set(a_data.container_index());
+    parent::get_variables();
+  }
+public:
+  EsbMCTrack_evaluator(std::ostream& a_out,const std::string& a_script,const one_event& a_event)
+  :parent(a_out,a_script)
+  ,m_event(a_event)
+  {
+    add_named_value_ref("pdg",m_value_pdg);
+    add_named_value_ref("name",m_value_name);
+    add_named_value_ref("x",m_value_x);
+    add_named_value_ref("y",m_value_y);
+    add_named_value_ref("z",m_value_z);
+    add_named_value_ref("t",m_value_t);
+    add_named_value_ref("px",m_value_px);
+    add_named_value_ref("py",m_value_py);
+    add_named_value_ref("pz",m_value_pz);
+    add_named_value_ref("p",m_value_p);
+    add_named_value_ref("E",m_value_E);
+    add_named_value_ref("rapidity",m_value_rapidity);
+    add_named_value_ref("m",m_value_m);
+    add_named_value_ref("mother_id",m_value_mother_id);
+    add_named_value_ref("is_secondary",m_value_is_secondary);
+    add_named_value_ref("index",m_value_container_index);
+    m_is_valid = initialize();
+  }
+  virtual ~EsbMCTrack_evaluator() {}
+protected:
+  EsbMCTrack_evaluator(const EsbMCTrack_evaluator& a_from)
+  :parent(a_from)
+  ,m_event(a_from.m_event)
+  {}
+  EsbMCTrack_evaluator& operator=(const EsbMCTrack_evaluator& a_from) {
+    parent::operator=(a_from);
+    return *this;
+  }
+protected:
+  const one_event& m_event;
+  inlib::value m_value_pdg;
+  inlib::value m_value_name;
+  inlib::value m_value_x;
+  inlib::value m_value_y;
+  inlib::value m_value_z;
+  inlib::value m_value_t;
+  inlib::value m_value_px;
+  inlib::value m_value_py;
+  inlib::value m_value_pz;
+  inlib::value m_value_mother_id;
+  inlib::value m_value_is_secondary;
+  inlib::value m_value_p;
+  inlib::value m_value_E;
+  inlib::value m_value_rapidity;
+  inlib::value m_value_m;
+  inlib::value m_value_container_index;
+};
+
+class EsbDetectorPoint_evaluator : public inlib::base_evaluator<EsbDetectorPoint> {
+  typedef inlib::base_evaluator<EsbDetectorPoint> parent;
+protected:
+  virtual void get_variables(const EsbDetectorPoint& a_data) {
+    m_value_px.set(a_data.GetPx());
+    m_value_py.set(a_data.GetPy());
+    m_value_pz.set(a_data.GetPz());
+    m_value_x.set(a_data.GetX());
+    m_value_y.set(a_data.GetY());
+    m_value_z.set(a_data.GetZ());
+    m_value_time.set(a_data.GetTime());
+    m_value_length.set(a_data.GetLength());
+    m_value_Eloss.set(a_data.GetEnergyLoss());
+    
+   {int track_id = a_data.GetTrackID();
+    if((track_id<0)||(track_id>=int(m_event.mc_tracks().size())))  {
+      // it should not happen, but well.
+      // we should have a warning.
+      m_out << "EsbDetectorPoint_evaluator::get_variables : point with a bad track ID (" << track_id << ")." << std::endl;
+      m_value_pdg.set(int(0));
+    } else {
+      m_value_pdg.set(m_event.mc_tracks()[track_id]->GetPdgCode());
+    }}
+
+    m_value_p.set(a_data.GetP());
+
+    m_value_container_index.set(a_data.container_index());
+    parent::get_variables();
+  }
+public:
+  EsbDetectorPoint_evaluator(std::ostream& a_out,const std::string& a_script,const one_event& a_event)
+  :parent(a_out,a_script)
+  ,m_event(a_event)
+  {
+    add_named_value_ref("x",m_value_x);
+    add_named_value_ref("y",m_value_y);
+    add_named_value_ref("z",m_value_z);
+    add_named_value_ref("time",m_value_time);
+    add_named_value_ref("px",m_value_px);
+    add_named_value_ref("py",m_value_py);
+    add_named_value_ref("pz",m_value_pz);
+    add_named_value_ref("p",m_value_p);
+    add_named_value_ref("length",m_value_length);
+    add_named_value_ref("Eloss",m_value_Eloss);
+    add_named_value_ref("pdg",m_value_pdg);
+    add_named_value_ref("index",m_value_container_index);
+    m_is_valid = initialize();
+  }
+  virtual ~EsbDetectorPoint_evaluator() {}
+protected:
+  EsbDetectorPoint_evaluator(const EsbDetectorPoint_evaluator& a_from)
+  :parent(a_from)
+  ,m_event(a_from.m_event)
+  {}
+  EsbDetectorPoint_evaluator& operator=(const EsbDetectorPoint_evaluator& a_from) {
+    parent::operator=(a_from);
+    return *this;
+  }
+protected:
+  const one_event& m_event;
+  inlib::value m_value_px;
+  inlib::value m_value_py;
+  inlib::value m_value_pz;
+  inlib::value m_value_x;
+  inlib::value m_value_y;
+  inlib::value m_value_z;
+  inlib::value m_value_time;
+  inlib::value m_value_length;
+  inlib::value m_value_Eloss;
+  inlib::value m_value_pdg;
+  inlib::value m_value_p;
+  inlib::value m_value_container_index;
+};
+
+class EsbFgdHit_evaluator : public inlib::base_evaluator<EsbFgdHit> {
+  typedef inlib::base_evaluator<EsbFgdHit> parent;
+protected:
+  virtual void get_variables(const EsbFgdHit& a_data) {
+    m_value_dx.set(a_data.GetDx());
+    m_value_dy.set(a_data.GetDy());
+    m_value_dz.set(a_data.GetDz());
+    m_value_x.set(a_data.GetX());
+    m_value_y.set(a_data.GetY());
+    m_value_z.set(a_data.GetZ());
+    m_value_time_stamp.set(a_data.GetTimeStamp());
+    m_value_time_stamp_error.set(a_data.GetTimeStampError());
+    m_value_detector_id.set(a_data.GetDetectorID());
+    m_value_mppcx.set(a_data.mppc_x());
+    m_value_mppcy.set(a_data.mppc_y());
+    m_value_mppcz.set(a_data.mppc_z());
+    m_value_photoEx.set(a_data.photoE_x());
+    m_value_photoEy.set(a_data.photoE_y());
+    m_value_photoEz.set(a_data.photoE_z());
+
+    m_value_photoE.set(a_data.photoE());
+    m_value_absorbed.set(a_data.absorbed());
+    m_value_added.set(a_data.added());
+
+    m_value_container_index.set(a_data.container_index());
+    parent::get_variables();
+  }
+public:
+  EsbFgdHit_evaluator(std::ostream& a_out,const std::string& a_script,const one_event&)
+  :parent(a_out,a_script)
+  {
+    add_named_value_ref("dx",m_value_dx);
+    add_named_value_ref("dy",m_value_dy);
+    add_named_value_ref("dz",m_value_dz);
+    add_named_value_ref("x",m_value_x);
+    add_named_value_ref("y",m_value_y);
+    add_named_value_ref("z",m_value_z);
+    add_named_value_ref("time_stamp",m_value_time_stamp);
+    add_named_value_ref("time_stamp_error",m_value_time_stamp_error);
+    add_named_value_ref("mppcx",m_value_mppcx);
+    add_named_value_ref("mppcy",m_value_mppcy);
+    add_named_value_ref("mppcz",m_value_mppcz);
+    add_named_value_ref("photoEx",m_value_photoEx);
+    add_named_value_ref("photoEy",m_value_photoEy);
+    add_named_value_ref("photoEz",m_value_photoEz);
+    add_named_value_ref("photoE",m_value_photoE);
+    add_named_value_ref("absorbed",m_value_absorbed);
+    add_named_value_ref("added",m_value_added);
+    add_named_value_ref("detector_id",m_value_detector_id);
+    add_named_value_ref("index",m_value_container_index);
+    m_is_valid = initialize();
+  }
+  virtual ~EsbFgdHit_evaluator() {}
+protected:
+  EsbFgdHit_evaluator(const EsbFgdHit_evaluator& a_from)
+  :parent(a_from)
+  {}
+  EsbFgdHit_evaluator& operator=(const EsbFgdHit_evaluator& a_from) {
+    parent::operator=(a_from);
+    return *this;
+  }
+protected:
+  inlib::value m_value_dx;
+  inlib::value m_value_dy;
+  inlib::value m_value_dz;
+  inlib::value m_value_x;
+  inlib::value m_value_y;
+  inlib::value m_value_z;
+  inlib::value m_value_time_stamp;
+  inlib::value m_value_time_stamp_error;
+  inlib::value m_value_detector_id;
+  inlib::value m_value_mppcx;
+  inlib::value m_value_mppcy;
+  inlib::value m_value_mppcz;
+  inlib::value m_value_photoEx;
+  inlib::value m_value_photoEy;
+  inlib::value m_value_photoEz;
+  inlib::value m_value_photoE;
+  inlib::value m_value_absorbed;
+  inlib::value m_value_added;
+  inlib::value m_value_container_index;
+};
+
+}
+
+#endif

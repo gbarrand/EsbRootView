@@ -1,0 +1,430 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef EsbRootView_read_event
+#define EsbRootView_read_event
+
+#include "event_model"
+
+#include <inlib/rroot/tree_manip>
+#include <inlib/rroot/vector3>
+
+namespace EsbRootView {
+
+#define ESBROOTVIEW_GET_BRANCH_OBJ(a__class,a__field) \
+  inlib::rroot::branch_element* be_##a__class##_##a__field = a_tree.find_branch_element(std::string(#a__class)+"."+std::string(#a__field),true);\
+  if(!be_##a__class##_##a__field) {\
+    out << "inlib::esb::read_ : branch " << #a__class << "." << #a__field << " not found or is not a branch_element." << std::endl;\
+    return false;\
+  }\
+  inlib::rroot::obj_list* vec_##a__class##_##a__field = be_##a__class##_##a__field->object_to_obj_list();\
+  if(!vec_##a__class##_##a__field) {out << "inlib::esb::read_ : can't find object " << #a__class << "." << #a__field << "." << std::endl;return false;}
+
+#define ESBROOTVIEW_GET_BRANCH_VEC(a__class,a__field,a__type) \
+  inlib::rroot::branch_element* be_##a__class##_##a__field = a_tree.find_branch_element(std::string(#a__class)+"."+std::string(#a__field),true);\
+  if(!be_##a__class##_##a__field) {\
+    out << "inlib::esb::read_ : branch " << #a__class << "." << #a__field << " not found or is not a branch_element." << std::endl;\
+    return false;\
+  }\
+  inlib::rroot::stl_vector<a__type>* vec_##a__class##_##a__field = be_##a__class##_##a__field->object_to_stl_vector<a__type>();\
+  if(!vec_##a__class##_##a__field) {out << "inlib::esb::read_ : can't find vec " << #a__class << "." << #a__field << "." << std::endl;return false;}
+
+inline bool read_MCTracks(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::vector<EsbMCTrack*>& a_tracks,bool a_verbose) {
+  inlib::raw_clear(a_tracks);
+  
+  std::ostream& out = a_tree.out();
+
+  inlib::rroot::branch_element* be_MCTrack = a_tree.find_branch_element("MCTrack");
+  if(!be_MCTrack) {
+    if(a_verbose) out << "inlib::esb::read_MCTracks : branch MCTrack not found or is not a branch_element." << std::endl;
+    return false;
+  }
+
+ {unsigned int n;
+  if(!be_MCTrack->find_entry(a_tree.file(),a_event,n)) {
+    if(a_verbose) out << "inlib::esb::read_MCTracks : be_MCTrack.find_entry() failed." << std::endl;
+    return false;
+  }}
+
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fPdgCode,int)
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fMotherId,int)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fPx,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fPy,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fPz,double)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fStartX,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fStartY,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fStartZ,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fStartT,double)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fNPoints,int)
+
+  size_t number = vec_MCTrack_fPdgCode->size();
+
+  if( (vec_MCTrack_fPdgCode->size() != number)
+   || (vec_MCTrack_fMotherId->size() != number)
+   || (vec_MCTrack_fPx->size() != number)
+   || (vec_MCTrack_fPy->size() != number)
+   || (vec_MCTrack_fPz->size() != number)
+   || (vec_MCTrack_fStartX->size() != number)
+   || (vec_MCTrack_fStartY->size() != number)
+   || (vec_MCTrack_fStartZ->size() != number)
+   || (vec_MCTrack_fStartT->size() != number)
+   || (vec_MCTrack_fNPoints->size() != number)
+   ){
+    if(a_verbose) out << "inlib::esb::read_MCTracks : not consistent vector sizes for MCTrack." << std::endl;
+    return false;
+  }
+
+  for(size_t index=0;index<number;index++){
+    EsbMCTrack* track =
+      new EsbMCTrack((*vec_MCTrack_fPdgCode)[index],(*vec_MCTrack_fMotherId)[index],
+                     (*vec_MCTrack_fPx)[index],(*vec_MCTrack_fPy)[index],(*vec_MCTrack_fPz)[index],
+                     (*vec_MCTrack_fStartX)[index],(*vec_MCTrack_fStartY)[index],(*vec_MCTrack_fStartZ)[index],(*vec_MCTrack_fStartT)[index],
+                     (*vec_MCTrack_fNPoints)[index],int(index));
+    a_tracks.push_back(track);
+  }
+
+  return true;
+}
+
+inline bool read_WCDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::vector<EsbDetectorPoint*>& a_points,bool a_verbose) {
+  inlib::raw_clear(a_points);
+  
+  std::ostream& out = a_tree.out();
+
+  inlib::rroot::branch_element* be_EsbWCDetectorPoint = a_tree.find_branch_element("EsbWCDetectorPoint");
+  if(!be_EsbWCDetectorPoint) {
+    if(a_verbose) out << "inlib::esb::read_WCDetectorPoints : branch EsbWCDetectorPoint not found or is not a branch_element." << std::endl;
+    return false;
+  }
+
+ {unsigned int n;
+  if(!be_EsbWCDetectorPoint->find_entry(a_tree.file(),a_event,n)) {
+    if(a_verbose) out << "inlib::esb::read_WCDetectorPoints : be_EsbWCDetectorPoint.find_entry() failed." << std::endl;
+    return false;
+  }}
+
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fEventId,inlib::uint32)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fTrackID,int)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fX,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fY,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fZ,double)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fTime,double)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fPx,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fPy,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fPz,double)
+
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fLength,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fELoss,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fDetectorID,int)
+  
+  size_t number = vec_EsbWCDetectorPoint_fX->size();
+
+  if( (vec_EsbWCDetectorPoint_fEventId->size() != number)
+   || (vec_EsbWCDetectorPoint_fTrackID->size() != number)
+   || (vec_EsbWCDetectorPoint_fX->size() != number)
+   || (vec_EsbWCDetectorPoint_fY->size() != number)
+   || (vec_EsbWCDetectorPoint_fZ->size() != number)
+   || (vec_EsbWCDetectorPoint_fTime->size() != number)
+   || (vec_EsbWCDetectorPoint_fPx->size() != number)
+   || (vec_EsbWCDetectorPoint_fPy->size() != number)
+   || (vec_EsbWCDetectorPoint_fLength->size() != number)
+   || (vec_EsbWCDetectorPoint_fELoss->size() != number)
+   || (vec_EsbWCDetectorPoint_fDetectorID->size() != number)
+   ){
+    if(a_verbose) out << "inlib::esb::read_WCDetectorPoints : not consistent vector sizes for EsbWCDetectorPoint." << std::endl;
+    return false;
+  }
+
+  for(size_t index=0;index<number;index++){
+    EsbDetectorPoint* point =
+      new EsbDetectorPoint((*vec_EsbWCDetectorPoint_fEventId)[index],(*vec_EsbWCDetectorPoint_fTrackID)[index],
+                           (*vec_EsbWCDetectorPoint_fPx)[index],(*vec_EsbWCDetectorPoint_fPy)[index],(*vec_EsbWCDetectorPoint_fPz)[index],
+                           (*vec_EsbWCDetectorPoint_fTime)[index],
+                           (*vec_EsbWCDetectorPoint_fX)[index],(*vec_EsbWCDetectorPoint_fY)[index],(*vec_EsbWCDetectorPoint_fZ)[index],
+                           (*vec_EsbWCDetectorPoint_fLength)[index],(*vec_EsbWCDetectorPoint_fELoss)[index],(*vec_EsbWCDetectorPoint_fDetectorID)[index],int(index));
+    a_points.push_back(point);
+  }
+
+  return true;
+}
+
+inline bool read_FgdDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::vector<EsbDetectorPoint*>& a_points,bool a_verbose) {
+  inlib::raw_clear(a_points);
+  
+  std::ostream& out = a_tree.out();
+
+  inlib::rroot::branch_element* be_EsbFgdDetectorPoint = a_tree.find_branch_element("EsbFgdDetectorPoint");
+  if(!be_EsbFgdDetectorPoint) {
+    if(a_verbose) out << "inlib::esb::read_FgdDetectorPoints : branch EsbFgdDetectorPoint not found or is not a branch_element." << std::endl;
+    return false;
+  }
+
+ {unsigned int n;
+  if(!be_EsbFgdDetectorPoint->find_entry(a_tree.file(),a_event,n)) {
+    if(a_verbose) out << "inlib::esb::read_FgdDetectorPoints : be_EsbFgdDetectorPoint.find_entry() failed." << std::endl;
+    return false;
+  }}
+
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fEventId,inlib::uint32)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fTrackID,int)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fX,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fY,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fZ,double)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fTime,double)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fPx,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fPy,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fPz,double)
+
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fLength,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fELoss,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fDetectorID,int)
+  
+  size_t number = vec_EsbFgdDetectorPoint_fX->size();
+
+  if( (vec_EsbFgdDetectorPoint_fEventId->size() != number)
+   || (vec_EsbFgdDetectorPoint_fTrackID->size() != number)
+   || (vec_EsbFgdDetectorPoint_fX->size() != number)
+   || (vec_EsbFgdDetectorPoint_fY->size() != number)
+   || (vec_EsbFgdDetectorPoint_fZ->size() != number)
+   || (vec_EsbFgdDetectorPoint_fTime->size() != number)
+   || (vec_EsbFgdDetectorPoint_fPx->size() != number)
+   || (vec_EsbFgdDetectorPoint_fPy->size() != number)
+   || (vec_EsbFgdDetectorPoint_fPz->size() != number)
+   || (vec_EsbFgdDetectorPoint_fLength->size() != number)
+   || (vec_EsbFgdDetectorPoint_fELoss->size() != number)
+   || (vec_EsbFgdDetectorPoint_fDetectorID->size() != number)
+   ){
+    if(a_verbose) out << "inlib::esb::read_FgdDetectorPoints : not consistent vector sizes for EsbFgdDetectorPoint." << std::endl;
+    return false;
+  }
+
+  for(size_t index=0;index<number;index++){
+    EsbDetectorPoint* point =
+      new EsbDetectorPoint((*vec_EsbFgdDetectorPoint_fEventId)[index],(*vec_EsbFgdDetectorPoint_fTrackID)[index],
+                           (*vec_EsbFgdDetectorPoint_fPx)[index],(*vec_EsbFgdDetectorPoint_fPy)[index],(*vec_EsbFgdDetectorPoint_fPz)[index],
+                           (*vec_EsbFgdDetectorPoint_fTime)[index],
+                           (*vec_EsbFgdDetectorPoint_fX)[index],(*vec_EsbFgdDetectorPoint_fY)[index],(*vec_EsbFgdDetectorPoint_fZ)[index],
+                           (*vec_EsbFgdDetectorPoint_fLength)[index],(*vec_EsbFgdDetectorPoint_fELoss)[index],
+                           (*vec_EsbFgdDetectorPoint_fDetectorID)[index],int(index));
+    a_points.push_back(point);
+  }
+
+  return true;
+}
+
+inline bool read_FgdHits(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::vector<EsbFgdHit*>& a_hits,bool a_verbose) {
+  inlib::raw_clear(a_hits);
+  
+  std::ostream& out = a_tree.out();
+
+  inlib::rroot::branch_element* be_EsbFgdHit = a_tree.find_branch_element("FgdHit");
+  if(!be_EsbFgdHit) {
+    if(a_verbose) out << "inlib::esb::read_FgdHits : branch FgdHit not found or is not a branch_element." << std::endl;
+    return false;
+  }
+
+ {unsigned int n;
+  if(!be_EsbFgdHit->find_entry(a_tree.file(),a_event,n)) {
+    if(a_verbose) out << "inlib::esb::read_FgdHits : be_EsbFgdHit.find_entry() failed." << std::endl;
+    return false;
+  }}
+
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fDx,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fDy,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fDz,double)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fRefIndex,int)
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fDetectorID,int)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fX,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fY,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fZ,double)
+  
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fTimeStamp,double)
+  ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fTimeStampError,double)
+
+  ESBROOTVIEW_GET_BRANCH_OBJ(FgdHit,fmppcLoc)
+  ESBROOTVIEW_GET_BRANCH_OBJ(FgdHit,fphotoE)
+
+  size_t number = vec_FgdHit_fX->size();
+
+  if( (vec_FgdHit_fDx->size() != number)
+   || (vec_FgdHit_fDy->size() != number)
+   || (vec_FgdHit_fDz->size() != number)
+   || (vec_FgdHit_fRefIndex->size() != number)
+   || (vec_FgdHit_fDetectorID->size() != number)
+   || (vec_FgdHit_fX->size() != number)
+   || (vec_FgdHit_fY->size() != number)
+   || (vec_FgdHit_fZ->size() != number)
+
+   || (vec_FgdHit_fTimeStamp->size() != number)
+   || (vec_FgdHit_fTimeStampError->size() != number)
+   
+   || (vec_FgdHit_fmppcLoc->size() != number)
+   || (vec_FgdHit_fphotoE->size() != number)
+  
+   ){
+    if(a_verbose) out << "inlib::esb::read_FgdHits : not consistent vector sizes for EsbFgdHit." << std::endl;
+    return false;
+  }
+
+  for(size_t index=0;index<number;index++){
+    inlib::rroot::vector3* mppc = vec_FgdHit_fmppcLoc->get_entry<inlib::rroot::vector3>(out,index);
+    if(!mppc) {
+      if(a_verbose) out << "inlib::esb::read_FgdHits : mppc entry " << index << " not found." << std::endl;
+    }
+    inlib::rroot::vector3* photoE = vec_FgdHit_fphotoE->get_entry<inlib::rroot::vector3>(out,index);
+    if(!photoE) {
+      if(a_verbose) out << "inlib::esb::read_FgdHits : photoE entry " << index << " not found." << std::endl;
+    }
+    EsbFgdHit* hit =
+         new EsbFgdHit((*vec_FgdHit_fDx)[index],(*vec_FgdHit_fDy)[index],(*vec_FgdHit_fDz)[index],
+                       (*vec_FgdHit_fRefIndex)[index],(*vec_FgdHit_fDetectorID)[index],
+                       (*vec_FgdHit_fX)[index],(*vec_FgdHit_fY)[index],(*vec_FgdHit_fZ)[index],
+                       (*vec_FgdHit_fTimeStamp)[index],(*vec_FgdHit_fTimeStampError)[index],
+                       mppc?mppc->x():0,
+		       mppc?mppc->y():0,
+		       mppc?mppc->z():0,
+                       photoE?photoE->x():0,
+		       photoE?photoE->y():0,
+		       photoE?photoE->z():0,
+		       index);
+    a_hits.push_back(hit);
+  }
+
+  return true;
+}
+
+/*
+inline void unique_FgdHits(std::ostream& a_out,std::vector<EsbFgdHit*>& a_hits,bool a_verbose) { // find and add hits at same position.
+  double aphotoE = 0;
+ {inlib_vforcit(EsbFgdHit*,a_hits,it) aphotoE += (*it)->photoE();}
+ 
+  std::vector<EsbFgdHit*> uhits;
+  inlib_vforit(EsbFgdHit*,a_hits,it) {
+    EsbFgdHit* hit = *it;
+    bool found = false;
+    inlib_vforit(EsbFgdHit*,uhits,uit) {
+      EsbFgdHit* uhit = *uit;
+      if( (uhit->mppc_x() == hit->mppc_x()) &&
+          (uhit->mppc_y() == hit->mppc_y()) &&
+          (uhit->mppc_z() == hit->mppc_z()) ){
+        uhit->add_photoE_x(hit->photoE_x());
+        uhit->add_photoE_y(hit->photoE_y());
+        uhit->add_photoE_z(hit->photoE_z());
+        uhit->increment_added();
+        //if(hit->photoE()) ::printf("debug : add a duplicate with photoE %g\n",hit->photoE());
+        found = true;
+        break;
+      }
+    }
+    if(found) {
+      delete hit;  //since it had been added to a uhit.
+      *it = 0;
+    } else {
+      uhits.push_back(hit); //we give ownership of hit to uhits.
+    }
+  }
+  if(a_verbose) {
+    a_out << "EsbRootView::unique_FgdHits : " << a_hits.size() << ", reduced to " << uhits.size() << std::endl;
+  }
+  double uphotoE = 0;
+ {inlib_vforcit(EsbFgdHit*,uhits,it) uphotoE += (*it)->photoE();}
+  if(aphotoE!=uphotoE) {
+    a_out << "EsbRootView::unique_FgdHits : photoE mismatch with added : " << aphotoE << ", " << uphotoE << std::endl;
+  }
+  size_t check_added = 0;
+ {inlib_vforcit(EsbFgdHit*,uhits,it) {
+    if((*it)->added()>1) {
+      a_out << "EsbRootView::unique_FgdHits : there are more than two hits (" << (*it)->added() << ") at same position." << std::endl;
+    }
+    check_added += (*it)->added();
+  }}
+  if((check_added+uhits.size())!=a_hits.size()) {
+    a_out << "EsbRootView::unique_FgdHits : added mismatch." << std::endl;
+  }
+  a_hits = uhits;
+}
+*/
+
+inline bool FgdHits_unique_at_pos(std::ostream& a_out,
+                                  const std::vector<EsbFgdHit*>& a_hits,
+                                  std::vector<EsbFgdHit*>& a_uhits,bool a_verbose) {
+  a_uhits.clear();
+
+  double aphotoE = 0;
+ {inlib_vforcit(EsbFgdHit*,a_hits,it) aphotoE += (*it)->photoE();}
+ 
+  inlib_vforcit(EsbFgdHit*,a_hits,it) {
+    EsbFgdHit* hit = *it;
+    bool found = false;
+    inlib_vforit(EsbFgdHit*,a_uhits,uit) {
+      EsbFgdHit* uhit = *uit;
+      if( (uhit->mppc_x() == hit->mppc_x()) &&
+          (uhit->mppc_y() == hit->mppc_y()) &&
+          (uhit->mppc_z() == hit->mppc_z()) ){
+        uhit->add_photoE_x(hit->photoE_x());
+        uhit->add_photoE_y(hit->photoE_y());
+        uhit->add_photoE_z(hit->photoE_z());
+        uhit->increment_added();
+        //if(hit->photoE()) ::printf("debug : add a duplicate with photoE %g\n",hit->photoE());
+        found = true;
+        break;
+      }
+    }
+    if(!found) {
+      a_uhits.push_back(new EsbFgdHit(*hit)); //we shall have to delete.
+    }
+  }
+  if(a_verbose && (a_hits.size()!=a_uhits.size()) ) {
+    a_out << "EsbRootView::unique_FgdHits : " << a_hits.size() << ", reduced to " << a_uhits.size() << std::endl;
+  }
+  double uphotoE = 0;
+ {inlib_vforcit(EsbFgdHit*,a_uhits,it) uphotoE += (*it)->photoE();}
+  if(aphotoE!=uphotoE) {
+    a_out << "EsbRootView::FgdHits_unique_at_pos : photoE mismatch with added : " << aphotoE << ", " << uphotoE << std::endl;
+    return false;
+  }
+  size_t check_added = 0;
+ {inlib_vforcit(EsbFgdHit*,a_uhits,it) {
+    if(a_verbose && ((*it)->added()>1) ) {
+      a_out << "EsbRootView::FgdHits_unique_at_pos : there are more than two hits (" << (*it)->added() << ") at same position." << std::endl;
+    }
+    check_added += (*it)->added();
+  }}
+  if((check_added+a_uhits.size())!=a_hits.size()) {
+    a_out << "EsbRootView::FgdHits_unique_at_pos : added mismatch " << (check_added+a_uhits.size()) << ", expected " << a_hits.size() << std::endl;
+    return false;
+  }
+  return true;
+}
+
+inline void init_MCTracks(std::vector<EsbMCTrack*>& a_tracks,const inlib::hep::pdgs& a_pdgs) {
+  inlib_vforit(EsbMCTrack*,a_tracks,it) (*it)->initialize(a_pdgs);
+}
+
+inline void read_event(inlib::rroot::tree& a_tree,inlib::uint64 a_event_index,one_event& a_event,const inlib::hep::pdgs& a_pdgs,bool a_verbose) {
+  if(!read_MCTracks(a_tree,a_event_index,a_event.mc_tracks(),a_verbose)) {}
+  init_MCTracks(a_event.mc_tracks(),a_pdgs);
+  if(!read_WCDetectorPoints(a_tree,a_event_index,a_event.wc_points(),a_verbose)) {}
+  if(!read_FgdDetectorPoints(a_tree,a_event_index,a_event.fgd_points(),a_verbose)) {}
+  if(!read_FgdHits(a_tree,a_event_index,a_event.fgd_hits(),a_verbose)) {}
+  //unique_FgdHits(a_tree.out(),a_event.fgd_hits(),a_verbose);
+  a_event.initialize();
+}
+
+#undef ESBROOTVIEW_GET_BRANCH_VEC
+
+}
+
+#endif
+
