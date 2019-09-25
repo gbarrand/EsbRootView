@@ -267,17 +267,22 @@ int main(int argc,char** argv) {
   //  3    TA_TOP
   //  else TA_BASELINE
 
+  float text_height = (2*float(rND*inlib::pi()))*0.09f;
+
   sgp.add_primitive
     (new inlib::sg::plottable_text("BACK",0,rND*inlib::pi()+200,
-                                   0.06,0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
+                                   text_height,inlib::sg::plottable_text::text_enforce_height,
+                                   0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
                                    inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap));
   sgp.add_primitive
     (new inlib::sg::plottable_text("SIDE",rND+lND/2,rND*inlib::pi()+200,
-                                   0.06,0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
+                                   text_height,inlib::sg::plottable_text::text_enforce_height,
+                                   0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
                                    inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap));
   sgp.add_primitive
     (new inlib::sg::plottable_text("FRONT",rND+lND+rND,rND*inlib::pi()+200,
-                                   0.06,0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
+                                   text_height,inlib::sg::plottable_text::text_enforce_height,
+                                   0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
                                    inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap));
 
   sgp.set_axes_font_modeling(inlib::sg::font_pixmap);
