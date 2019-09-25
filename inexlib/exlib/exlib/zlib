@@ -11,9 +11,9 @@
 
 #ifdef EXLIB_USE_NATIVE_ZLIB
 #include <zlib.h>
-#else //EXLIB_USE_NATIVE_ZLIB
+#else
 #include <ourex_zlib.h> //enforce ourex zlib
-#endif //EXLIB_USE_NATIVE_ZLIB
+#endif
 
 #include <ostream>
 

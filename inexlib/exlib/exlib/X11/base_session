@@ -134,6 +134,7 @@ public:
 
   bool sync() {
     if(!m_display) return false;
+  //::glXWaitX();
     ::XSync(m_display,False);
     while(true) { 
       XEvent xevent;
@@ -321,6 +322,10 @@ public:
     return (stat==0?false:true);
   }
 
+  bool post_EXIT_STEER(Window a_win) {
+    return post(a_win,SESSION_EXIT_STEER_atom());
+  }
+
   //////////////////////////////////////////////////
   //////////////////////////////////////////////////
   //////////////////////////////////////////////////
@@ -365,12 +370,10 @@ public:
   }
 protected:
   static Bool wait_map_notify(Display*,XEvent* a_event,char* a_arg){
-    return (a_event->type == MapNotify) && 
-           (a_event->xmap.window == (Window)a_arg);
+    return (a_event->type == MapNotify) && (a_event->xmap.window == (Window)a_arg);
   }
   static Bool wait_unmap_notify(Display*,XEvent* a_event,char* a_arg){
-    return (a_event->type == UnmapNotify) && 
-           (a_event->xmap.window == (Window)a_arg);
+    return (a_event->type == UnmapNotify) && (a_event->xmap.window == (Window)a_arg);
   }
 
 /*

@@ -1,5 +1,5 @@
 // Copyright (C) 2010, Guy Barrand. All rights reserved.
-// See the file wall.license for terms.
+// See the file exlib.license for terms.
 
 #ifndef exlib_Cocoa_post_event_hm
 #define exlib_Cocoa_post_event_hm

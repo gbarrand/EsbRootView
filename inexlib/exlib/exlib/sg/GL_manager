@@ -31,7 +31,7 @@ public:
 public:
   virtual bool begin_render(int a_x,int a_y,unsigned int a_ww,unsigned int a_wh,
                             float a_r,float a_g,float a_b,float a_a,bool a_clear = true) {
-    gl::clear_errors();
+    gl_clear_errors();
 
 #if TARGET_OS_IPHONE
 #elif defined(ANDROID)
@@ -167,7 +167,7 @@ public:
 
   virtual void end_render() {
     ::glFinish();
-    gl::dump_if_errors(m_out,"exlib::sg::GL_manager::end_render :");
+    gl_dump_if_errors(m_out,"exlib::sg::GL_manager::end_render :");
   }
 
   ////////////////////////////////////////////////
@@ -195,14 +195,14 @@ public:
     inlib::img_byte res;
     if(!sz) {
       m_out << "exlib::sg::gl::tex_img : warning : GL_MAX_TEXTURE_SIZE is zero." << std::endl;
-      status = gl::tex_img(m_out,a_img);
+      status = gl_tex_img(m_out,a_img);
     } else {
     if(a_img.check_gl_limit(sz,res)) {
       if(res.is_empty()) { //a_img does not exceed.
-        status = gl::tex_img(m_out,a_img);
+        status = gl_tex_img(m_out,a_img);
       } else {
         m_out << "exlib::sg::gl::tex_img : warning : img size > GL_MAX_TEXTURE_SIZE (" << sz << ")." << std::endl;
-        status = gl::tex_img(m_out,res);
+        status = gl_tex_img(m_out,res);
         gsto_size = res.size();
       }
     } else {
@@ -222,23 +222,23 @@ public:
     ::glBindTexture(GL_TEXTURE_2D,0);
 
     if(!status) {
-      gl::dump_if_errors(m_out,"exlib::sg::GL_manager::create_texture (1) :");
+      gl_dump_if_errors(m_out,"exlib::sg::GL_manager::create_texture (1) :");
       ::glDeleteTextures(1,&gl_id);    
 #ifdef INLIB_MEM
       inlib::mem::decrement(inlib::s_tex().c_str());
 #endif
       gl_id = 0;
-      gl::clear_errors();
+      gl_clear_errors();
       return 0;
     }
 
-    if(gl::dump_if_errors(m_out,"exlib::sg::GL_manager::create_texture (2) :")) {
+    if(gl_dump_if_errors(m_out,"exlib::sg::GL_manager::create_texture (2) :")) {
       ::glDeleteTextures(1,&gl_id);    
 #ifdef INLIB_MEM
       inlib::mem::decrement(inlib::s_tex().c_str());
 #endif
       gl_id = 0;
-      gl::clear_errors();
+      gl_clear_errors();
       return 0;
     }
 
@@ -274,13 +274,13 @@ public:
                      GL_STATIC_DRAW);
       ::glBindBuffer(GL_ARRAY_BUFFER,0);
   
-      if(gl::dump_if_errors(m_out,"exlib::sg::GL_manager::create_gsto_from_data :")) {
+      if(gl_dump_if_errors(m_out,"exlib::sg::GL_manager::create_gsto_from_data :")) {
         ::glDeleteBuffers(1,&gl_id);
 #ifdef INLIB_MEM
         inlib::mem::decrement(inlib::s_gsto().c_str());
 #endif
         gl_id = 0;
-        gl::clear_errors();
+        gl_clear_errors();
         return 0;
       }
 
@@ -474,7 +474,29 @@ public:
     if(!rgbas) return 0;
     ::glPixelStorei(GL_PACK_ALIGNMENT,1); //needed with Cocoa.
     ::glReadPixels(0,0,a_w,a_h,GL_RGBA,GL_UNSIGNED_BYTE,rgbas);
+ /*{size_t number = 4 * a_w * a_h;
+    size_t count_not_255 = 0;
+    for(size_t item=3;item<number;item+=4) {
+      unsigned char a = rgbas[item];
+      if(a!=255) {
+        ::printf("%lu : %d\n",item,a);
+        count_not_255++;
+	rgbas[item] = 255;
+      }
+    }
+    ::printf("not_255 : %lu\n",count_not_255);}*/
     return rgbas;
+  }
+
+  static unsigned char* get_rgbs(unsigned int a_w,unsigned int a_h) {
+    //WARNING : it does OpenGL. Under Android it should be executed
+    //          in the OpenGL thread. 
+    //NOTE : Android, iOS : RGB produces a black image.
+    unsigned char* rgbs = new unsigned char[3 * a_w * a_h];
+    if(!rgbs) return 0;
+    ::glPixelStorei(GL_PACK_ALIGNMENT,1); //needed with Cocoa.
+    ::glReadPixels(0,0,a_w,a_h,GL_RGB,GL_UNSIGNED_BYTE,rgbs);
+    return rgbs;
   }
 
 protected:
