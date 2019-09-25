@@ -1,0 +1,10 @@
+gui_push_home
+# detector + event :
+vis_neard_geometry
+# event :
+open_event_file -data_res neard_evetest.root
+vis_next_event
+gui_hide_main_menu
+gui_hide_meta_zone
+do_paint
+do_png
