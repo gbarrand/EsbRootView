@@ -1,0 +1,95 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_cbk_sg_add
+#define inlib_cbk_sg_add
+
+#include <inlib/sg/view_evd>
+#include <inlib/sg/view_sg_client>
+#include <inlib/sg/xy_grid>
+#include <inlib/parse>
+
+namespace inlib {
+namespace cbk {
+
+inline bool vis_xy_grid(sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  sg::view_evd* _evd = sg::cast_view_evd(a_gv);
+  if(!_evd) {a_gv.insh().warn("vis_xy_grid","bad evd cast.");return false;}
+
+  ////////////////////////////////////////
+  /// args : /////////////////////////////
+  ////////////////////////////////////////
+  args _args(a_args);
+  //_args.remove_string_delimiters_in_values();
+
+  colorf color = colorf_lightgrey();
+  INLIB_GUI_VIEWER_GET_ARG_COLOR(vis_xy_grid,color,false)
+  float line_width = 1;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(vis_xy_grid,line_width,false)
+  float sx = 0.1f;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(vis_xy_grid,sx,false)
+  unsigned int nx = 10;
+  INLIB_GUI_VIEWER_GET_ARG_UINT(vis_xy_grid,nx,false)
+  float sy = 0.1f;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(vis_xy_grid,sy,false)
+  unsigned int ny = 10;
+  INLIB_GUI_VIEWER_GET_ARG_UINT(vis_xy_grid,ny,false)
+  
+  vec3f translate(0,0,0);
+  INLIB_GUI_VIEWER_GET_ARG_VEC3F(vis_xy_grid,translate,false)
+  vec4f rotate(0,0,1,0);
+  INLIB_GUI_VIEWER_GET_ARG_VEC4F(vis_xy_grid,rotate,false)
+  
+  float scale = 1;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(vis_xy_grid,scale,false)
+  ////////////////////////////////////////
+  ////////////////////////////////////////
+  ////////////////////////////////////////
+  
+  sg::separator& dsep = _evd->static_sg();
+
+  sg::separator* sep = new sg::separator;
+  
+  sg::matrix* _mtx = new sg::matrix;
+  sep->add(_mtx);
+
+  _mtx->mul_translate(translate);   //applied third.
+  _mtx->mul_rotate(rotate.v0(),rotate.v1(),rotate.v2(),rotate.v3());   //applied second.
+  _mtx->mul_scale(scale);           //applied first.
+
+  dsep.add(sep);
+  
+  sg::draw_style* ds = new sg::draw_style;
+  ds->style = sg::draw_lines;
+  ds->line_width = line_width;
+  sep->add(ds);
+  
+  sg::rgba* mat = new sg::rgba();
+  mat->color = color;
+  sep->add(mat);
+    
+  sg::xy_grid* _grid = new sg::xy_grid;
+  _grid->sx = sx;
+  _grid->nx = nx;
+  _grid->sy = sy;
+  _grid->ny = ny;
+  sep->add(_grid);
+
+  args opts;
+  opts.add(sg::s_send_placement(),sg::s_placement_static());
+
+  sg::view_sg_client* wc = sg::cast_view_sg_client(a_gv);
+  if(wc) {if(!wc->send_sg(*sep,opts)){}}
+
+  return true;
+}
+
+//inline sg::return_action action_xy_grid(sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+//  vis_xy_grid(a_gv,a_args);
+//  a_gv.hide_main_menu();
+//  return sg::return_to_render;
+//}  
+
+}}
+
+#endif
