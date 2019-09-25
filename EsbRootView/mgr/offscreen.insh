@@ -1,10 +1,19 @@
-gui_push_home
-# detector + event :
-vis_neard_geometry
+#gui_push_home
+
+# detector :
+app_open_geometry_file -res neard_geo_full.root
+neard_vis_geometry
+
 # event :
-open_event_file -data_res neard_evetest.root
-vis_next_event
+app_open_event_file -res neard_evetest.root
+event_next
+event_vis MCTrack -color=red
+event_vis WCDetectorPoint -color=green
+
+plots_show
+event_plot WCDetectorPoint -modeling=neard  # example of a comment at end of line.
+
 gui_hide_main_menu
 gui_hide_meta_zone
-do_paint
-do_png
+
+scene_write_to_paper out.png
