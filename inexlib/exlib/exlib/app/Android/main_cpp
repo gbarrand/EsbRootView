@@ -10,7 +10,7 @@
 #include "../../Android/log"
 
 #include "../../sg/pv_holder"
-#include "../../sg/GL_VIEWER"
+#include "../../sg/GL_VIEWER_COMMON"
 #include "../../png"
 #include "../../jpeg"
 
@@ -18,7 +18,7 @@
 #include <inlib/sg/bcbk>
 #include <inlib/sg/ui>
 #include <inlib/sg/alert>
-#include <inlib/dirmanip>
+#include <inlib/dirs>
 
 #include <EGL/egl.h>
 
@@ -87,13 +87,13 @@ public:
   ////////////////////////////////////////
 public:
   main(const std::string& a_app_name,std::ostream& a_out,
-       const std::string& a_data_dir,const std::string& a_res_dir,
+       const std::string& a_doc_dir,const std::string& a_res_dir,
        const std::string& a_out_dir,const std::string& a_tmp_dir,
        bool a_verbose)
   :parent_pv_holder(a_out)
   ,parent(a_out,
           parent_pv_holder::m_mgr_gra,parent_pv_holder::m_ttf,parent_pv_holder::m_selection,
-          a_data_dir,a_res_dir,a_out_dir,a_tmp_dir,a_verbose,0)
+          a_doc_dir,a_res_dir,a_out_dir,a_tmp_dir,a_verbose,0)
   ,m_app_name(a_app_name)
   ,m_app(0)
   ,m_display(EGL_NO_DISPLAY)
@@ -104,7 +104,6 @@ public:
     _alogi("app_Android::main::main : begin : %lu",(unsigned long)this);
 #endif
     parent::push_home(); //NOTE : it can't call a potential push_home() done on an inheriting class.
-    //parent::push_home();
 #ifdef EXLIB_TRACE
     _alogi("app_Android::main::main : end");
 #endif
@@ -864,21 +863,24 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
   std::string res_dir = app_dir;
   std::string tmp_dir = app_dir;
 
-  std::string data_dir;
-  data_dir = "/sdcard/Android/data/";
-  data_dir += a_app_domain;
-  data_dir += ".";
-  data_dir += a_app_name;
+  std::string sdcard_data_dir;
+  sdcard_data_dir = "/sdcard/Android/data/";
+  sdcard_data_dir += a_app_domain;
+  sdcard_data_dir += ".";
+  sdcard_data_dir += a_app_name;
 
-  if(!inlib::mkdirs(cout,data_dir)) {
-    std::string msg = "can't create directory "+data_dir;
+  if(!inlib::mkdirs(cout,sdcard_data_dir)) {
+    std::string msg = "can't create directory "+sdcard_data_dir;
     exlib::Android::logw(a_app_name.c_str(),msg.c_str());
   }
 
+  std::string doc_dir = sdcard_data_dir;
+  std::string out_dir = sdcard_data_dir;
+  
   APP_CONTEXT context(res_dir);
 
   bool verbose = false;
-  app_Android::main<APP_MAIN> _main(a_app_name,cout,data_dir,res_dir,data_dir,tmp_dir,verbose);
+  app_Android::main<APP_MAIN> _main(a_app_name,cout,doc_dir,res_dir,out_dir,tmp_dir,verbose);
 
   _main.m_app = a_app;
   _main.m_display = 0;
@@ -893,7 +895,7 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
     exlib::Android::logi(a_app_name.c_str(),"exlib_main : have to restore state.");
   }
 
- {std::string DOCUMENT = data_dir+"/DOCUMENT";
+ {std::string DOCUMENT = doc_dir+"/DOCUMENT";
   if(inlib::file::exists(DOCUMENT)) {
 #ifdef EXLIB_TRACE
     exlib::Android::logi(a_app_name.c_str(),"exlib_main : open DOCUMENT...");
@@ -918,6 +920,11 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
     _view_sg_client->set_params(wall_start_func<APP_MAIN>,wall_stop_func<APP_MAIN>,(void*)a_app,0);
   }
 
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  _main.exec_dot_insh();
+  _main.exec_startup_insh();
   //////////////////////////////////////////////////////////////////
   /// steering /////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////

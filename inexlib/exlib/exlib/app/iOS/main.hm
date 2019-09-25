@@ -11,12 +11,12 @@
 
 #include "view_controller_delegate.hm"
 
-#include "../Cocoa/NSLog_streambuf.hm"
+#include "../../Cocoa/NSLog_streambuf.hm"
 
 #include "../../png"
 #include "../../jpeg"
 
-#include "../../sg/GL_VIEWER"
+#include "../../sg/GL_VIEWER_COMMON"
 #include "../../sg/pv_holder"
 
 namespace app_iOS {
@@ -86,7 +86,7 @@ public:
   }
 public:
   main(std::ostream& a_out,
-       const std::string& a_data_dir,
+       const std::string& a_doc_dir,
        const std::string& a_res_dir,
        const std::string& a_out_dir,
        const std::string& a_tmp_dir,
@@ -94,7 +94,7 @@ public:
   :exlib::sg::pv_holder(a_out)
   ,parent(a_out,
           exlib::sg::pv_holder::m_mgr_gra,exlib::sg::pv_holder::m_ttf,exlib::sg::pv_holder::m_selection,
-          a_data_dir,a_res_dir,a_out_dir,a_tmp_dir,
+          a_doc_dir,a_res_dir,a_out_dir,a_tmp_dir,
           a_verbose,200000000) //have a mem limit (for reading big jpeg).
   ,m_GLView(0)
   {

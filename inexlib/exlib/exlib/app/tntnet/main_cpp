@@ -140,7 +140,7 @@ public:
       }
 
       std::string rest;
-      inlib::cmd::rest(cmd,rest);
+      inlib::begin_rest(cmd,rest);
 
       if(cmd==s_shutdown()) {
         if(_session.can_shutdown()) {

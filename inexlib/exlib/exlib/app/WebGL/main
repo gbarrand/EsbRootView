@@ -53,7 +53,7 @@ public:
       if(m_session.verbose()) m_out << "exlib::WebGL::main::dispatch_GET : cmd : " << cmd << std::endl;
 
       std::string rest;
-      inlib::cmd::rest(cmd,rest);
+      inlib::begin_rest(cmd,rest);
       if(cmd==s_cmd_shutdown()) {
         if(m_session.can_shutdown()) {
           a_reply_sout << s_done();

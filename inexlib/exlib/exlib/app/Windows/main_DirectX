@@ -152,7 +152,7 @@ public: //WM_<events>
   }
 public:
   main(std::ostream& a_out,
-       const std::string& a_data_dir,
+       const std::string& a_doc_dir,
        const std::string& a_res_dir,
        const std::string& a_out_dir,
        const std::string& a_tmp_dir,
@@ -161,7 +161,7 @@ public:
   ,parent_pv_holder(a_out,parent_window::m_hwnd)
   ,parent(a_out,
           parent_pv_holder::m_mgr_gra,parent_pv_holder::m_ttf,parent_pv_holder::selection(),
-          a_data_dir,a_res_dir,a_out_dir,a_tmp_dir,false,0)
+          a_doc_dir,a_res_dir,a_out_dir,a_tmp_dir,false,0)
   ,m_old_proc(0)
   {
     parent_window::set_client_area_size(a_w,a_h);

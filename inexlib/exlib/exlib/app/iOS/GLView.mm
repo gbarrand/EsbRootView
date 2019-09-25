@@ -174,18 +174,19 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 
     // Get the Documents directory :
     NSArray* paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,NSUserDomainMask,YES);
-    NSString* doc_dir = [paths objectAtIndex:0];
-    std::string sdoc_dir = [doc_dir UTF8String];
-    inlib::strip(sdoc_dir,inlib::trailing,'/');
-    std::string data_dir = sdoc_dir;
-    std::string out_dir = sdoc_dir;
+
+    NSString* ndoc_dir = [paths objectAtIndex:0];
+    std::string doc_dir = [ndoc_dir UTF8String];
+    inlib::strip(doc_dir,inlib::trailing,'/');
+
+    std::string out_dir = doc_dir;
 
     EXLIB_APP::context context(res_dir);
 
     bool verbose = false;
     //verbose = true;
     
-    m_main = new app_iOS::main(*m_out,data_dir,res_dir,out_dir,stmp_dir,verbose);
+    m_main = new app_iOS::main(*m_out,doc_dir,res_dir,out_dir,stmp_dir,verbose);
 
     m_main->set_GLView(a_view);
 
@@ -206,6 +207,9 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
     m_sg_serv_timer = 0;
 #endif    
 
+    m_main->exec_dot_insh();
+    m_main->exec_startup_insh();
+    
     //NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     //[center addObserver:self selector:@selector(mem_pb:)
     //               name:UIApplicationDidReceiveMemoryWarningNotification
@@ -748,8 +752,8 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 
 #ifdef EXLIB_IOS_ANTIALIASING 
   glBindFramebufferOES(GL_FRAMEBUFFER_OES,m_aa_frame_buffer);
-  bool old_produce_out_jpg = _main->produce_out_jpg();
-  _main->set_produce_out_jpg(false);
+  bool old_produce_out_jpeg = _main->produce_out_jpeg();
+  _main->set_produce_out_jpeg(false);
   bool old_produce_out_png = _main->produce_out_png();
   _main->set_produce_out_png(false);
 #else
@@ -769,9 +773,9 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
   glBindRenderbufferOES(GL_RENDERBUFFER_OES,m_color_buffer);
 
 #ifdef EXLIB_IOS_ANTIALIASING
-  if(old_produce_out_jpg||old_produce_out_png) {
+  if(old_produce_out_jpeg||old_produce_out_png) {
     glBindFramebufferOES(GL_READ_FRAMEBUFFER_APPLE,m_color_buffer);
-    _main->set_produce_out_jpg(old_produce_out_jpg);
+    _main->set_produce_out_jpeg(old_produce_out_jpeg);
     _main->set_produce_out_png(old_produce_out_png);
     _main->after_render();
   }

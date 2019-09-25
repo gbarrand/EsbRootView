@@ -3,7 +3,7 @@
 
 #import "main.hm"
 
-#include "NSLog_streambuf.hm"
+#include "../../Cocoa/NSLog_streambuf.hm"
 
 // for a full screen window to receive keyboard events.
 @interface FSWindow : NSWindow {}
@@ -16,6 +16,9 @@
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
+#ifdef EXLIB_APP_HAS_TERM
+#include <Getline/ourex_Getline.h>
+#endif
 
 #include "sg_serv.hm"
   
@@ -44,6 +47,10 @@
 }
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)a_app {
   m_main->clear_tmp();
+#ifdef EXLIB_APP_HAS_TERM
+  ::ourex_Gl_erase_line();
+  ::ourex_Getlinem(2,0);
+#endif
   (void)a_app;
   return NSTerminateNow;
 }
@@ -221,6 +228,16 @@
 }
 @end
 
+#ifdef EXLIB_APP_HAS_TERM
+#ifdef EXLIB_APP_TERM_INSH
+#include "../../insh_term_timer"
+#else
+#include "../../dummy_term_timer"
+#endif
+#else
+#include <inlib/sys/base_timer>
+#endif
+
 #include <inlib/sg/view_sg_client>
 template <class APP_MAIN>			  
 inline void sg_client_start_func(void* a_win_delegate,void* a_main){
@@ -273,28 +290,45 @@ inline void sg_serv_finalize_func(void* a_window,void*){
 #ifdef INLIB_MEM
 #include <inlib/mem>
 #ifdef INLIB_MEM_ATEXIT
+
+#ifdef EXLIB_APP_HAS_TERM
+#include <iostream>
+inline void at_exit() {std::cout << "exlib_main : at_exit..."<< std::endl;inlib::mem::balance(std::cout);}
+#else
 inline void at_exit() {
   NSLog(@"exlib_main : atexit...");
   NSLog_streambuf nsbuf;
   std::ostream nsout(&nsbuf);
   inlib::mem::balance(nsout);
 }
-#endif
-#endif
+#endif //EXLIB_APP_HAS_TERM
 
-  
+#endif //INLIB_MEM_ATEXIT
+#endif //INLIB_MEM
+
+#include <inlib/sargs>
 #include <inlib/app>
 #include <inlib/saui>
 
+#ifdef EXLIB_APP_HAS_TERM
+#include <iostream>
+#endif
+			  
+#include <cstdlib>
+			  
 template <class APP_CONTEXT,class APP_MAIN>
 inline int exlib_main(const std::string& a_app_name,int argc, char** argv) {
   bool verbose = false;
 
   //NSLog(@"debug : exlib_main : 006");
   
+#ifdef EXLIB_APP_HAS_TERM
+  std::ostream& nsout = std::cout;
+#else  
   NSLog_streambuf nsbuf;
   std::ostream nsout(&nsbuf);
-
+#endif
+  
 #ifdef INLIB_MEM
   #ifdef INLIB_MEM_ATEXIT
   ::atexit(at_exit);
@@ -324,14 +358,56 @@ inline int exlib_main(const std::string& a_app_name,int argc, char** argv) {
   //NOTE : with open, we can pass args with : --args <args>
   inlib::args args(argc,argv);
 
+  //////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
+  if(args.is_arg(inlib::s_arg_h())||args.is_arg(inlib::s_arg_help())) {
+    nsout << "\
+usage :\n\
+  macOS> <exe> [options] <file>\n\
+options are :\n\
+-h, -help           : dump this message.\n\
+-verbose            : verbose mode.\n\
+-version            : dump the version of the application.\n\
+-ww=<window width>  : if -wh is not given, wh is computed to have a A4 landscape ratio.\n\
+-wh=<window height> : if -ww is not given, ww is computed to have a A4 landscape ratio.\n\
+-portrait           : if needed, swap ww and wh to be in portrait mode.\n\
+-land               : if needed, swap ww and wh to be in landscape mode.\n\
+-full_screen        : to be full screen.\n\
+-no_decos           : to remove window decorations.\n\
+-black              : start with a black backgroud for the viewing area.\n\
+-arg0               : print argv[0].\n\
+";
+    //-monitors           : dump the number of monitors known by the X11 server.
+#ifdef EXLIB_APP_HAS_TERM
+#ifdef EXLIB_APP_TERM_INSH
+    nsout << "\
+-terminal           : have an insh prompt in the terminal.\n\
+";
+#endif
+#endif
+    nsout << APP_MAIN::s_args_help();
+    return EXIT_FAILURE;
+  }
+  if(args.is_arg(inlib::s_arg_version())) {
+    nsout << APP_MAIN::s_version() << std::endl;
+    return EXIT_FAILURE;
+  }
+  if(args.is_arg(inlib::s_arg_arg0())) {
+    nsout << (argc?argv[0]:"none") << std::endl;
+    return EXIT_FAILURE;
+  }
+  //////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
+  
   verbose = args.is_arg("-verbose");
 
   unsigned int ww,wh;
   inlib::window_size_from_args(args,ww,wh);
 
   unsigned int monitor = 0;
-  bool full_screen = false;
-  //bool full_screen = true;
+  bool full_screen = args.is_arg(inlib::s_arg_full_screen());
   unsigned int window_x = 0;
   unsigned int window_y = 0;
   unsigned int window_width = ww;
@@ -438,13 +514,38 @@ inline int exlib_main(const std::string& a_app_name,int argc, char** argv) {
   std::string doc_dir = [ns_doc_dir UTF8String];
   inlib::strip(doc_dir,inlib::trailing,'/');
   if(!is_sandboxed) doc_dir += inlib::sep()+a_app_name;
-  std::string data_dir = doc_dir;
   std::string out_dir = doc_dir;
 
   APP_CONTEXT context(res_dir);
 
-  app_Cocoa::main<APP_MAIN> _main(nsout,data_dir,res_dir,out_dir,tmp_dir,view,verbose);
+  app_Cocoa::main<APP_MAIN> _main(nsout,doc_dir,res_dir,out_dir,tmp_dir,view,verbose);
+  if(args.is_arg(inlib::s_arg_black())) _main.m_params.m_scene_screen_color = inlib::colorf_black();
 
+  [view set_main:&_main];
+  rect = [window frame];
+  rect = [window contentRectForFrameRect:rect]; //window content true size.
+  [view drawRect:rect];
+
+  //////////////////////////////////////////////////////////////////
+  //// app as a scene graph server or client : /////////////////////
+  //////////////////////////////////////////////////////////////////
+  inlib::sg::view_sg_serv* _view_sg_serv = inlib::sg::cast_view_sg_serv(_main);
+  if(_view_sg_serv)
+    _view_sg_serv->set_params(0,sg_serv_connect_func,sg_serv_disconnect_func,sg_serv_finalize_func,
+			      (void*)window,0);
+
+  inlib::sg::view_sg_client* _view_sg_client = inlib::sg::cast_view_sg_client(_main);
+  if(_view_sg_client && _view_sg_client->walls()._walls().empty()) _view_sg_client = 0;
+
+  //////////////////////////////////////////////////////////////////
+  /// insh default scripts : ///////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
+  _main.exec_dot_insh();
+  _main.exec_startup_insh();
+
+  //////////////////////////////////////////////////////////////////
+  /// document file : //////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
  {std::string DOCUMENT;
   args.files_at_end(); //take care of the upper -land.
   if(!args.file(DOCUMENT)) args.find("-document",DOCUMENT);  
@@ -458,24 +559,14 @@ inline int exlib_main(const std::string& a_app_name,int argc, char** argv) {
     _main.opener().open(DOCUMENT,inlib::file::s_format_guessed(),inlib::args(),done);
   }}
 
-  [view set_main:&_main];
-  rect = [window frame];
-  rect = [window contentRectForFrameRect:rect]; //window content true size.
-  [view drawRect:rect];
+  //////////////////////////////////////////////////////////////////
+  /// terminal : ///////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////
+  std::ostream& _term_out = nsout;
+#include "../term.icc"  // have to delete _term_timer. Done below.
 
   //////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////
-  inlib::sg::view_sg_serv* _view_sg_serv = inlib::sg::cast_view_sg_serv(_main);
-  if(_view_sg_serv)
-    _view_sg_serv->set_params(0,sg_serv_connect_func,sg_serv_disconnect_func,sg_serv_finalize_func,
-			      (void*)window,0);
-
-  inlib::sg::view_sg_client* _view_sg_client = inlib::sg::cast_view_sg_client(_main);
-  if(_view_sg_client && _view_sg_client->walls()._walls().empty()) _view_sg_client = 0;
-
-  //////////////////////////////////////////////////////////////////
-  /// steering /////////////////////////////////////////////////////
+  /// steering : ///////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////
 
   win_delegate* _win_delegate = [[win_delegate alloc] init:&_main sg_serv:_view_sg_serv?&_view_sg_serv->sg_serv():0];
@@ -498,12 +589,18 @@ inline int exlib_main(const std::string& a_app_name,int argc, char** argv) {
       _main.do_works();
       blocking = false; //for animations.
     }
+    if(_term_timer && _term_timer->active()) {
+      _term_timer->check_time_out();
+      blocking = false;
+    }
     [_win_delegate get_nsevent:app blocking:blocking];
   }
 
+  delete _term_timer;
+  
   if(_view_sg_serv) _view_sg_serv->set_params(0,0,0,0,0,0);
   if(_view_sg_client) _view_sg_client->set_params(0,0,0,0); //for main and view_sg_client dstors.
-  
+
   [[NSNotificationCenter defaultCenter] removeObserver:_win_delegate];
   
   [main_pool release];

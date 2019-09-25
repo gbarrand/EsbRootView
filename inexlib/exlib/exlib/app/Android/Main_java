@@ -134,12 +134,14 @@ public class Main extends NativeActivity {
              (ext.equals("ttf"))     ||
              (ext.equals("otf"))     ||
              (ext.equals("jpg"))     ||
+             (ext.equals("jpeg"))    ||
              (ext.equals("png"))     ||
              (ext.equals("fog"))     ||
              (ext.equals("dot"))     ||
              (ext.equals("dcm"))     || //for DICOM
              (ext.equals("dic"))     || //for DICOM
              (ext.equals("fits"))    ||
+             (ext.equals("insh"))    ||
              (ext.equals("style"))   ||
              (ext.equals("ftp"))     ||
              (ext.equals("srv"))     ||

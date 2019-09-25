@@ -1,5 +1,5 @@
 // Copyright (C) 2010, Guy Barrand. All rights reserved.
-// See the file wall.license for terms.
+// See the file exlib.license for terms.
 
 #ifndef exlib_app_X11_sg_serv
 #define exlib_app_X11_sg_serv

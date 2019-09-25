@@ -8,13 +8,16 @@
 //////////////////////////////////////
 //////////////////////////////////////
 
-#include <inlib/sg/gui_viewer>
-
 #include "../xml/xml_style"
 #include "../xml/xml_ftp"
 #include "../xml/xml_srv"
 #include "../xml/xml_wall"
 #include "../xml/LOAD"
+#include "../zlib"
+
+#include "../png_opener"
+#include "../jpeg_opener"
+#include <inlib/sg/write_paper>
 
 #include <inlib/help/wrap_description_help>
 #include <inlib/help/wrap_usage_help>
@@ -34,8 +37,8 @@
 #include <inlib/cbk/help>
 
 #include <inlib/sg/view_sg_client>
-#include "../sg/gl2ps_manager"
-#include "../zlib"
+#include <inlib/sg/gl2ps_manager>
+#include <inlib/sg/insh_opener>
 
 #include <inlib/sg/view_sg_serv>
 
@@ -50,6 +53,9 @@ class main
   typedef inlib::sg::gui_viewer parent;
   typedef inlib::sg::view_sg_serv parent_sg_serv;
   typedef inlib::sg::view_sg_client parent_sg_client;
+protected:  
+  //const gui_viewer& get_me() const {return *this;}
+  gui_viewer& get_me() {return *this;}
 public:
   virtual void* cast(const std::string& a_class) const {
     //if(void* p = inlib::cmp_cast<main>(this,a_class)) return p;
@@ -64,8 +70,16 @@ public:
   virtual void render() = 0;
 public: //gui_viewer  
   virtual inlib::sg::render_manager* find_render_manager(const std::string& a_cls) {
-    if(a_cls==sg::gl2ps_manager::s_class()) return &m_gl2ps_mgr;
+    if(a_cls==inlib::sg::gl2ps_manager::s_class()) return &m_gl2ps_mgr;
     return 0;
+  }
+  virtual bool write_scene_to_paper(const std::string& a_path,const std::string& a_format,unsigned int a_scale) {
+  //const inlib::colorf& bg = m_params.m_scene_screen_color;
+  //inlib::sg::node& _node = scene();
+    const inlib::colorf& bg = parent::m_clear_color;
+    inlib::sg::node& _node = parent::m_sg;
+    return inlib::sg::write_paper(m_out,m_gl2ps_mgr,m_zb_mgr,exlib::png::write,exlib::jpeg::write,
+                                  bg.r(),bg.g(),bg.b(),bg.a(),_node,a_scale*m_ww,a_scale*m_wh,a_path,a_format);
   }
 public:
   main(const std::string& a_app_name,const std::string& a_app_version,
@@ -73,20 +87,21 @@ public:
        inlib::sg::render_manager& a_gl_mgr,
        const inlib::sg::base_freetype& a_ttf,
        const inlib::sg::selection& a_selection,
-       const std::string& a_data_dir,
+       const std::string& a_doc_dir,
        const std::string& a_res_dir,
        const std::string& a_out_dir,
        const std::string& a_tmp_dir,
        bool a_verbose,
-       unsigned int /*a_mem_limit*/)
+       unsigned int a_mem_limit)
   :parent(a_out,a_gl_mgr,a_ttf,a_selection,0,0,a_verbose)
-  ,parent_sg_serv(*((parent*)this),a_verbose)
-  ,parent_sg_client(a_out,a_app_name,a_data_dir,compress_buffer,a_ttf)
+  ,parent_sg_serv(get_me(),a_verbose)
+  ,parent_sg_client(a_out,a_app_name,a_doc_dir,compress_buffer,a_ttf)
   //,m_web_cache(a_out,false) //false = no verbose
   {
     m_res_dir = a_res_dir;
     m_out_dir = a_out_dir;
     m_tmp_dir = a_tmp_dir;
+    m_doc_dir = a_doc_dir;
 
    {std::string _pwd;
     if(!inlib::dir::pwd(_pwd)) {
@@ -94,10 +109,10 @@ public:
     } else {
       //m_out << "pwd : " << _pwd << std::endl;
     }
-    m_pwd = _pwd;}
+    m_start_dir = _pwd;}
 
-    m_data_dirs.clear();
-    m_data_dirs.push_back(a_data_dir);
+  //m_data_dirs.clear();
+  //m_data_dirs.push_back(a_doc_dir);
 
     // res_dir :
     //   desktop : <install_path>/<app>/<version>/res.
@@ -106,7 +121,7 @@ public:
     //   iPhone : <app>.app/res
    {std::vector<std::string> vals;
     vals.push_back(a_res_dir);
-    vals.push_back(a_data_dir); // So that user can download a font if needed :
+    vals.push_back(a_doc_dir); // So that user can download a font if needed :
     inlib::env_path_append("EXLIB_FONT_PATH",vals);}
 
     m_app_name = a_app_name;
@@ -114,6 +129,25 @@ public:
     m_app_version = a_app_version;
 
     //m_web_cache.set_tmp_dir(a_tmp_dir);
+
+    ////////////////////////////////////////////
+    /// openers ////////////////////////////////
+    ////////////////////////////////////////////
+    m_opener.add_ext(inlib::file::s_ext_insh());
+    m_opener.add_opener(inlib::file::s_format_insh(),new inlib::sg::insh_opener());
+
+    m_opener.add_ext(inlib::file::s_ext_jpeg());
+    m_opener.add_ext(inlib::file::s_ext_jpg());
+    m_opener.add_opener(inlib::file::s_format_jpeg(),new jpeg_opener(a_mem_limit));
+
+    m_opener.add_ext(inlib::file::s_ext_png());
+    m_opener.add_opener(inlib::file::s_format_png(),new png_opener(a_mem_limit));
+
+    ////////////////////////////////////////////
+    /// readers ////////////////////////////////
+    ////////////////////////////////////////////
+    m_image_readers.add_reader(inlib::file::s_format_jpeg(),new jpeg::reader());
+    m_image_readers.add_reader(inlib::file::s_format_png(),new png::reader());
 
     ////////////////////////////////////////////
     /// help ///////////////////////////////////
@@ -145,7 +179,7 @@ public:
     m_styles.res_color(s_scene(),"screen_color",m_params.m_scene_screen_color);
     set_gui_style(s_gui());
 
-    // old ioda.style in data dir : if gui_Apple_white_on_black gui style,
+    // old ioda.style in doc_dir : if gui_Apple_white_on_black gui style,
     // avoid orange back on m_gui_label_back_color.
    {std::string alias;
     if(m_styles.is_alias(s_gui(),alias)){
@@ -181,6 +215,20 @@ public:
     ////////////////////////////////////////////
     ////////////////////////////////////////////
     ////////////////////////////////////////////
+    main::insh_add_cmds();
+
+   {std::string PATH;
+    doc_res_dirs_to_PATH(PATH);
+    m_insh.add_env("PATH",PATH);}
+
+  // avoid too much envs, use cmds.
+  //m_insh.add_env("RES_DIR",m_res_dir);
+  //m_insh.add_env("DOC_DIR",m_doc_dir);
+  //m_insh.add_env("TMP_DIR",m_tmp_dir);
+  //m_insh.add_env("OUT_DIR",m_out_dir);
+  //m_insh.add_env("START_DIR",m_start_dir);
+  //m_insh.add_env("FILE_SEP",inlib::sep());
+  //m_insh.add_env("PATH_SEP",inlib::psep());
   }
   virtual ~main() {
     //m_web_cache.clear();
@@ -221,16 +269,57 @@ public:
     m_tmp_dirs.clear();
   }
 protected:
+  void _style_load_file(const std::vector<std::string>& a_args) {
+    static const std::string s_header("exlib::app::main::_style_load_file :");
+    inlib::args _args(a_args);
+    std::string file;
+    if(!_args.first_not_hyphen(file)) {
+      m_insh.warn(s_header+" no file given.");
+      return;
+    }
+    if(_args.is_arg("-doc_res")) {
+      std::string path;
+      if(!find_doc_res_file(file,path)) {
+        m_insh.warn(s_header+" file "+inlib::sout(file)+" not found in doc and res dirs.");
+        return;
+      }
+      file = path;
+    } else if(_args.is_arg("-doc")) {
+      std::string path;
+      if(!find_doc_file(file,path)) {
+        m_insh.warn(s_header+" file "+inlib::sout(file)+" not found in doc dir.");
+        return;
+      }
+      file = path;
+    } else if(_args.is_arg("-res")) {
+      std::string path;
+      if(!find_res_file(file,path)) {
+        m_insh.warn(s_header+" file "+inlib::sout(file)+" not found in res dir.");
+        return;
+      }
+      file = path;
+    }
+    if(!xml::load_style_file(m_out,file,m_styles)) {
+      m_insh.warn(s_header+" xml parsing of "+file+" failed.");
+      return;
+    }
+  }
+
+  INLIB_INSH_CLASS_CMD(main,style_load_file,m_holder._style_load_file(a_args),inlib::insh::no_help())
+  void insh_add_cmds() {
+    INLIB_INSH_ADD_CMD(m_insh,*this,style_load_file)
+  }    
+protected:
   inlib::ftp::ftps m_ftps;
   inlib::xml::srvs m_srvs;
   //inlib::web::cache m_web_cache;
   inlib::cbk::help::help_t m_help;
   std::vector<std::string> m_tmp_dirs;
-  sg::gl2ps_manager m_gl2ps_mgr;
+  inlib::sg::gl2ps_manager m_gl2ps_mgr;
 };
 
 }}
 
-//exlib_build_use inlib inlib_glutess freetype expat png zlib jpeg kernel gl2ps
+//exlib_build_use inlib inlib_glutess freetype expat png zlib jpeg kernel
 
 #endif

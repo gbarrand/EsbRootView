@@ -71,12 +71,13 @@ inline int exlib_main(const std::string& a_app_name,int argc,char** argv) {
   inlib::app_res_dir(exe_path,res_dir);
   APP_CONTEXT app_context(res_dir);}
 
-  app_WebGL::main<APP_MAIN> svr(std::cout,args,verbose);
-  if(!svr.initialize(host,port)) {
+  app_WebGL::main<APP_MAIN> _main(std::cout,args,verbose);
+  if(!_main.initialize(host,port)) {
     std::cout << "main.initialize() failed." << std::endl;
     return EXIT_FAILURE;
   }
-  svr.steer();
+
+  _main.steer();
 
 #ifdef INLIB_MEM
   }inlib::mem::balance(std::cout);

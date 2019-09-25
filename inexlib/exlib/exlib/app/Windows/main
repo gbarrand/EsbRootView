@@ -14,7 +14,7 @@
 #include "../../sg/pv_holder"
 #include "../../png"
 #include "../../jpeg"
-#include "../../sg/GL_VIEWER"
+#include "../../sg/GL_VIEWER_COMMON"
 
 #include <inlib/sg/viewer> //for cursor_shape.
 #include <inlib/sys/file>
@@ -113,7 +113,7 @@ public: //exlib::Windows::glarea
   }
 public:
   main(std::ostream& a_out,
-       const std::string& a_data_dir,
+       const std::string& a_doc_dir,
        const std::string& a_res_dir,
        const std::string& a_out_dir,
        const std::string& a_tmp_dir,
@@ -122,7 +122,7 @@ public:
   :parent_pv_holder(a_out)
   ,parent(a_out,
           parent_pv_holder::m_mgr_gra,parent_pv_holder::m_ttf,parent_pv_holder::selection(),
-          a_data_dir,a_res_dir,a_out_dir,a_tmp_dir,a_verbose,0)
+          a_doc_dir,a_res_dir,a_out_dir,a_tmp_dir,a_verbose,0)
   ,parent_window(a_w,a_h)
   ,parent_glarea(parent_window::m_hwnd)
   {
