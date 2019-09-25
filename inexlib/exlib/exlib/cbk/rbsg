@@ -1,0 +1,96 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file exlib.license for terms.
+
+#ifndef exlib_cbk_rbsg
+#define exlib_cbk_rbsg
+
+#include "../read_bsg_file"
+#include "../sg/text_freetype_marker"
+#include "../sg/rbsg_factories"
+
+#include <inlib/sg/view_evd>
+#include <inlib/sg/astro_fac_args>
+#include <inlib/sg/view_sg_client>
+#include <inlib/sg/rbsg_factories>
+#include <inlib/parse>
+
+namespace exlib {
+namespace cbk {
+
+inline bool vis_read_bsg(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) {a_gv.insh().warn("exlib::cbk::vis_read_bsg : bad evd cast.");return false;}
+
+  ////////////////////////////////////////
+  /// args : /////////////////////////////
+  ////////////////////////////////////////
+  inlib::args _args(a_args);
+  //_args.remove_string_delimiters_in_values();
+  
+  std::string sfile;
+  if(!_args.find("-file",sfile)) {
+    a_gv.insh().warn("exlib::cbk::vis_read_bsg : no -file=<string> argument given.");
+    return false;
+  }
+  
+  inlib::vec3f translate(0,0,0);
+  INLIB_GUI_VIEWER_GET_ARG_VEC3F(vis_read_bsg,translate,false)
+  inlib::vec4f rotate(0,0,1,0);
+  INLIB_GUI_VIEWER_GET_ARG_VEC4F(vis_read_bsg,rotate,false)
+  float scale = 1;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(vis_read_bsg,scale,false)
+  ////////////////////////////////////////
+  ////////////////////////////////////////
+  ////////////////////////////////////////
+  std::string path;
+  if(!a_gv.find_doc_res_file(sfile,path)) {
+    a_gv.insh().warn("exlib::cbk::vis_read_bsg : no "+sfile+" file found in doc and res dirs.");
+    return false;     
+  }
+
+  inlib::sg::separator& dsep = _evd->static_sg();
+
+  inlib::sg::separator* sep = new inlib::sg::separator;
+  dsep.add(sep);
+  
+  inlib::sg::matrix* _mtx = new inlib::sg::matrix;
+  sep->add(_mtx);
+
+  _mtx->mul_translate(translate);  //applied third.
+  _mtx->mul_rotate(rotate);        //applied second.
+  _mtx->mul_scale(scale);          //applied first.
+
+  inlib::sg::bsg_factories bfac;
+  inlib::sg::add_factories(bfac);
+  exlib::sg::add_factories(bfac);
+  inlib::sg::field_factory ffac;
+  exlib::sg::text_freetype_marker* ttf = new exlib::sg::text_freetype_marker;
+  inlib::sg::astro_fac_args _fargs(a_gv,*ttf);
+  inlib::sg::group* node = new inlib::sg::group;
+  sep->add(node);
+  if(!exlib::read_bsg_file(a_gv.out(),bfac,_fargs,path,*node,false)) {
+    a_gv.insh().warn("exlib::cbk::vis_read_bsg : load avatar_sarah.bsg failed.");
+    delete sep;
+    return false;     
+  }
+  sep->add(new inlib::sg::holder<exlib::sg::text_freetype_marker>(ttf));
+
+  inlib::args opts;
+  opts.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_static());
+  inlib::sg::view_sg_client* wc = inlib::sg::cast_view_sg_client(a_gv);
+  if(wc) {if(!wc->send_sg(*sep,opts)){}}
+  
+  return true;
+}
+
+//inline inlib::sg::return_action action_read_bsg(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+//  vis_read_bsg(a_gv,a_args);
+//  a_gv.hide_main_menu();
+//  return inlib::sg::return_to_render;
+//}
+
+}}
+
+//exlib_build_use inlib freetype zlib
+
+#endif
