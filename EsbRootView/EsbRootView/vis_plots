@@ -387,7 +387,7 @@ inline void setup_plotter(std::ostream& a_out,inlib::sg::plotter& a_plotter,doub
   //  else TA_BASELINE
   // 22 in ROOT is for horizontal/center and vertical/top.
 
-  float y_min = -a_radius*inlib::pi()-50;       //from the h2d booking.
+//float y_min = -a_radius*inlib::pi()-50;       //from the h2d booking.
   float y_max =  a_radius*inlib::pi()+300;      //from the h2d booking.
   float top_box = float(a_radius*inlib::pi());  //from the upper box size.
   
