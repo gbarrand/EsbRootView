@@ -1,0 +1,72 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file exlib.license for terms.
+
+#ifndef exlib_X11_plotter
+#define exlib_X11_plotter
+
+#include "sg_viewer"
+
+#include "../sg/text_freetype"
+
+#include <inlib/sg/ortho>
+#include <inlib/sg/plots>
+
+#include <inlib/sg/h2plot_cp>
+#include <inlib/sg/f2plot>
+#include <inlib/sg/xy2plot>
+#include <inlib/sg/fit2plot>
+#include <inlib/sg/cloud2plot_cp>
+
+#include <inlib/sys/dir>
+
+namespace exlib {
+namespace X11 {
+
+class plotter : public sg_viewer {
+  typedef sg_viewer parent;
+protected:
+  virtual void set_size(unsigned int a_width,unsigned int a_height) {
+    parent::set_size(a_width,a_height);
+    m_plots.adjust_size(a_width,a_height);
+  }
+public:
+  plotter(session& a_session,
+          unsigned int a_cols = 1,unsigned int a_rows = 1,
+          int a_x = 0,int a_y = 0,
+          unsigned int a_width = 500,unsigned int a_height = 500,
+          const std::string& a_win_title = "")
+  :parent(a_session,a_x,a_y,a_width,a_height,a_win_title)
+  ,m_ttf() //before m_plots.
+  ,m_plots(m_ttf)
+  {
+#include "../plotter_sg_common.icc"
+  }
+  virtual ~plotter() {}
+public:
+  plotter(const plotter& a_from)
+  :parent(a_from)
+  ,m_camera(a_from.m_camera)
+  ,m_plots(a_from.m_plots)  
+  {}
+  plotter& operator=(const plotter& a_from){
+    parent::operator=(a_from);
+    m_camera = a_from.m_camera;
+    m_plots = a_from.m_plots;
+    return *this;
+  }
+public:
+  bool steer() {return m_session.steer();}
+public:
+#include <inlib/plotter_common.icc>
+protected:
+  inlib::sg::ortho m_camera;
+  sg::text_freetype m_ttf;
+  inlib::sg::plots m_plots;
+};
+
+}}
+
+//exlib_build_use inlib X11 GLX GL inlib_glutess freetype
+
+#endif
+
