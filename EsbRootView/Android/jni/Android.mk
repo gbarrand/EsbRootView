@@ -2,6 +2,10 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
+INEXLIB_INC := ../../inexlib
+INEXLIB_SRC := ../../../inexlib
+OUREX_DIR := ../../../inexlib/ourex
+
 LOCAL_MODULE := EsbRootView
 
 LOCAL_CFLAGS := \
@@ -18,8 +22,6 @@ LOCAL_CFLAGS := \
  -I../../inexlib/ourex/jpeg/jpeg\
  \
  -I../../inexlib/ourex/png/png\
- \
- -I../../inexlib/ourex/gl2ps\
  \
  -I../../inexlib/ourex/zlib/include
 
@@ -145,8 +147,9 @@ PNG_SRC_FILES := \
 CSZ_SRC_FILES := \
  ../../../inexlib/ourex/csz/src/inflate.c
 
-GL2PS_SRC_FILES := \
- ../../../inexlib/ourex/gl2ps/source/gl2ps.c
+YACC_SRC_FILES := \
+  $(INEXLIB_SRC)/inlib/inlib/yacc/cexpr_lexer.cpp\
+  $(INEXLIB_SRC)/inlib/inlib/yacc/cexpr_eval.cpp
 
 # zlib exists on Android, but for consistency with other platforms
 # we take our own.
@@ -170,13 +173,13 @@ ZLIB_SRC_FILES := \
 
 LOCAL_SRC_FILES := \
  ../main.cpp\
+ $(YACC_SRC_FILES)\
  $(GLUTESS_SRC_FILES)\
  $(EXPAT_SRC_FILES)\
  $(FREETYPE_SRC_FILES)\
  $(JPEG_SRC_FILES)\
  $(ZLIB_SRC_FILES)\
  $(PNG_SRC_FILES)\
- $(GL2PS_SRC_FILES)\
  $(CSZ_SRC_FILES)
 
 LOCAL_LDLIBS := -llog -landroid -lEGL -lGLESv1_CM
