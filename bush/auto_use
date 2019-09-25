@@ -56,6 +56,22 @@ if [ "${app_uses}" != "" ] ; then
   fi
 fi
 
+app_uses="`grep ${auto_use_pack}_Darwin_build_use ${auto_use_file}`"
+if [ "${app_uses}" != "" ] ; then
+  if [ `uname` = "Darwin" ] ; then
+    app_uses=`echo ${app_uses} | sed -e "s:${auto_use_pack}_Darwin_build_use::g"`
+    for item in ${app_uses} ; do
+      #echo "set use_${item}"
+      if [ ${item} = "//" -o ${item} = '/*' -o ${item} = '*/' -o ${item} = '#' ] ; then
+        echo dummy > /dev/null
+      else
+        use_var="use_${item}"
+        eval ${use_var}=yes
+      fi
+    done
+  fi
+fi
+
 app_cfiles="`grep ${auto_use_pack}_build_cfile ${auto_use_file}`"
 if [ "${app_cfiles}" != "" ] ; then
   app_cfiles=`echo ${app_cfiles} | sed -e "s:${auto_use_pack}_build_cfile::g"`
@@ -74,6 +90,17 @@ if [ "${app_cppfiles}" != "" ] ; then
     if [ ${item} != "//" ] ; then
       #echo "app : cppfile ${item}"
       cppfiles="${cppfiles} ${item}"
+    fi
+  done
+fi
+
+app_mfiles="`grep ${auto_use_pack}_build_mfile ${auto_use_file}`"
+if [ "${app_mfiles}" != "" ] ; then
+  app_mfiles=`echo ${app_mfiles} | sed -e "s:${auto_use_pack}_build_mfile::g"`
+  for item in ${app_mfiles} ; do
+    if [ ${item} != "//" ] ; then
+      #echo "app : mfile ${item}"
+      mfiles="${mfiles} ${item}"
     fi
   done
 fi
@@ -108,6 +135,12 @@ fi
 app_use_shlib="`grep ${auto_use_pack}_use_shlib ${auto_use_file}`"
 if [ "${app_use_shlib}" != "" ] ; then
   use_archive=no
+fi
+
+# default is build_darwin_app=no
+app_darwin_app="`grep ${auto_use_pack}_build_darwin_app ${auto_use_file}`"
+if [ "${app_darwin_app}" != "" ] ; then
+  build_darwin_app=yes
 fi
 
 app_ccflags="`grep ${auto_use_pack}_build_ccflags ${auto_use_file}`"

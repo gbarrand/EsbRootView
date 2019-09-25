@@ -62,6 +62,10 @@ if [ ${build_inlib_gl} = "yes" ] ; then
   cppflags="${cppflags} -DEXLIB_INLIB_GL"
 fi
 
+if [ "${inlib_home}" = "" ] ; then
+  inlib_home=${bush_home}/../inexlib/inlib
+fi
+
 if [ "${exlib_home}" = "" ] ; then
   exlib_home=${bush_home}/../inexlib/exlib
 fi

@@ -58,6 +58,30 @@ elif [ ${build_clang} = "yes" ] ; then
     exit
   fi
 
+  if [ ${build_ansi} = "yes" ] ; then ccflags="${ccflags} -ansi"; fi
+  if [ ${build_pedantic} = "yes" ] ; then ccflags="${ccflags} -pedantic"; fi
+
+elif [ ${build_emcc} = "yes" ] ; then
+  config_name=emcc
+  
+  found=no
+  items="emcc"
+  for item in ${items} ; do
+    ${bush_home}/check_app ${item}
+    use_status=$?;
+    if [ ${use_status} = 0 ] ; then
+      cc_compiler=${item}
+      cc_linker=${item}
+      found=yes
+      break
+    fi
+  done
+
+  if [ ${found} = no ] ; then
+    echo "${items} not found."
+    exit
+  fi
+
 elif [ ${build_sdk_mac} = "yes" -o ${build_sdk_mac_gnu} = "yes" ] ; then
 
   # options taken from the output of :

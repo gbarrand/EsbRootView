@@ -8,6 +8,7 @@ build_intel=no
 build_clang=no
 build_cling_clang=no
 build_visual=no
+build_emcc=no
 build_sdk_mac=no
 build_sdk_mac_gnu=no
 build_sdk_ios=no
@@ -20,6 +21,8 @@ build_m32=no
 build_cxx11=no
 build_cxx14=no
 build_gnu11=no
+build_ansi=no
+build_pedantic=no
 
 build_debug=no
 build_set_x=no
@@ -37,6 +40,7 @@ build_archive=yes
 build_app=yes
 build_plugin=yes
 build_distrib=yes
+build_darwin_app=no
 
 build_compile_main_only=no
 build_compile_only=no
@@ -83,6 +87,7 @@ for arg in ${build_args} ; do
     -clang)       build_clang=yes;;
     -cling_clang) build_cling_clang=yes;;
     -visual)      build_visual=yes;;
+    -emcc)        build_emcc=yes;;
     -sdk_mac)     build_sdk_mac=yes;;
     -sdk_mac_gnu) build_sdk_mac_gnu=yes;;
     -sdk_ios)     build_sdk_ios=yes;;
@@ -93,6 +98,8 @@ for arg in ${build_args} ; do
     -c++11)        build_cxx11=yes;;
     -c++14)        build_cxx14=yes;;
     -g++11)        build_gnu11=yes;;
+    -ansi)         build_ansi=yes;;
+    -pedantic)     build_pedantic=yes;;
     
     -g)            build_debug=yes;;
     -debug)        build_debug=yes;;

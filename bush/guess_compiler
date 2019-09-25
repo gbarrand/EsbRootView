@@ -11,6 +11,8 @@ elif [ ${build_cling_clang} = "yes" ] ; then
   echo dummy > /dev/null
 elif [ ${build_visual} = "yes" ] ; then
   echo dummy > /dev/null
+elif [ ${build_emcc} = "yes" ] ; then
+  echo dummy > /dev/null
 
 elif [ ${build_sdk_mac} = "yes" ] ; then
   echo dummy > /dev/null

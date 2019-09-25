@@ -24,7 +24,6 @@ done
 . ${bush_home}/use/freetype
 . ${bush_home}/use/expat
 #. ${bush_home}/use/glutess
-. ${bush_home}/use/gl2ps
 
 if [ ${build_tntnet} = "yes" ] ; then
   use_tntnet=yes

@@ -13,6 +13,8 @@ app_src=
 
 if [ ${build_visual} = "yes" ] ; then
   app_exe="${app}.exe"
+elif [ ${build_emcc} = "yes" ] ; then
+  app_exe="${app}.html"
 else
   app_exe=${app}
 fi

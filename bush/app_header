@@ -25,6 +25,7 @@ build_ios_gnu=no
 build_iossim=no
 build_android=no
 build_webgl=no
+build_wasm=no
 build_wx=no
 build_tntnet=no
 build_no_screen=no
@@ -51,6 +52,7 @@ for arg in ${build_args} ; do
      -android)        build_android=yes;;
      -webgl)          build_webgl=yes;;
      -WebGL)          build_webgl=yes;;
+     -wasm)           build_wasm=yes;;
      -wx)             build_wx=yes;;
      -tntnet)         build_tntnet=yes;;
      -no_gl)          build_no_gl=yes;;
@@ -101,6 +103,9 @@ elif [ ${build_webgl} = "yes" ] ; then
   # take default compiler : clang on Mac, gnu on Linux.
   echo dummy > /dev/null
 
+elif [ ${build_wasm} = "yes" ] ; then
+  header_args="${header_args} -emcc"
+
 elif [ ${build_wx} = "yes" ] ; then
   # take default compiler : clang on Mac, gnu on Linux.
   echo dummy > /dev/null
@@ -143,7 +148,7 @@ if [ "${app}" = "" ] ; then
   exit
 fi
 
-if [ ${build_no_gl} = "yes" -o ${build_offscreen} = "yes" -o ${build_webgl} = "yes" -o ${build_tntnet} = "yes" ] ; then
+if [ ${build_no_gl} = "yes" -o ${build_offscreen} = "yes" -o ${build_webgl} = "yes" -o ${build_tntnet} = "yes" -o ${build_wasm} = "yes" ] ; then
   build_inlib_gl=yes
   # pass -inlib_gl to ourex/[CoinGL,HEPVis]/build :
   rm_inlib_gl="`echo ${ourex_args} | sed -e 's:-inlib_gl::g'`"

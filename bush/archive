@@ -56,9 +56,14 @@ else
 
     ${ar_cmd} -cr ${ar_flags} ${file_a} ${objs}
 
-    # Android plugin wants ranlib on the .a :
-    ${ranlib_cmd} ${ranlib_flags} ${file_a}
-
+    if [ "${build_emcc}" = "yes" ] ; then
+      if [ ${build_verbose} = yes ] ; then
+        echo "bush/archive : emcc : ${file_a} : we do not do ranlib."
+      fi
+    else
+      # Android plugin wants ranlib on the .a :
+      ${ranlib_cmd} ${ranlib_flags} ${file_a}
+    fi
   fi
 
   if [ ${build_shlib} = "yes" ] ; then
@@ -75,6 +80,11 @@ else
     elif [ "${build_sdk_iossim}" = "yes" ] ; then
       if [ ${build_verbose} = yes ] ; then
         echo "bush/archive : sdk_iossim : ${libname} : we do not build shared lib."
+      fi
+
+    elif [ "${build_emcc}" = "yes" ] ; then
+      if [ ${build_verbose} = yes ] ; then
+        echo "bush/archive : emcc : ${libname} : we do not build shared lib."
       fi
 
     elif [ ${build_visual} = "yes" ] ; then

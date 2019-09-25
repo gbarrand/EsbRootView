@@ -5,6 +5,11 @@ if [ "${use_Qt}" = "yes" ] ; then
 
   Qt_ld_library_path=
   moc_exe=
+  
+  lcg_area=
+  if [ "`uname -n | grep lxplus`" != "" ] ; then
+    lcg_area=/cvmfs/lhcb.cern.ch/lib/lcg/releases
+  fi
    
   if [ "`uname | grep CYGWIN`" != "" ] ; then
   
@@ -91,6 +96,42 @@ if [ "${use_Qt}" = "yes" ] ; then
 
     fi
 
+  elif [ "${lcg_area}" != "" ] ; then
+
+    if [ "${BUILD_CONFIG}" = "LCG_96_gcc8" ] ; then
+      Qt_home="${lcg_area}/qt5/5.12.1-d6e2e/x86_64-centos7-gcc8-opt"
+    elif [ "${BUILD_CONFIG}" = "LCG_95_gcc8" ] ; then
+      Qt_home="${lcg_area}/qt5/5.11.1-88bfc/x86_64-centos7-gcc8-opt"
+    elif [ "${BUILD_CONFIG}" = "LCG_95_gcc7" ] ; then
+      Qt_home="${lcg_area}/qt5/5.11.1-88bfc/x86_64-centos7-gcc7-opt"
+    else
+      echo 'bush/user/qt5 : lxplus :'
+      echo '  you have to define the BUILD_CONFIG variable, for example :'
+      echo '    LCG_95_gcc8'
+      echo '  and ensure to be in the corresponding environment. In particular'
+      echo '  to be sure to have setup the corresponding compiler. Here :'
+      echo '    sh> g++ --version'
+      echo '  should return a 8.2.0 version number.'
+      exit
+    fi
+
+    Qt_inc="${Qt_home}/include"
+    
+    cppflags="${cppflags} -I${Qt_inc}"
+
+    # if including as : #include <qobject.h>  # used in ourex/g4vis.
+    Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtCore"
+    Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtGui"
+    Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtWidgets"
+    Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtOpenGL"
+    Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtPrintSupport"
+    
+    libs="${libs} -L${Qt_home}/lib -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Core"
+    
+    Qt_ld_library_path="${Qt_home}/lib"
+
+    moc_exe="${Qt_home}/bin/moc"
+    
   elif [ -d /usr/include/qt5 ] ; then  #ostackc
     Qt_home=/usr
 
@@ -110,6 +151,9 @@ if [ "${use_Qt}" = "yes" ] ; then
     Qt_ld_library_path="${Qt_home}/lib64"
 
     moc_exe="${Qt_home}/lib64/qt5/bin/moc"
+    
+    # run time : may have to :
+    #   UNIX> setenv QT_XKB_CONFIG_ROOT /usr/lib/kbd/keymaps/xkb
 
   elif [ -d /usr/include/x86_64-linux-gnu/qt5 ] ; then  #ostackess.
     Qt_home=/usr

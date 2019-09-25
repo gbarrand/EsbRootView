@@ -29,6 +29,12 @@ if [ "${app_src}" = "" ] ; then
     /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../WebGL/main.cpp > tmp_0;/bin/mv tmp_0 ../WebGL/main.cpp
     app_src=../WebGL/main.cpp
 
+  elif [ ${build_wasm} = "yes" ] ; then
+    if [ ! -d ../WebGL ] ; then /bin/mkdir -p ../WebGL ;fi
+    /bin/cp ${exlib_home}/exlib/app/WebGL/check_app_main.cpp ../WebGL/main.cpp
+    /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../WebGL/main.cpp > tmp_0;/bin/mv tmp_0 ../WebGL/main.cpp
+    app_src=../WebGL/main.cpp
+
   elif [ ${build_tntnet} = "yes" ] ; then
     if [ ! -d ../tntnet ] ; then /bin/mkdir -p ../tntnet ;fi
     /bin/cp ${exlib_home}/exlib/app/tntnet/check_app_main.cpp ../tntnet/main.cpp

@@ -168,6 +168,7 @@ if [ ${build_sdk_android} = "yes" ] ; then
 else
 
   file_exe=${build_path}/${app_exe}
+
   if [ ${build_verbose} = yes ] ; then
     echo "bush/application : link ${file_exe} ..."
   fi

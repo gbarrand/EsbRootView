@@ -91,6 +91,27 @@ elif [ ${build_clang} = "yes" ] ; then
    #cppflags="${cppflags} -stdlib=libc++"
   fi
 
+elif [ ${build_emcc} = "yes" ] ; then
+  config_name=emcc
+
+  found=no
+  items="emcc"
+  for item in ${items} ; do
+    ${bush_home}/check_app ${item}
+    use_status=$?;
+    if [ ${use_status} = 0 ] ; then
+      cpp_compiler=${item}
+      cpp_linker=${item}
+      found=yes
+      break
+    fi
+  done
+  
+  if [ ${found} = no ] ; then
+    echo "${items} not found."
+    exit
+  fi
+
 elif [ ${build_cling_clang} = "yes" ] ; then
   config_name=cling_clang
 

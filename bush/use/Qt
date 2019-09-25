@@ -14,11 +14,9 @@ if [ "${use_Qt}" = "yes" ] ; then
   #/////////////////////////////////////////////////////////////
   lcg_area=
   if [ "`uname -n | grep lxplus`" != "" ] ; then
-    lcg_area=/afs/cern.ch/sw/lcg/external
+    lcg_area=/cvmfs/lhcb.cern.ch/lib/lcg/releases
   fi
-  if [ "${MYSITEROOT}" != "" ] ; then
-    lcg_area="${MYSITEROOT}/lcg/external"
-  fi
+
   #/////////////////////////////////////////////////////////////
   #/////////////////////////////////////////////////////////////
   #/////////////////////////////////////////////////////////////
@@ -80,6 +78,15 @@ if [ "${use_Qt}" = "yes" ] ; then
       Qt_home="${lcg_area}/qt/4.8.3/x86_64-slc6-gcc46-opt"
     elif [ "${BUILD_CONFIG}" = "x86_64-slc6-gcc48-opt" ] ; then
       Qt_home="${lcg_area}/qt/4.8.4/x86_64-slc6-gcc48-opt"
+    elif [ "${BUILD_CONFIG}" = "LCG_96_gcc8" ] ; then
+      Qt_home="${lcg_area}/qt5/5.12.1-d6e2e/x86_64-centos7-gcc8-opt"
+      build_use_qt5=yes
+    elif [ "${BUILD_CONFIG}" = "LCG_95_gcc8" ] ; then
+      Qt_home="${lcg_area}/qt5/5.11.1-88bfc/x86_64-centos7-gcc8-opt"
+      build_use_qt5=yes
+    elif [ "${BUILD_CONFIG}" = "LCG_95_gcc7" ] ; then
+      Qt_home="${lcg_area}/qt5/5.11.1-88bfc/x86_64-centos7-gcc7-opt"
+      build_use_qt5=yes
     else
       echo 'bush/use/Qt : use an lcg installation :'
       echo '  you have to define the BUILD_CONFIG variable, for example :'
@@ -93,7 +100,11 @@ if [ "${use_Qt}" = "yes" ] ; then
 
     cppflags="${cppflags} -I${Qt_home}/include"
 
-    libs="${libs} -L${Qt_home}/lib -lQtOpenGL -lQtGui -lQtCore"
+    if [ "${build_use_qt5}" = "yes" ] ; then
+      libs="${libs} -L${Qt_home}/lib -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Core"
+    else
+      libs="${libs} -L${Qt_home}/lib -lQtOpenGL -lQtGui -lQtCore"
+    fi
 
     moc_exe="${Qt_home}/bin/moc"
 

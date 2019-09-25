@@ -12,6 +12,8 @@ if [ ${build_offscreen} = "yes" ] ; then
   target=offscreen
 elif [ ${build_webgl} = "yes" ] ; then
   target=WebGL
+elif [ ${build_wasm} = "yes" ] ; then
+  target=wasm
 elif [ ${build_tntnet} = "yes" ] ; then
   target=tntnet
 elif [ ${build_wx} = "yes" ] ; then
@@ -415,7 +417,12 @@ if [ "${target}" != "" ] ; then
     
     . ${bush_home}/sys_app
       
-    platform=`${bush_home}/platform "${cpp_compiler}"`
+    if [ "${target}" = "wasm" ] ; then
+      platform=wasm
+    else
+      platform=`${bush_home}/platform "${cpp_compiler}"`
+    fi
+    
     if [ "${platform}" = "" ] ; then
       echo "bush/app_distrib : can't guess platform for ${cpp_compiler}."
     else

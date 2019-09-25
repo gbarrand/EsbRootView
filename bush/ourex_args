@@ -11,6 +11,7 @@ for arg in ${build_args} ; do
     -c++14)        ourex_args="${ourex_args} ${arg}";;
     -g++11)        ourex_args="${ourex_args} ${arg}";;
     -visual)       ourex_args="${ourex_args} ${arg}";;
+    -emcc)         ourex_args="${ourex_args} ${arg}";;
     -sdk_mac)      ourex_args="${ourex_args} ${arg}";;
     -sdk_mac_gnu)  ourex_args="${ourex_args} ${arg}";;
     -sdk_ios)      ourex_args="${ourex_args} ${arg}";;
