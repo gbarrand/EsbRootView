@@ -1,0 +1,21 @@
+
+scene_clear_static
+scene_clear_dynamic
+
+scene_set_clear_color black
+scene_blend_off
+
+plots_show
+gui_set_picking_mode
+
+fard_set_camera
+plots_set_layout_factors 0.34 0.39 0.3 0.2
+
+app_open_geometry_file -doc_res fard_geo_full.root
+fard_vis_geometry
+
+fard_vis_floor
+fard_vis_sarah
+app_open_event_file -doc_res fard_evetest.root
+
+gui_hide_main_menu

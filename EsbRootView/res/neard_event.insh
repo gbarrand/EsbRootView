@@ -1,0 +1,36 @@
+
+# this file is sourced from the app (avoid the exit command here).
+
+event_index=`event_index`
+gui_show_console ${event_index}
+
+scene_clear_dynamic
+
+#pickable='-pickable=true'
+pickable=
+
+event_vis MCTrack -color=red ${pickable}
+
+event_vis WCDetectorPoint -color=green ${pickable}
+
+event_plot WCDetectorPoint -modeling=neard  # example of a comment at end of line.
+
+return
+
+#///////////////////////////////////////////////////////////////////////////
+#/// example of other commands : ///////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////////
+event_vis MCTrack -cut=(pdg==50000050) -color=red ${pickable}
+event_vis MCTrack -cut=(pdg!=50000050)&&(mother_id!=-1)&&(is_secondary==false) -color=cyan -point_size=6 -modeling=arrow
+event_vis MCTrack -cut=(pdg!=50000050)&&(mother_id!=-1)&&(is_secondary==true)&&(pdg!=22) -color=orange -point_size=6 -modeling=arrow -arrow_length=eval(E*1000.0)
+event_vis MCTrack -cut=(pdg!=50000050)&&(mother_id!=-1)&&(is_secondary==true)&&(pdg==22) -color=orchid -point_size=6 -modeling=arrow -arrow_length=eval(E*1000.0)
+
+#-arrow_radius=10
+event_vis MCTrack -cut=(mother_id==-1) -color=yellow -point_size=6 -modeling=arrow -arrow_text_scale=6
+
+event_vis WCDetectorPoint -cut=pdg==50000050 -color=red ${pickable}
+event_vis WCDetectorPoint -cut=pdg!=50000050 -color=lightblue -point_size=6 ${pickable}
+
+event_vis MCTrack -cut=name=="'opticalphoton'" -color=red
+event_vis MCTrack -cut=name!="'opticalphoton'"&&mother_id!=-1&&is_secondary==false -color=cyan -point_size=6 -modeling=arrow
+

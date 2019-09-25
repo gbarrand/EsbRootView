@@ -1,0 +1,19 @@
+
+# this file is sourced from the app (avoid the exit command here).
+
+plots_show
+gui_set_picking_mode
+scene_blend_on
+
+neard_set_camera
+
+app_open_geometry_file -doc_res fgd_geo_full.root
+neard_vis_geometry
+fgd_vis_geometry
+
+neard_vis_floor
+neard_vis_sarah
+app_open_event_file -doc_res fgd_evetest.root
+
+#gui_hide_main_menu
+#gui_hide_console

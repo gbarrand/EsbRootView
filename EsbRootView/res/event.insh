@@ -1,0 +1,19 @@
+
+# this file is sourced from the app (avoid the exit command here).
+
+event_index=`event_index`
+gui_show_console ${event_index}
+
+scene_clear_dynamic
+
+event_plot WCDetectorPoint -modeling=neard
+
+event_vis MCTrack -cut=pdg==50000050 -color=red
+event_vis MCTrack -cut=pdg!=50000050 -color=blue -point_size=4
+
+event_vis WCDetectorPoint -cut=pdg==50000050 -color=red
+event_vis WCDetectorPoint -cut=pdg!=50000050 -color=blue -point_size=4
+
+event_vis FgdDetectorPoint -cut=pdg==22 -pickable=true -color=skyblue
+event_vis FgdDetectorPoint -cut=pdg!=22 -pickable=true -color=skyblue -point_size=4
+
