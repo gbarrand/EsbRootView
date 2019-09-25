@@ -1,0 +1,42 @@
+
+# this file is sourced from the app (avoid the exit command here).
+
+scene_clear_static
+scene_clear_dynamic
+
+scene_set_clear_color black
+scene_blend_off
+
+plots_show
+gui_set_picking_mode
+
+camera_set_ortho 1500
+camera_set_znear 1
+camera_set_zfar 10000
+camera_set_focal 1000
+camera_set_dx 10
+camera_set_da 0.0174
+camera_set_ds 0.99
+camera_set_position 0 0 1000
+
+app_open_geometry_file -doc_res neard_geo_full.root
+neard_vis_geometry
+
+neard_vis_floor
+neard_vis_sarah
+
+app_open_event_file -doc_res neard_evetest.root
+
+gui_hide_main_menu
+
+return
+#///////////////////////////////////////////////////////////////////////////
+#/// example of other commands : ///////////////////////////////////////////
+#///////////////////////////////////////////////////////////////////////////
+# have a green plant for sarah :
+# order of transformations : first scale, then rotate and then translate.
+avatar_neard_translate='460 -300 430'
+avatar_neard_rotate='0 1 0 -1.570796'
+scene_read_bsg -file=avatar_plant.bsg -translate="${avatar_neard_translate}" -rotate="${avatar_neard_rotate}" -scale=0.03
+
+
