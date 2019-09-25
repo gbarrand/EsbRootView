@@ -91,6 +91,10 @@ if [ ${app} = MEMPHYS_vis ] ; then
   ${inlib_incs} ${verbose} -pack -dirs=${dirs} -nos=${nos} -to=${to}/${app} ../../MEMPHYS/MEMPHYS/Analysis.hh
 fi
 
+if [ ${app} = EsbRootView ] ; then
+  ${inlib_incs} ${verbose} -pack -dirs=${dirs} -nos=${nos} -to="${to}/${app}/mgr" ../X11/plot_near.cpp
+fi
+
 /bin/rm -f ${inlib_incs}
 
 #///////////////////////////////////////////////////
