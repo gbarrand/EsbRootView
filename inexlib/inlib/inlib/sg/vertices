@@ -55,6 +55,9 @@ public:
     if(state.m_use_gsto) {
       unsigned int _id = get_gsto_id(a_action.out(),a_action.render_manager());
       if(_id) {
+#ifdef __APPLE__
+        bool restore_blend = check_set_blend(a_action);
+#endif	
         a_action.begin_gsto(_id);
         size_t npt = xyzs.values().size()/3;
         bufpos pos = 0;
@@ -67,6 +70,9 @@ public:
           a_action.draw_gsto_v(mode.value(),npt,pos);
         }
         a_action.end_gsto();
+#ifdef __APPLE__
+        if(restore_blend) a_action.set_blend(true);
+#endif	
         return;
       } else { //!_id
         // use immediate rendering.
@@ -75,6 +81,10 @@ public:
     } else {
       clean_gstos(&a_action.render_manager());
     }
+
+#ifdef __APPLE__
+    bool restore_blend = check_set_blend(a_action);
+#endif
 
     // immediate rendering :
     if(gl::is_line(mode.value())) {
@@ -85,6 +95,10 @@ public:
     } else {
       a_action.draw_vertex_array(mode.value(),xyzs.values());
     }
+    
+#ifdef __APPLE__
+    if(restore_blend) a_action.set_blend(true);
+#endif    
   }
   virtual void pick(pick_action& a_action) {
     a_action.add__primitive(*this,mode.value(),xyzs.values(),true);
@@ -198,9 +212,9 @@ public:
   }
   bool center() {
     std::vector<float>& v = xyzs.values();
-    std::vector<float>::size_type number = v.size()/3;
-    if(!number) return true;
-    if(3*number!=v.size()) return false;
+    std::vector<float>::size_type _number = v.size()/3;
+    if(!_number) return true;
+    if(3*_number!=v.size()) return false;
     float x_mean = 0;
     float y_mean = 0;
     float z_mean = 0;
@@ -209,9 +223,9 @@ public:
       y_mean += *(it+1);
       z_mean += *(it+2);
     }}
-    x_mean /= float(number);
-    y_mean /= float(number);
-    z_mean /= float(number);
+    x_mean /= float(_number);
+    y_mean /= float(_number);
+    z_mean /= float(_number);
    {for(std::vector<float>::iterator it=v.begin();it!=v.end();it+=3) {
       *(it+0) -= x_mean;
       *(it+1) -= y_mean;
@@ -234,6 +248,21 @@ protected:
     if(!action.node()) return false;
     return true;
   }
+#ifdef __APPLE__
+protected:
+  // macOS/Mojave : on this version, points are blended even if alpha is one !
+  bool check_set_blend(render_action& a_action) {
+    bool restore_blend = false;
+    const state& state = a_action.state();
+    if(state.m_GL_BLEND) {
+      if(state.m_color.a()==1) {
+        a_action.set_blend(false);
+        restore_blend = true;
+      }
+    }
+    return restore_blend;
+  }
+#endif //__APPLE__
 };
 
 }}

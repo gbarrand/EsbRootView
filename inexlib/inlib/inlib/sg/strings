@@ -56,6 +56,7 @@ inline const std::string& s_anim_mode_0()  {static const std::string s_v("anim_m
 inline const std::string& s_anim_mode_1()  {static const std::string s_v("anim_mode_1");return s_v;}
 inline const std::string& s_anim_mode_2()  {static const std::string s_v("anim_mode_2");return s_v;}
 inline const std::string& s_anim_mode_3()  {static const std::string s_v("anim_mode_3");return s_v;}
+inline const std::string& s_anim_mode_4()  {static const std::string s_v("anim_mode_4");return s_v;}
 
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
@@ -135,6 +136,13 @@ inline const std::string& modeling_plus() {
 }
 inline const std::string& modeling_markers() { //used in sg::plotter.
   static const std::string s_v("markers");
+  return s_v;
+}
+
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+inline const std::string& modeling_arrow() { //used in EsbRootView.
+  static const std::string s_v("arrow");
   return s_v;
 }
 
@@ -311,7 +319,7 @@ INLIB_GLOBAL_STRING_VALUE(sg_serv_cols,cols)
 INLIB_GLOBAL_STRING_VALUE(sg_serv_rows,rows)
 
 
-// insh commands :
+// view_evd insh commands :
 INLIB_GLOBAL_STRING_VALUE(insh_clear_static_scene,clear_static_scene)
 INLIB_GLOBAL_STRING_VALUE(insh_clear_dynamic_scene,clear_dynamic_scene)
 INLIB_GLOBAL_STRING_VALUE(insh_clear_screen_scene,clear_screen_scene)

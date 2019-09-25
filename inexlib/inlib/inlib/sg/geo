@@ -41,23 +41,11 @@ public:
     return node::cast(a_class);
   }
 public:
-
   virtual void update_sg(std::ostream&) = 0;
   virtual const std::string& volume_name(const VOLUME&) const = 0;
-
   virtual bool volume_material_color(std::ostream&,const VOLUME& a_vol,colorf& a_color) = 0;
-
-  virtual bool add_shape(std::ostream& a_out,
-                         const VOLUME& a_vol,
-                         const MATRIX& a_matrix,
-                         separator& a_sep,
-                         bool a_solid) = 0;
-
-  virtual bool vis_children(std::ostream& a_out,
-                            const VOLUME& a_vol,
-                            const MATRIX& a_matrix,
-                            unsigned int a_depth) = 0;
-
+  virtual bool add_shape(std::ostream& a_out,const VOLUME& a_vol,const MATRIX& a_matrix,separator& a_sep,bool a_solid) = 0;
+  virtual bool vis_children(std::ostream& a_out,const VOLUME& a_vol,const MATRIX& a_matrix,unsigned int a_depth) = 0;
 public:
   sf_string volume;
   sf<int> volume_depth; //optional.
@@ -294,10 +282,7 @@ protected:
   }
 
 protected:
-  bool _vis_volume(std::ostream& a_out,
-                   const VOLUME& a_vol,
-                   const MATRIX& a_matrix,
-                   unsigned int a_depth){
+  bool _vis_volume(std::ostream& a_out,const VOLUME& a_vol,const MATRIX& a_matrix,unsigned int a_depth){
 
     if(max_time.value() &&
        (atime::elapsed(m_time_begin).seconds()>=max_time.value()) ){

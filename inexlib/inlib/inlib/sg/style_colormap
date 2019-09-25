@@ -546,19 +546,18 @@ inline bool to_ulong(const std::string& a_s,unsigned long& a_v){
   return true;
 }
 
-inline bool find_color(const cmaps_t& a_cmaps,
-                       const std::string& a_s,colorf& a_col){
-    //NOTE : if ret false, we do not set a_col to something.
+inline bool find_color(const cmaps_t& a_cmaps,const std::string& a_s,colorf& a_col){
+  //NOTE : if ret false, we do not set a_col to something.
 
-    std::string::size_type pos_slash = a_s.rfind('/');
-    if(pos_slash!=std::string::npos) { //<cmap>/<color name>
-      std::string cmap = a_s.substr(0,pos_slash);
-      std::string cnam = a_s.substr(pos_slash+1,a_s.size()-(pos_slash+1));
-      cmaps_t::const_iterator it = a_cmaps.find(cmap);
-      if(it==a_cmaps.end()) return false;
-      return (*it).second.get_color(cnam,a_col);
+  std::string::size_type pos_slash = a_s.rfind('/');
+  if(pos_slash!=std::string::npos) { //<cmap>/<color name>
+    std::string cmap = a_s.substr(0,pos_slash);
+    std::string cnam = a_s.substr(pos_slash+1,a_s.size()-(pos_slash+1));
+    cmaps_t::const_iterator it = a_cmaps.find(cmap);
+    if(it==a_cmaps.end()) return false;
+    return (*it).second.get_color(cnam,a_col);
       
-    } else {
+  } else {
 
     if( (a_s.size()==7) && (a_s[0]=='#') ) {
       // #RRGGBB format :
@@ -583,54 +582,39 @@ inline bool find_color(const cmaps_t& a_cmaps,
   
     //a_s of the form : <real:r> <real:g> <real:b>
     //a_s of the form : <real:r> <real:g> <real:b> <real:a>
-    //a_s of the form : <real:r> <real:g> <real:b> <string:name> 
-    //a_s of the form : <real:r> <real:g> <real:b> <real:a> <string:name> 
 
    {std::vector<std::string> ws;
     words(a_s," ",false,ws);
     if(ws.size()==3) {
       float r,g,b;
-      if( to<float>(ws[0],r) &&
-          to<float>(ws[1],g) &&
-          to<float>(ws[2],b) ){
+      if( to<float>(ws[0],r) && ((0<=r)&&(r<=1)) &&
+          to<float>(ws[1],g) && ((0<=g)&&(g<=1)) &&
+          to<float>(ws[2],b) && ((0<=b)&&(b<=1)) ){
         a_col = colorf(r,g,b);
         return true;
       }
 
     } else if(ws.size()==4) {
       float r,g,b,a;
-      if( to<float>(ws[0],r) &&
-          to<float>(ws[1],g) &&
-          to<float>(ws[2],b) ){
-
-        if(to<float>(ws[3],a)) {
-          a_col = colorf(r,g,b,a);
-        } else {
-          a_col = colorf(r,g,b,1);
-        }
-        return true;
-      }
-
-    } else if(ws.size()==5) {
-      float r,g,b,a;
-      if( to<float>(ws[0],r) &&
-          to<float>(ws[1],g) &&
-          to<float>(ws[2],b) &&
-          to<float>(ws[3],a) ){
+      if( to<float>(ws[0],r) && ((0<=r)&&(r<=1)) &&
+          to<float>(ws[1],g) && ((0<=g)&&(g<=1)) &&
+          to<float>(ws[2],b) && ((0<=b)&&(b<=1)) &&
+          to<float>(ws[3],a) && ((0<=a)&&(a<=1)) ){
         a_col = colorf(r,g,b,a);
         return true;
       }
 
     }}
 
+    // search in default colormap :
    {cmaps_t::const_iterator it = a_cmaps.find(style_default_colormap::s_default());
     if(it!=a_cmaps.end()) {
       if((*it).second.get_color(a_s,a_col)) return true;
     }}      
 
-    }
+  }
   
-    return false;
+  return false;
 }
 
 }}

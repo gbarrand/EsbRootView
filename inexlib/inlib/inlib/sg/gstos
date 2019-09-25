@@ -24,6 +24,8 @@ protected:
     clean_gstos();
     return *this;
   }
+public:
+  size_t num_gstos() const {return m_gstos.size();}
 protected:
   unsigned int get_tex_id(std::ostream& a_out,render_manager& a_mgr,const img_byte& a_img,bool a_NEAREST) {
     unsigned int _id = _find(&a_mgr);

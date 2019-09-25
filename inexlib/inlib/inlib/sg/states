@@ -23,7 +23,7 @@ public:
     m_state->m_wh = a_wh;
   }
 #else
-  states(unsigned int a_ww,unsigned int a_wh):m_states(8) {
+  states(unsigned int a_ww,unsigned int a_wh):m_states() {
     m_state.m_ww = a_ww;
     m_state.m_wh = a_wh;
   }

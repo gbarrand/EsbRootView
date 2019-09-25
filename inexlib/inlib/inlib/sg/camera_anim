@@ -65,64 +65,25 @@ public:
     }
     base_anim::begin_anim();
   }
-  virtual void end_anim() {
+  virtual bool end_anim() {
     if((m_what==move_zoom_in_out)||(m_what==move_zoom_in_out_rot)) {
       delete m_zoom_save;
       m_zoom_save = 0;
     }
     base_anim::end_anim();
+    return true;
   }
   virtual bool action(std::ostream&,const atime& a_now) {
     //float t = float(atime::diff(a_now,m_start).value());
     //float tp = float(atime::diff(m_prev,m_start).value());
 
-    float _dx = CAMERA::dx;
-    float _da = CAMERA::da;
-    float _ds = CAMERA::ds;
+    if(CAMERA::update_motion(m_what)) return true;
 
-    if(m_what==move_rotate_right) {
-      CAMERA::rotate_around_up(-_da);
-    } else if(m_what==move_rotate_left) {
-      CAMERA::rotate_around_up(_da);
+  //float _dx = CAMERA::dx.value();
+    float _da = CAMERA::da.value();
+    float _ds = CAMERA::ds.value();
 
-    } else if(m_what==move_rotate_up) {
-      CAMERA::rotate_around_x(_da);
-    } else if(m_what==move_rotate_down) {
-      CAMERA::rotate_around_x(-_da);
-
-    } else if(m_what==move_translate_right) {
-      CAMERA::translate_along_side(_dx);
-    } else if(m_what==move_translate_left) {
-      CAMERA::translate_along_side(-_dx);
-
-    } else if(m_what==move_up) {
-      CAMERA::translate_along_up(_dx);
-    } else if(m_what==move_down) {
-      CAMERA::translate_along_up(-_dx);
-
-    } else if(m_what==move_forward) {
-      CAMERA::translate_along_dir(_dx);
-    } else if(m_what==move_backward) {
-      CAMERA::translate_along_dir(-_dx);
-
-    } else if(m_what==move_zoom_in) {
-      CAMERA::zoom(_ds);
-    } else if(m_what==move_zoom_out) {
-      CAMERA::zoom(1.0f/_ds);
-
-    } else if(m_what==move_rotate_around_focal_right) {
-      CAMERA::rotate_around_y_at_focal(-_da);
-
-    } else if(m_what==move_rotate_around_focal_left) {
-      CAMERA::rotate_around_y_at_focal(_da);
-
-    } else if(m_what==move_rotate_around_focal_up) {
-      CAMERA::rotate_around_x_at_focal(_da);
-
-    } else if(m_what==move_rotate_around_focal_down) {
-      CAMERA::rotate_around_x_at_focal(-_da);
-
-    } else if(m_what==move_zoom_in_out) {
+    if(m_what==move_zoom_in_out) {
       float t = float(atime::diff(a_now,m_start).value());      //secs
       //float tp = float(atime::diff(m_prev,m_start).value());
 

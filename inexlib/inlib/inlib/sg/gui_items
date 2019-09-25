@@ -70,6 +70,14 @@ inline void set_arconf(const gui_params& a_params,text& a_text,const std::string
   a_text.hjust = center;
 }
   
+inline void set_arconf(const gui_params& a_params,text& a_text,const std::vector<std::string>& a_ss){
+  a_text.strings = a_ss;
+  a_text.font = a_params.m_gui_font;
+  a_text.font_modeling = a_params.m_gui_font_modeling;
+  a_text.confine = true;
+  a_text.hjust = center;
+}
+  
 inline void create_main_button(std::ostream& a_out,
                           const std::string& a_res_dir,
                           const gui_params& a_params,

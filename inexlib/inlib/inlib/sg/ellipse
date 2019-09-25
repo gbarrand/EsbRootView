@@ -53,7 +53,7 @@ private:
     add_field(&steps);
   }
 public: //curve
-  virtual bool pos_tan_nor(float a_s,
+  virtual bool pos_tan_nor(float /*a_s*/,
                            vec3f& a_pos,
                            vec3f& a_tan,
                            vec3f& a_nor) const {

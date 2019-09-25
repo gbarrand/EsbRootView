@@ -63,14 +63,24 @@ public:
   }
 
   virtual void pick(pick_action& a_action) {
-    float tris[108];float nms[108];  
-    _tris(tris,nms);
-    a_action.add__triangles(*this,108,tris,true);
+    const state& state = a_action.state();
+    if(a_action.stop_at_first()){
+      visit(a_action,state.m_draw_type);
+      if(a_action.done()) a_action.set_node(this);
+    } else {
+      a_action.set_done(false);
+      a_action.zs().clear();
+      a_action.ws().clear();
+      visit(a_action,state.m_draw_type);
+      if(a_action.done()) {
+        a_action.add_pick(*this,a_action.zs(),a_action.ws(),a_action.state());
+        a_action.set_done(false);
+      }
+    }
   }
   virtual void bbox(bbox_action& a_action) {
-    float tris[108];float nms[108];  
-    _tris(tris,nms);
-    a_action.add_points(108,tris);
+    const state& state = a_action.state();
+    visit(a_action,state.m_draw_type);
   }
 public:
   cube()

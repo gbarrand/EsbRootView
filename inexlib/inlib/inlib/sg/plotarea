@@ -7,7 +7,6 @@
 #include "gui_viewer"
 #include "plots"
 #include "event_dispatcher"
-//#include "holder"
 
 namespace inlib {
 namespace sg {
@@ -16,6 +15,9 @@ class plotarea {
 public:
   INLIB_SCLASS(inlib::sg::plotarea)
 public:
+  virtual void create_histos() {}
+  virtual void reset_histos() {}
+public:
   plotarea(gui_viewer& a_gv)
   :m_gv(a_gv)
   ,m_plot_trans_fac_x(0.28f)
@@ -23,6 +25,7 @@ public:
   ,m_plot_scale_x(0.4f)
   ,m_plot_scale_y(0.4f)
   {
+    insh_add_cmds();
     create_sg();
   }
   virtual ~plotarea() {}
@@ -57,13 +60,7 @@ public:
     m_plot_scale_y = a_sy;
   }
 
-  plots& get_plots() {
-    plots* _plots = _get_plots(m_sep);
-    if(!_plots) {
-      m_gv.out() << "inlib::plotare::get_plots : no sg::plots! A crash is expected." << std::endl;
-    } //throw
-    return *_plots;
-  }
+  plots* get_plots() {return _get_plots(m_sep);}
 
   void clear_plots() {
     plots* _plots = _get_plots(m_sep);
@@ -74,10 +71,54 @@ public:
   void show_hide()  {m_switch.which = m_switch.which.value()==0?1:0;} //SHOWN=0
   void hide_plots() {m_switch.which = 1;}
   void show_plots() {m_switch.which = 0;}
+  bool plots_hidden() const {return m_switch.which.value()==1?true:false;}
 
   node* create_plots_clearer_holder() { //see exlib/geant4/exas for an example.
     return new holder<plots_clearer>(new plots_clearer(m_sep));
-  }     
+  }
+protected:
+  void _plots_set_layout_factors(const std::vector<std::string>& a_args) {
+    static const std::string s_header("inlib::sg::plotarea::_plots_set_layout_factors :");
+    if(a_args.size()!=4) {
+      m_gv.insh().warn(s_header+" four real argument expected.");
+      return;
+    }
+    float tx;
+    if(!m_gv.insh().get_arg_float(s_header,a_args[0],tx)) return;
+    float ty;
+    if(!m_gv.insh().get_arg_float(s_header,a_args[1],ty)) return;
+    float sx;
+    if(!m_gv.insh().get_arg_float(s_header,a_args[2],sx)) return;
+    float sy;
+    if(!m_gv.insh().get_arg_float(s_header,a_args[3],sy)) return;
+    set_layout_factors(tx,ty,sx,sy);
+  }
+  static const std::string& _plots_set_layout_factors_help() {
+    static const std::string s_help("\
+plots_set_layout_factors: plots_set_layout_factors x y scale_x scale_y.\n\
+  Set the set the positionning and size of the first sg::plots node found in the scene.\n\
+  x, y, scale_x and scale_y are in normal window coordinates (in [0,1]).\n\
+  Example:\n\
+    plots_set_layout_factors 0.3   0.35 0.3 0.2  # up right.\n\
+    plots_set_layout_factors 0.28 -0.28 0.4 0.4  # defaults. down right.\n\
+");
+    return s_help;
+  }
+
+  INLIB_INSH_CLASS_CMD(plotarea,plots_show,m_holder.show_plots(),insh::no_help())
+  INLIB_INSH_CLASS_CMD(plotarea,plots_hide,m_holder.hide_plots(),insh::no_help())
+  INLIB_INSH_CLASS_CMD(plotarea,plots_set_layout_factors,m_holder._plots_set_layout_factors(a_args),_plots_set_layout_factors_help())
+
+  INLIB_INSH_CLASS_CMD(plotarea,histos_create,m_holder.create_histos(),inlib::insh::no_help())
+  INLIB_INSH_CLASS_CMD(plotarea,histos_reset,m_holder.reset_histos(),inlib::insh::no_help())
+  void insh_add_cmds() {
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,plots_show)
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,plots_hide)
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,plots_set_layout_factors)
+
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,histos_create)
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,histos_reset)
+  }
 protected:
   class cbk_data  {
   public:

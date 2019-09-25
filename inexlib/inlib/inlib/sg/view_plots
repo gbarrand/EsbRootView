@@ -112,8 +112,10 @@ inline plots* create_evd_sg_plots(gui_viewer& a_gv,adjust_type a_adjust_type) {
   return _plots;
 }
 
+inline plots* search_plots(gui_viewer& a_gv) {return search_selectable<plots>(a_gv.out(),a_gv.scene());}
+
 inline plots* get_sg_plots(gui_viewer& a_gv,adjust_type a_adjust_type,bool& a_created) {
-  plots* _plots = search_selectable<plots>(a_gv.out(),a_gv.scene()); //we do not adjust size.
+  plots* _plots = search_plots(a_gv); //we do not adjust size.
   if(_plots) {a_created = false;return _plots;}
   _plots = create_evd_sg_plots(a_gv,a_adjust_type);
   if(!_plots) {a_created = false;return 0;}
@@ -180,6 +182,80 @@ inline plotter* plot(gui_viewer& a_gv,const histo::c3d& a_histo,bool a_cp = true
   }
   style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);
   return &plotter;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+/// insh commands : /////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////
+inline void insh_plots_set_regions(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plots_set_regions :");
+  plots* _plots = search_plots(a_gv);
+  if(!_plots) {
+    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
+    return;
+  }
+  if((a_args.size()!=2)&&(a_args.size()!=3)) {
+    a_gv.insh().warn(s_header+" two or three arguments expected.");
+    return;
+  }
+  unsigned int cols;
+  if(!a_gv.insh().get_arg_uint(s_header,a_args[0],cols)) return;
+  unsigned int rows;
+  if(!a_gv.insh().get_arg_uint(s_header,a_args[1],rows)) return;
+  bool transfer = false;
+  if(a_args.size()==3) {
+    if(!a_gv.insh().get_arg_bool(s_header,a_args[2],transfer)) return;
+  }
+  _plots->set_regions(cols,rows,transfer);
+}
+
+inline const std::string& insh_plots_set_regions_help() {
+  static const std::string s_help("\
+plots_set_regions: plots_set_regions cols rows [transfer].\n\
+  Set the grid of inlib::sg::plotters in the first inlib::sg::plots node found in the scene.\n\
+  The optional transfer argument (false by default) says is the content of\n\
+  previous plotters are to be transfered in the plotter in the new grid.\n\
+  Example:\n\
+    plots_set_regions 2 2  # then four regions are created.\n\
+    plots_set_regions 2 3 true\n\
+");
+  return s_help;
+}
+
+inline void insh_plots_set_current_region(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plots_set_current_region :");
+  plots* _plots = search_plots(a_gv);
+  if(!_plots) {
+    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
+    return;
+  }      
+  if(a_args.size()!=1) {
+    a_gv.insh().warn(s_header+" one arguments expected.");
+    return;
+  }
+  unsigned int index;
+  if(!a_gv.insh().get_arg_uint(s_header,a_args[0],index)) return;
+  _plots->set_current_plotter(index);
+}
+
+inline const std::string& insh_plots_set_current_region_help() {
+  static const std::string s_help("\
+plots_set_current_region: plots_set_current_region index.\n\
+  Set the current region index in the first sg::plots node found in the scene.\n\
+  index is in [0,number of regions[.\n\
+  Example:\n\
+    plots_set_regions 2 2       # then four regions.\n\
+    plots_set_current_region 3  # then the bottom right region will be the current one.\n\
+");
+  return s_help;
+}
+
+INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_regions,insh_plots_set_regions(m_holder,a_args),insh_plots_set_regions_help())
+INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_current_region,insh_plots_set_current_region(m_holder,a_args),insh_plots_set_current_region_help())
+
+inline void view_evd_insh_add_cmds(gui_viewer& a_gv) {
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_regions)
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_current_region)
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -294,6 +370,7 @@ inline return_action action_clear_plots(gui_viewer& a_gv,const plots_data& a_dat
   return return_to_render;
 }
 
+/* problem (with the camera ?) with EsbRootView plotarea :
 inline return_action action_adjust_size(gui_viewer& a_gv,const plots_data& a_data) {
   view_evd* _evd = cast_view_evd(a_gv);
   if(_evd) {
@@ -304,6 +381,7 @@ inline return_action action_adjust_size(gui_viewer& a_gv,const plots_data& a_dat
   if(!a_data.m_popup) a_gv.hide_main_menu();
   return return_to_render;
 }
+*/
 
 inline return_action action_ok_regions(gui_viewer& a_gv,entries& a_widget,const plots_data& a_data) {
   unsigned int index_cols = 0;
@@ -357,8 +435,8 @@ inline return_action action_regions(gui_viewer& a_gv,const plots_data& a_data) {
   return return_to_render;
 }
 
-inline return_action action_regions_main(gui_viewer& a_gv,const pos_data& a_data) {
-  plots* _plots = search_selectable<plots>(a_gv.out(),a_gv.scene());
+inline return_action action_menu_plots_layout(gui_viewer& a_gv,const pos_data& a_data) {
+  plots* _plots = search_plots(a_gv);
 
   if(!_plots) {
     a_gv.pop_warn(a_data,"no plots given");
@@ -370,8 +448,6 @@ inline return_action action_regions_main(gui_viewer& a_gv,const pos_data& a_data
 
   plots_data data(*_plots,a_data.m_popup,a_data.m_ex,a_data.m_ey);
 
-  add_item(a_gv,*list,"toggle border",action_toggle_border,data);
-  add_item(a_gv,*list,"adjust size",action_adjust_size,data);
   add_item(a_gv,*list,"set regions",action_regions,data);
   add_item(a_gv,*list,"set current plotter",action_current,data);
   add_item(a_gv,*list,"plotter to one",action_current_to_one,data);
@@ -381,6 +457,8 @@ inline return_action action_regions_main(gui_viewer& a_gv,const pos_data& a_data
   add_item(a_gv,*list,"clear functions",action_clear_functions,data);
   add_item(a_gv,*list,"plotter clear",action_clear,data);
   add_item(a_gv,*list,"clear all plotters",action_clear_plots,data);
+  add_item(a_gv,*list,"toggle border",action_toggle_border,data);
+//add_item(a_gv,*list,"adjust size",action_adjust_size,data);
 
   a_gv.show_widget(a_data,list);
 
@@ -428,9 +506,9 @@ inline void add_plotter_entries(plotter& a_plotter,entries& a_entries){
     a_entries.add_float("bins[0].line_width",a_plotter.bins_style(0).line_width.value());
 
    {std::vector<std::string> opts;
-    sg::style_parser::spainting_policies(opts);
+    spainting_policies(opts);
     //opts.push_back(s_none());
-    const char* s = sg::style_parser::spainting_policy(a_plotter.bins_style(0).painting);
+    const char* s = spainting_policy(a_plotter.bins_style(0).painting);
     if(s) a_entries.add_opts("bins[0].painting",s,opts);
     else  a_entries.add_opts("bins[0].painting",s_none(),opts);}
 
@@ -444,9 +522,9 @@ inline void add_plotter_entries(plotter& a_plotter,entries& a_entries){
     //  ("func[0].line_pattern",a_plotter.func_style(0).line_pattern.value());
 
    {std::vector<std::string> opts;
-    sg::style_parser::spainting_policies(opts);
+    spainting_policies(opts);
     //opts.push_back(s_none());
-    const char* s = sg::style_parser::spainting_policy(a_plotter.func_style(0).painting);
+    const char* s = spainting_policy(a_plotter.func_style(0).painting);
     if(s) a_entries.add_opts("func[0].painting",s,opts);
     else  a_entries.add_opts("func[0].painting",s_none(),opts);}
 
@@ -605,7 +683,7 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
 
  {const std::string& s = vals[index_bins_0_painting];
   if(s!=s_none()) {
-    style_parser::spainting_policy(s,plotter.bins_style(0).painting.value());
+    spainting_policy(s,plotter.bins_style(0).painting.value());
   }
   plotter.touch();}
 
@@ -624,7 +702,7 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
 
  {const std::string& s = vals[index_func_0_painting];
   if(s!=s_none()) {
-    style_parser::spainting_policy(s,plotter.func_style(0).painting.value());
+    spainting_policy(s,plotter.func_style(0).painting.value());
   }
   plotter.touch();}
 
@@ -663,8 +741,8 @@ inline return_action action_resedit(gui_viewer& a_gv,const plots_data& a_data) {
   return return_to_render;
 }
 
-inline return_action action_edit_plot(gui_viewer& a_gv,const pos_data& a_data) {
-  plots* _plots = search_selectable<plots>(a_gv.out(),a_gv.scene());
+inline return_action action_menu_edit_plot(gui_viewer& a_gv,const pos_data& a_data) {
+  plots* _plots = search_plots(a_gv);
   if(!_plots) {
     a_gv.pop_warn(a_data,"no plots given");
     return return_to_render;
@@ -672,6 +750,8 @@ inline return_action action_edit_plot(gui_viewer& a_gv,const pos_data& a_data) {
   plots_data data(*_plots,a_data.m_popup,a_data.m_ex,a_data.m_ey);
   return action_resedit(a_gv,data);
 }
+
+inline return_action action_edit_plot(gui_viewer& a_gv,const pos_data& a_data) {return action_menu_edit_plot(a_gv,a_data);} //deprecated.
 
 }}
 

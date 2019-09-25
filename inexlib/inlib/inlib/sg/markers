@@ -41,6 +41,8 @@ private:
     add_field(&size);
   }
 public:
+  virtual bool draw_in_frame_buffer() const {return true;}
+
   virtual void render(render_action& a_action) {
     size_t num = xyzs.size()/3;
     if(!num) return;

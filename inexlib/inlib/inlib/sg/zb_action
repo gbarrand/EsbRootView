@@ -340,7 +340,37 @@ public:
         *pos = (uchar)(a*255.0F);pos++;
       }
     }
+ /*{size_t number = 4 * m_ww * m_wh;
+    size_t count_not_255 = 0;
+    for(size_t item=3;item<number;item+=4) {
+      unsigned char a = rgbas[item];
+      if(a!=255) {
+        ::printf("%lu : %d\n",item,a);
+        count_not_255++;
+	rgbas[item] = 255;
+      }
+    }
+    ::printf("zb_action::rgbas : not_255 : %lu\n",count_not_255);}*/
     return rgbas;
+  }
+
+  unsigned char* get_rgbs(size_t& a_sz) {
+    if(!m_ww || !m_wh) {a_sz = 0;return 0;}
+    a_sz = 3 * m_ww * m_wh;
+    typedef unsigned char uchar;
+    uchar* rgbs = new uchar[a_sz];
+    if(!rgbs) {a_sz = 0;return 0;}
+    uchar* pos = rgbs;
+    VCol r,g,b;
+    for(unsigned int row=0;row<m_wh;row++) {
+      for(unsigned int col=0;col<m_ww;col++) {
+        get_rgb(this,col,m_wh-row-1,r,g,b);
+        *pos = (uchar)(r*255.0F);pos++;
+        *pos = (uchar)(g*255.0F);pos++;
+        *pos = (uchar)(b*255.0F);pos++;
+      }
+    }
+    return rgbs;
   }
 
 protected:

@@ -72,7 +72,7 @@ inline void load_node(sg::gui_viewer& a_gv,sg::node* a_node,const args& a_args) 
 
     sg::separator& dsep = _evd->static_sg();
 
-    //if(a_args.is_arg(sg::s_clear_scene())) dsep.clear();
+    if(a_args.is_arg(sg::s_send_clear())) dsep.clear();
 
     //bool was_empty = dsep.size()?false:true;
 
@@ -82,7 +82,7 @@ inline void load_node(sg::gui_viewer& a_gv,sg::node* a_node,const args& a_args) 
       std::vector<float> vals;
       if(values(sarg," ",false,vals)&&(vals.size()==3)) {
         if(!layout) layout = new inlib::sg::matrix();
-        layout->mul_translate(vec3f(vals[0],vals[1],vals[2]));  //if any, applied first.
+        layout->mul_translate(vec3f(vals[0],vals[1],vals[2]));
       }
     }}
    {std::string sarg;
@@ -96,7 +96,7 @@ inline void load_node(sg::gui_viewer& a_gv,sg::node* a_node,const args& a_args) 
    {float scale;
     if(a_args.find<float>(inlib::sg::s_scale(),scale,1)) { //EsbRootView.scenarios
       if(!layout) layout = new inlib::sg::matrix();
-      layout->mul_scale(scale,scale,scale);
+      layout->mul_scale(scale,scale,scale);  //if any, applied first.
     }}
 
     inlib::sg::matrix* mtx = 0;
@@ -136,7 +136,7 @@ inline void load_node(sg::gui_viewer& a_gv,sg::node* a_node,const args& a_args) 
       }
 
       sg::separator& dsep = _evd->static_sg();
-      //if(a_args.is_arg(sg::s_clear_scene())) dsep.clear();
+      if(a_args.is_arg(sg::s_send_clear())) dsep.clear();
 
       dsep.add(a_node);
 
@@ -150,7 +150,8 @@ inline void load_node(sg::gui_viewer& a_gv,sg::node* a_node,const args& a_args) 
       }
 
       sg::separator& sep = _evd->dynamic_sg();
-      sep.clear();
+      if(a_args.is_arg(sg::s_send_clear())) sep.clear();
+
       sep.add(a_node);
       //don't hide main menu to be able
       //to get menu when receiving events.

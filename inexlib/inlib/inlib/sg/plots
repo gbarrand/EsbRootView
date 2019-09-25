@@ -58,6 +58,21 @@ public:
     );
     return s_v;
   }
+  virtual bool touched() {
+    if(parent::touched()) return true;
+     
+     if(m_sep.empty()) return true;
+     if(m_extras.size()!=m_extras_sep.size()) return true;
+ 
+  //{size_t _number = m_sep.size();    
+  // for(size_t index=0;index<_number;index++) {
+  //   separator* sep = (separator*)m_sep[index];
+  //   plotter* _plotter = (plotter*)(*sep)[PLOTTER()];
+  //   if(_plotter->shape.touched()) return true;
+  // }}
+
+     return false;
+   }
 private:
   void add_fields(){
     add_field(&width);
@@ -86,6 +101,7 @@ private:
 
   typedef std::vector<plottable*> ptbs_t;
   typedef std::vector<node*> todels_t;
+  typedef std::vector<plotprim*> prims_t;
 public:
 /*
   class updater { 
@@ -98,53 +114,35 @@ public:
 */
 public:
   virtual void render(render_action& a_action) {
-    if(touched()) {
-      update_sg();
-      reset_touched();
-    }
+    update_if_touched();
     m_group.render(a_action);
   }
   virtual void pick(pick_action& a_action) {
-    if(touched()) {
-      update_sg();
-      reset_touched();
-    }
+    update_if_touched();
     nodekit_pick(a_action,m_group,this);
     //m_group.pick(a_action);
   }
   virtual void search(search_action& a_action) {
     parent::search(a_action);
     if(a_action.done()) return;
-    if(touched()) {
-      update_sg();
-      reset_touched();
-    }
+    update_if_touched();
     if(a_action.do_path()) a_action.path_push(this);
     m_group.search(a_action);
     if(a_action.done()) return;
     if(a_action.do_path()) a_action.path_pop();
   }
   virtual void bbox(bbox_action& a_action) {
-    if(touched()) {
-      update_sg();
-      reset_touched();
-    }
+    update_if_touched();
     m_group.bbox(a_action);
   }
 
   virtual void event(event_action& a_action) {
-    if(touched()) {
-      update_sg();
-      reset_touched();
-    }
+    update_if_touched();
     m_group.event(a_action);
     if(a_action.done()) return;
   }
   virtual bool write(write_action& a_action) {
-    if(touched()) {
-      update_sg();
-      reset_touched();
-    }
+    update_if_touched();
     return m_group.write(a_action);
   }
 public:
@@ -213,8 +211,8 @@ public:
   {
     add_fields();
     init_sg();
-
     //m_updater = a_from.m_updater?a_from.m_updater->copy():0;
+    if(!copy_plotters(a_from)) {}
   }
   plots& operator=(const plots& a_from){    
     parent::operator=(a_from);
@@ -250,6 +248,8 @@ public:
     m_current = a_from.m_current;
     m_extras = a_from.m_extras;
 
+    if(!copy_plotters(a_from)) {}
+    
     return *this;
   }
 public:
@@ -260,19 +260,14 @@ public:
     if(!a_ww||!a_wh) return;
     float aspect = float(a_ww)/float(a_wh);
     width = height * aspect;
-
-    //wps : cooking to avoid seeing a line for left border.
-    width = width * 1.001f;
-
-    update_sg();
-    reset_touched();
   }  
 
-//void update_now() { //for view_plots/adjust_PAW.
-//  update_sg();
-//  reset_touched();
-//}  
+  //void enforce_update() { //used in geant4 plotting.
+  //  update_sg();
+  //  reset_touched();
+  //}  
 
+  const base_freetype& ttf() const {return m_ttf;}
 public:
 /*
   void set_updater(updater* a_updater) {
@@ -282,7 +277,7 @@ public:
   }
 */
   void clear() {
-    if(to_update()) update_sg();
+    update_if_touched();
    {size_t _number = m_sep.size();    
     for(size_t index=0;index<_number;index++) {
       separator* sep = (separator*)m_sep[index];
@@ -297,7 +292,7 @@ public:
   }
 
   bool has_data() {
-    if(to_update()) update_sg();
+    update_if_touched();
    {size_t _number = m_sep.size();    
     for(size_t index=0;index<_number;index++) {
       separator* sep = (separator*)m_sep[index];
@@ -313,7 +308,7 @@ public:
   }
 
   void touch_plotters() { //used in exlib/geant4/session.
-    if(to_update()) update_sg();
+    update_if_touched();
    {size_t _number = m_sep.size();    
     for(size_t index=0;index<_number;index++) {
       separator* sep = (separator*)m_sep[index];
@@ -328,7 +323,7 @@ public:
   }
 
   void next() {
-    if(to_update()) update_sg();
+    update_if_touched();
     size_t _number = m_sep.size();    
     if(m_current>=(uint32(_number)-1)) {
       m_current = 0;
@@ -339,7 +334,7 @@ public:
   }
 
   bool set_current_plotter(unsigned int a_index) {
-    if(to_update()) update_sg();
+    update_if_touched();
     if(a_index>=m_sep.size()) return false;
     m_current = a_index;
     update_current_border();
@@ -347,7 +342,7 @@ public:
   }
 
   bool set_current(plotter* a_plotter) { //for popup.
-    if(to_update()) update_sg();
+    update_if_touched();
     size_t _number = m_sep.size();    
     for(size_t index=0;index<_number;index++) {
       separator* sep = (separator*)m_sep[index];
@@ -362,7 +357,7 @@ public:
   }
 
 //  torche* current_torche() {
-//    if(to_update()) update_sg();
+//    update_if_touched();
 //    separator* sep = (separator*)m_sep[m_current];
 //    return safe_cast<node,torche>(*((*sep)[LIGHT()]));
 //  }
@@ -373,7 +368,7 @@ public:
     if(_plotter.shape.value()==plotter::xyz) {
       return &(_plotter.tsf());
     } else {
-      if(to_update()) update_sg();
+      update_if_touched();
       separator* sep = (separator*)m_sep[m_current];
       return safe_cast<node,matrix>(*((*sep)[TSF()]));
     }
@@ -381,12 +376,12 @@ public:
 */
 
   plotter& current_plotter() {
-    if(to_update()) update_sg();
+    update_if_touched();
     separator* sep = (separator*)m_sep[m_current];
     return *((plotter*)(*sep)[PLOTTER()]);
   }
   plotter* find_plotter(unsigned int a_index) {
-    if(to_update()) update_sg();
+    update_if_touched();
     if(a_index>=m_sep.size()) return 0;
     separator* sep = (separator*)m_sep[a_index];
     return (plotter*)(*sep)[PLOTTER()];
@@ -396,11 +391,7 @@ public:
   bool find_plotter(unsigned int a_ww,unsigned int a_wh,
                     float a_x,float a_y,
                     unsigned int& a_index) {
-    if(touched()) {
-      update_sg();
-      reset_touched();
-    }
-    if(to_update()) update_sg();
+    update_if_touched();
 
     a_index = 0;
 
@@ -445,70 +436,68 @@ public:
     unsigned int oldn = cols*rows;
 
     std::vector<ptbs_t> ptbss;
+    std::vector<prims_t> primss;
     std::vector<todels_t> tdlss;
-
-    std::vector< plotter > pls;
+    std::vector<plotter> pls;
+    
     if(a_transfer) {   
       ptbss.resize(oldn);
+      primss.resize(oldn);
       tdlss.resize(oldn);
       pls.resize(oldn,plotter(m_ttf));
       for(unsigned int index=0;index<oldn;index++) {
         plotter* p = find_plotter(index);
         p->transfer_plottables(ptbss[index]);
+        p->transfer_primitives(primss[index]);
         p->transfer_todels(tdlss[index]);
-        pls[index] = *p; //have a copy (of styles).
+        pls[index] = *p; //to copy styles.
       }
     }
 
     cols = a_cols?a_cols:1;
     rows = a_rows?a_rows:1;
-    touch();
+    if(view_border.value()) {view_border = (number()==1?false:true);}
     update_sg();
     set_current_plotter(0);
     clear();
-    if(view_border.value()) {
-      view_border = (number()==1?false:true); 
-    }
     if(a_transfer) {   
       //fill new plotters with old data :
       unsigned int num = min_of(oldn,cols*rows);
       for(unsigned int index=0;index<num;index++) {
         plotter* p = find_plotter(index);
-        *p = pls[index];
+        p->copy_style(pls[index]);  //it must not touch p width, height, depth.
 
        {const ptbs_t& ptbs = ptbss[index];
-        ptbs_t::const_iterator it;
-        for(it=ptbs.begin();it!=ptbs.end();++it) p->add_plottable(*it);}
-
+        inlib_vforcit(plottable*,ptbs,it) p->add_plottable(*it);}
+       {const prims_t& prims = primss[index];
+        inlib_vforcit(plotprim*,prims,it) p->add_primitive(*it);}
        {const todels_t& todels = tdlss[index];
-        todels_t::const_iterator it;
-        for(it=todels.begin();it!=todels.end();++it) p->add_node_todel(*it);}
+        inlib_vforcit(node*,todels,it) p->add_node_todel(*it);}
       }
     }
-
+    reset_touched();
   }
 
   void current_to_one() {
-    ptbs_t ptbs;
-    current_plotter().transfer_plottables(ptbs);
-    todels_t tdls;
-    current_plotter().transfer_todels(tdls);
-    plotter pl = current_plotter(); //have a copy (of styles).
+    ptbs_t ptbs;current_plotter().transfer_plottables(ptbs);
+    prims_t prims;current_plotter().transfer_primitives(prims);
+    todels_t tdls;current_plotter().transfer_todels(tdls);
+    plotter pl = current_plotter(); //to copy styles.
 
     set_regions(1,1,false);
 
     plotter& p = current_plotter();
-    p = pl; //copy styles.
+    p.copy_style(pl); //copy styles.
 
-   {ptbs_t::const_iterator it;
-    for(it=ptbs.begin();it!=ptbs.end();++it) p.add_plottable(*it);}
-   {todels_t::const_iterator it;
-    for(it=tdls.begin();it!=tdls.end();++it) p.add_node_todel(*it);}
+   {inlib_vforcit(plottable*,ptbs,it) p.add_plottable(*it);}
+   {inlib_vforcit(plotprim*,prims,it) p.add_primitive(*it);}
+   {inlib_vforcit(node*,tdls,it) p.add_node_todel(*it);}
+    
   }
-
-  void plotters(std::vector<plotter*>& a_vec) { //a_vec do NOT get ownership of sg::plotter objects.
+  
+  void plotters(std::vector<plotter*>& a_vec) { //a_vec do NOT get ownership of sg::plotter objects. Use in G4Analysis.
     a_vec.clear();
-    if(to_update()) update_sg();
+    update_if_touched();
     size_t _number = m_sep.size();    
     for(size_t index=0;index<_number;index++) {
       separator* sep = (separator*)m_sep[index];
@@ -516,7 +505,124 @@ public:
       a_vec.push_back(_plotter);
     }    
   }
+  
+  //////////////////////////////////////////////////////////////////////
+  //// styling methods : ///////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  void set_line_width(float a_line_width) {
+    update_if_touched();
+    size_t _number = m_sep.size();    
+    for(size_t index=0;index<_number;index++) {
+      separator* sep = (separator*)m_sep[index];
+      plotter* _plotter = (plotter*)(*sep)[PLOTTER()];
+      
+      _plotter->bins_style(0).line_width = a_line_width;
+      _plotter->inner_frame_style().line_width = a_line_width;
+      _plotter->grid_style().line_width = a_line_width;
+      _plotter->x_axis().line_style().width = a_line_width;
+      _plotter->x_axis().ticks_style().width = a_line_width;
+      _plotter->y_axis().line_style().width = a_line_width;
+      _plotter->y_axis().ticks_style().width = a_line_width;
+      _plotter->z_axis().line_style().width = a_line_width;
+      _plotter->z_axis().ticks_style().width = a_line_width;
+      _plotter->colormap_axis().line_style().width = a_line_width;
+      _plotter->colormap_axis().ticks_style().width = a_line_width;
+  
+      // needed if font is hershey :
+      _plotter->title_style().line_width = a_line_width;
+      _plotter->infos_style().line_width = a_line_width;
+      _plotter->title_box_style().line_width = a_line_width;
+  
+      _plotter->x_axis().labels_style().line_width = a_line_width;
+      _plotter->x_axis().mag_style().line_width = a_line_width;
+      _plotter->x_axis().title_style().line_width = a_line_width;
+  
+      _plotter->y_axis().labels_style().line_width = a_line_width;
+      _plotter->y_axis().mag_style().line_width = a_line_width;
+      _plotter->y_axis().title_style().line_width = a_line_width;
+  
+      _plotter->z_axis().labels_style().line_width = a_line_width;
+      _plotter->z_axis().mag_style().line_width = a_line_width;
+      _plotter->z_axis().title_style().line_width = a_line_width;
 
+      _plotter->colormap_axis().labels_style().line_width = a_line_width;
+      _plotter->colormap_axis().mag_style().line_width = a_line_width;
+      _plotter->colormap_axis().title_style().line_width = a_line_width;
+    }    
+  }
+
+/*
+  void set_border_style() {
+    update_if_touched();
+    size_t _number = m_sep.size();    
+    for(size_t index=0;index<_number;index++) {
+      separator* sep = (separator*)m_sep[index];
+      plotter* _plotter = (plotter*)(*sep)[PLOTTER()];
+      _plotter->background_style().visible = true;
+      _plotter->background_style().color = colorf_black();
+      _plotter->background_style().line_width = 0.003;
+    }    
+    border_visible = true;
+  }
+*/
+
+  void set_grids_visibility(bool a_visible = false) {
+    update_if_touched();
+    size_t _number = m_sep.size();    
+    for(size_t index=0;index<_number;index++) {
+      separator* sep = (separator*)m_sep[index];
+      plotter* _plotter = (plotter*)(*sep)[PLOTTER()];
+      _plotter->grid_style().visible = a_visible;
+    }    
+    border_visible = true;
+  }
+
+  void adjust_scales(float a_plotter_scale = 1) {
+    // Rescale some plotter parameters (for example margins) according to the number of plots.
+    // We assume that these parameters had been set previously according to one plot per page.
+    // Then this function must be applied after all the styles had been applied (because
+    // a plotting style may set these parameters).
+  
+    float ww_wc = width.value();
+    float wh_wc = height.value();
+    float rw_wc = ww_wc/cols.value();
+    float rh_wc = wh_wc/rows.value();
+  
+    float cooking = 1.2f; //if increased the data area is diminished.
+  
+    float wfac = (rw_wc/ww_wc)*cooking;
+    float hfac = (rh_wc/wh_wc)*cooking;
+  
+    float label_cooking = 1.6f; //if increased the labels are bigger.
+  
+    if((cols.value()>=4)&&(cols.value()>rows.value())) label_cooking = 0.9f;
+  
+    float title_cooking = 1.1f; //extra title cooking.
+  
+    plotter_scale = a_plotter_scale;
+  
+    update_if_touched();
+   {size_t _number = m_sep.size();    
+    for(size_t index=0;index<_number;index++) {
+      separator* sep = (separator*)m_sep[index];
+      plotter* _plotter = (plotter*)(*sep)[PLOTTER()];
+  
+      _plotter->left_margin = _plotter->left_margin * wfac;
+      _plotter->right_margin = _plotter->right_margin * wfac;
+      _plotter->bottom_margin = _plotter->bottom_margin * hfac;
+      _plotter->top_margin = _plotter->top_margin * hfac;
+  
+      _plotter->x_axis().tick_length = _plotter->x_axis().tick_length * wfac;
+      _plotter->y_axis().tick_length = _plotter->y_axis().tick_length * hfac;
+  
+      _plotter->title_to_axis = _plotter->title_to_axis * hfac;
+      _plotter->title_height = _plotter->title_height * hfac * title_cooking;
+  
+      _plotter->x_axis().label_height = _plotter->x_axis().label_height * hfac * label_cooking;
+      _plotter->y_axis().label_height = _plotter->y_axis().label_height * hfac * label_cooking;
+    }}
+  }
+  
   //gopaw:
   void configure_grid_PAW(unsigned int a_ww,unsigned int a_wh) {
     
@@ -760,9 +866,12 @@ public:
   void configure_PAW(unsigned int a_ww,unsigned int a_wh) {
     configure_grid_PAW(a_ww,a_wh);
     configure_extras_PAW(a_ww,a_wh);
-    update_sg();
-    reset_touched();
+    touch();
+    update_if_touched();
   }
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
 
   //gopaw:
   void delete_extras() {
@@ -776,7 +885,7 @@ public:
     //  0 1 2
     //  3 4 5
     m_extras.push_back(extra(a_cols,a_rows,a_index));
-    update_sg();
+    update_if_touched();
     separator* sep = m_extras.back().m_sep;
     return (plotter*)(*sep)[PLOTTER()];
   }
@@ -796,10 +905,11 @@ public:
     m_group.add(new noderef(m_extras_sep)); 
   }
 protected:
-  bool to_update() {
-    if(m_sep.empty()) return true;
-    if(m_extras.size()!=m_extras_sep.size()) return true;
-    return false;
+  void update_if_touched() {
+    if(touched()) {
+      update_sg();
+      reset_touched();
+    }
   }
   void update_sg(){
 
@@ -863,6 +973,42 @@ protected:
     
     update_extras();
   }  
+
+  bool copy_plotters(const plots& a_from) {
+    update_if_touched();
+    if(m_sep.size()==a_from.m_sep.size()) {
+      size_t _number = m_sep.size();    
+      for(size_t index=0;index<_number;index++) {
+        separator* _from_sep = (separator*)a_from.m_sep[index];
+        matrix* _from_matrix = (matrix*)(*_from_sep)[MATRIX()];	 
+        //_switch* _border = (_switch*)(*_sep)[BORDER()];
+        plotter* _from_plotter = (plotter*)(*_from_sep)[PLOTTER()];
+
+        separator* _sep = (separator*)m_sep[index];
+        matrix* _matrix = (matrix*)(*_sep)[MATRIX()];	 
+        plotter* _plotter = (plotter*)(*_sep)[PLOTTER()];
+
+        _matrix->operator=(*_from_matrix);
+        _plotter->operator=(*_from_plotter);
+      }
+    }
+    if(m_extras_sep.size()==a_from.m_extras_sep.size()) {
+      size_t _number = m_extras_sep.size();    
+      for(size_t index=0;index<_number;index++) {
+        separator* _from_sep = (separator*)a_from.m_extras_sep[index];
+        matrix* _from_matrix = (matrix*)(*_from_sep)[MATRIX()];	 
+        plotter* _from_plotter = (plotter*)(*_from_sep)[PLOTTER()];
+      
+        separator* _sep = (separator*)m_extras_sep[index];
+        matrix* _matrix = (matrix*)(*_sep)[MATRIX()];	 
+        plotter* _plotter = (plotter*)(*_sep)[PLOTTER()];
+       
+        _matrix->operator=(*_from_matrix);
+        _plotter->operator=(*_from_plotter);
+      }
+    }    
+    return true;
+  }
 
   static void create_plotter_border(_switch& a_parent,float a_w,float a_h) {
     a_parent.clear();

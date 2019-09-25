@@ -25,8 +25,7 @@ inline bool create_scenario_sg(
 ,const xml::scenario& a_sno
 ,const TVOLUME& a_master
 ,sg::separator& a_sep
-,void (*a_no_vds)(const TVOLUME& a_vol,
-                  std::vector< std::pair<std::string,unsigned int> >&)
+,void (*a_no_vds)(const TVOLUME& a_vol,std::vector< std::pair<std::string,unsigned int> >&)
 ,bool(*a_pv_name)(const TVOLUME&,std::string&)
 ,std::string& a_swarn
 ) {

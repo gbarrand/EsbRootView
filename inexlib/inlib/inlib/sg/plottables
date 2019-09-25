@@ -183,14 +183,30 @@ public: //inlib::sg::plotprim
   }
   virtual plotprim* copy() const {return new plottable_text(*this);}
 public:
+  enum text_mode {
+    text_as_it,
+    text_enforce_width,
+    text_enforce_height
+  };
+public:
   plottable_text(const std::string& a_TEXT,float a_X,float a_Y,
-                 float a_SIZE,float a_ANGLE = 0,
+                 float a_SIZE,text_mode a_text_mode,
+  /*
+                 float a_ANGLE = 0,
                  char a_HJUST = 'L',char a_VJUST = 'B',
                  const std::string& a_FONT = "Hershey",const colorf& a_TXCI = colorf(0,0,0,1),
                  float a_SCALE = 1,bool a_SMOOTHING = false,bool a_HINTING = false,float a_line_width = 1,
-                 font_modeling a_font_modeling = font_filled)
+                 font_modeling a_font_modeling = font_filled
+		 */
+                 float a_ANGLE,
+                 char a_HJUST,char a_VJUST,
+                 const std::string& a_FONT,const colorf& a_TXCI,
+                 float a_SCALE,bool a_SMOOTHING,bool a_HINTING,float a_line_width,
+                 font_modeling a_font_modeling
+		 )
   :m_TEXT(a_TEXT),m_X(a_X),m_Y(a_Y)
-  ,m_SIZE(a_SIZE),m_ANGLE(a_ANGLE)
+  ,m_SIZE(a_SIZE),m_text_mode(a_text_mode)
+  ,m_ANGLE(a_ANGLE)
   ,m_HJUST(a_HJUST)
   ,m_VJUST(a_VJUST)
   ,m_FONT(a_FONT),m_TXCI(a_TXCI)
@@ -202,7 +218,8 @@ public:
   :parent(a_from)
   ,m_TEXT(a_from.m_TEXT)
   ,m_X(a_from.m_X),m_Y(a_from.m_Y)
-  ,m_SIZE(a_from.m_SIZE),m_ANGLE(a_from.m_ANGLE)
+  ,m_SIZE(a_from.m_SIZE),m_text_mode(a_from.m_text_mode)
+  ,m_ANGLE(a_from.m_ANGLE)
   ,m_HJUST(a_from.m_HJUST)
   ,m_VJUST(a_from.m_VJUST)
   ,m_FONT(a_from.m_FONT),m_TXCI(a_from.m_TXCI)
@@ -214,6 +231,7 @@ public:
     m_X = a_from.m_X;
     m_Y = a_from.m_Y;
     m_SIZE = a_from.m_SIZE;
+    m_text_mode = a_from.m_text_mode;
     m_ANGLE = a_from.m_ANGLE;
     m_HJUST = a_from.m_HJUST;
     m_VJUST = a_from.m_VJUST;
@@ -231,6 +249,7 @@ public:
   float m_X;
   float m_Y;
   float m_SIZE;
+  text_mode m_text_mode;
   float m_ANGLE;
   char m_HJUST;
   char m_VJUST;

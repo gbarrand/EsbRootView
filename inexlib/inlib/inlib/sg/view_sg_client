@@ -20,7 +20,7 @@ class view_sg_client {
 public:
   INLIB_SCLASS(inlib::sg::view_sg_client)
 public:
-  view_sg_client(std::ostream& a_out,const std::string& a_app_name,const std::string& a_data_dir,
+  view_sg_client(std::ostream& a_out,const std::string& /*a_app_name*/,const std::string& /*a_data_dir*/,
                  compress_func a_func,const base_freetype& a_ttf)
   :m_sg_client(a_out,false,true)
   ,m_compress_func(a_func)

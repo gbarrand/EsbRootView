@@ -9,6 +9,8 @@
 #include "lpat"
 #include "sf_enum"
 #include "render_action"
+#include "pick_action"
+#include "bbox_action"
 
 namespace inlib {
 namespace sg {
@@ -47,12 +49,7 @@ private:
 public:
   virtual void render(render_action& a_action) {
     state& state = a_action.state();
-    state.m_draw_type = style;
-    state.m_line_width = line_width;
-    state.m_line_pattern = line_pattern;
-    state.m_point_size = point_size;
-    state.m_GL_CULL_FACE = cull_face;
-    state.m_winding = winding_ccw.value()?sg::winding_ccw:sg::winding_cw;
+    _set_state(state);
 
     if(style.value()==draw_lines) {
       //no LINE_STIPPLE in GLES.
@@ -66,6 +63,8 @@ public:
       a_action.set_winding(state.m_winding);
     }
   }
+  virtual void pick(pick_action& a_action) {_set_state(a_action.state());}
+  virtual void bbox(bbox_action& a_action) {_set_state(a_action.state());}
 public:
   draw_style()
   :parent()
@@ -102,6 +101,15 @@ public:
     winding_ccw = a_from.winding_ccw;
 
     return *this;
+  }
+protected:
+  void _set_state(state& a_state) {
+    a_state.m_draw_type = style;
+    a_state.m_line_width = line_width;
+    a_state.m_line_pattern = line_pattern;
+    a_state.m_point_size = point_size;
+    a_state.m_GL_CULL_FACE = cull_face;
+    a_state.m_winding = winding_ccw.value()?sg::winding_ccw:sg::winding_cw;
   }
 };
 

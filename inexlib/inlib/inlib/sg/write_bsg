@@ -102,7 +102,7 @@ public:
         infos.push_back((*it2).name()); 
         infos.push_back((*it2).cls());
      //{if(!num2s((*it2).offset(),stmp)) {} //protocol 2
-       {if(!num2s((field_desc::offset_t)0,stmp)) {} //protocol 3 : do not save offset which depends of the compiler.
+       {if(!ptrdiff_t2s((field_desc::offset_t)0,stmp)) {} //protocol 3 : do not save offset which depends of the compiler.
         infos.push_back(stmp);}
       }
       fd.add(infos);

@@ -131,13 +131,13 @@ public:
       m_viewer.win_render();
 	    
     } else if(prot==inlib::sg::s_protocol_clear_static_sg()) {
-      m_viewer.insh_dispatch(s_insh_clear_static_scene(),std::vector<std::string>());
+      m_viewer.insh().exec_line_new_state(s_insh_clear_static_scene());
       m_viewer.win_render();
     } else if(prot==inlib::sg::s_protocol_clear_dynamic_sg()) {
-      m_viewer.insh_dispatch(s_insh_clear_dynamic_scene(),std::vector<std::string>());
+      m_viewer.insh().exec_line_new_state(s_insh_clear_dynamic_scene());
       m_viewer.win_render();
     } else if(prot==inlib::sg::s_protocol_clear_screen_sg()) {
-      m_viewer.insh_dispatch(s_insh_clear_screen_scene(),std::vector<std::string>());
+      m_viewer.insh().exec_line_new_state(s_insh_clear_screen_scene());
       m_viewer.win_render();
 
     } else if(prot==inlib::sg::s_protocol_zdoc()) {

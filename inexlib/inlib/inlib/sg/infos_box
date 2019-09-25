@@ -69,7 +69,7 @@ public:
       INLIB_ARG_FIELD_DESC(line_width),
       INLIB_ARG_FIELD_DESC(front_face),
 
-      INLIB_ARG_FIELD_DESC(back_visible),
+      INLIB_ARG_FIELD_DESC(back_visible), //10
       INLIB_ARG_FIELD_DESC(wmargin_factor),
       INLIB_ARG_FIELD_DESC(hmargin_factor),
       INLIB_ARG_FIELD_DESC(lhjust),

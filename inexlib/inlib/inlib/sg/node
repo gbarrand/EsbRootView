@@ -28,6 +28,8 @@ namespace sg {
 class node {
 public:
   INLIB_SCLASS(inlib::sg::node)
+//public:
+//  static bool is_a(const std::string& a_class) {return rcmp(a_class,s_class());}
   virtual void* cast(const std::string& a_class) const {
     if(void* p = cmp_cast<node>(this,a_class)) {return p;}
     else return 0;
@@ -83,6 +85,18 @@ public:
   virtual void is_visible(visible_action&) {}
   
   virtual void protocol_one_fields(std::vector<field*>& a_fields) const {a_fields = m_fields;}
+
+  virtual bool draw_in_frame_buffer() const {return false;}  // marker nodes return true.
+public:
+  virtual bool touched() { //virtual for plotter.
+    inlib_vforcit(field*,m_fields,it) {
+      if((*it)->touched()) return true;
+    }
+    return false;
+  }
+  virtual void reset_touched() {
+    inlib_vforcit(field*,m_fields,it) (*it)->reset_touched();
+  }
 public:
   node(){
 #ifdef INLIB_MEM
@@ -104,12 +118,6 @@ protected:
 protected:
   void add_field(field* a_field) {
     m_fields.push_back(a_field); //it does not take ownerhship.
-  }
-  bool touched() {
-    inlib_vforcit(field*,m_fields,it) {
-      if((*it)->touched()) return true;
-    }
-    return false;
   }
   //INLIB_CLASS_STRING(fields_end) //for write_bsg, sg::rbsg
   bool write_fields(write_action& a_action) {
@@ -216,9 +224,6 @@ public:
   void touch() {
     if(m_fields.empty()) return;
     m_fields.front()->touch();
-  }
-  void reset_touched() {
-    inlib_vforcit(field*,m_fields,it) (*it)->reset_touched();
   }
 /*
   bool equal(const node& a_node) const {

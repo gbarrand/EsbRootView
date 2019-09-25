@@ -26,6 +26,7 @@ public:
     static const std::string s_v("inlib::sg::bmf");
     return s_v;
   }
+//static bool is_a(const std::string& a_class) {return rcmp(a_class,s_class());}
   virtual void* cast(const std::string& a_class) const {
     if(void* p = cmp_cast< bmf<T> >(this,a_class)) {return p;}
     return parent::cast(a_class);

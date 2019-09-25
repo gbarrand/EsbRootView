@@ -568,6 +568,7 @@ public:
         else if(val==s_anim_mode_1()) m_anim_mode = anim_mode_1;
         else if(val==s_anim_mode_2()) m_anim_mode = anim_mode_2;
         else if(val==s_anim_mode_3()) m_anim_mode = anim_mode_3;
+        else if(val==s_anim_mode_4()) m_anim_mode = anim_mode_4;
         else {status = false;}
 
       } else if(rcmp(lab,s_anim_around_focal())) {

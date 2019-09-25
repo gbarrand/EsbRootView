@@ -12,6 +12,7 @@
 
 #include "../cbk/move_manip"
 #include "../cbk/viewer_popup"
+#include "../parse"
 
 namespace inlib {
 namespace sg {
@@ -27,6 +28,7 @@ public:
   {
     m_cmaps[style_default_colormap::s_default()] = style_default_colormap();
     //m_cmaps.add_colormap("ROOT",style_ROOT_colormap());
+    insh_add_cmds();
   }
   virtual ~view_evd(){}
 protected:
@@ -54,20 +56,9 @@ protected:
 
   static unsigned int SCREEN_CAMERA()  {return 0;}
 public:
-  bool insh__dispatch(const std::string& a_cmd,const std::vector<std::string>& a_args) {
-    if(a_cmd==s_insh_clear_static_scene()) {
-      static_sg().clear();
-      return true;
-    } else if(a_cmd==s_insh_clear_dynamic_scene()) {
-      dynamic_sg().clear();
-      return true;
-    } else if(a_cmd==s_insh_clear_screen_scene()) {
-      screen_sg().clear();
-      return true;
-    }
-    return false;
-  }
-
+  const gui_viewer& gv() const {return m_gv;}
+  gui_viewer& gv() {return m_gv;}
+  
   bool replace_camera(base_camera* a_camera){
     if(m_gv.scene().size()<3) return false;
     infos* _node = safe_cast<node,infos>(*(m_gv.scene()[INFOS()]));
@@ -501,7 +492,54 @@ protected:
     //}
   }
 
-protected:
+protected: //insh
+  void _camera_set_ortho(const std::vector<std::string>& a_args) {
+    if(a_args.empty()) {
+      m_gv.insh().warn("inlib::sg::view_evd::_camera_set_ortho : one argument expected.");
+      return;
+    }
+    float height;
+    if(!m_gv.insh().get_arg_float("inlib::sg::view_evd::_camera_set_ortho",a_args[0],height)) return;
+    inlib::sg::ortho* camera = new inlib::sg::ortho();
+    camera->height = height;
+    replace_camera(camera);
+  }
+  void _camera_set_perspective(const std::vector<std::string>& a_args) {
+    if(a_args.empty()) {
+      m_gv.insh().warn("inlib::sg::view_evd::_camera_set_perspective : one argument expected.");
+      return;
+    }
+    float height_angle;
+    if(!m_gv.insh().get_arg_float("inlib::sg::view_evd::_camera_set_perspective",a_args[0],height_angle)) return;
+    inlib::sg::perspective* camera = new inlib::sg::perspective();
+    camera->height_angle = height_angle;
+    replace_camera(camera);
+  }
+
+  INLIB_INSH_VOID_ARGS_CMD(view_evd)
+  INLIB_INSH_BOOL_VOID_CMD(view_evd)
+  INLIB_INSH_VOID_VOID_CMD(view_evd)
+
+#define INLIB_VIEW_EVD_ADD_VOID_ARGS_CMD(a__name,a__method,a__help)\
+   m_gv.insh().add_command(#a__name,new view_evd_void_args_cmd(*this,&view_evd::a__method,a__help));
+   
+  INLIB_INSH_CLASS_CMD(view_evd,scene_clear_static,m_holder.static_sg().clear(),insh::no_help())
+  INLIB_INSH_CLASS_CMD(view_evd,scene_clear_dynamic,m_holder.dynamic_sg().clear(),insh::no_help())
+//INLIB_INSH_CLASS_CMD(view_evd,scene_clear_screen,m_holder.screen_sg().clear(),insh::no_help())
+  INLIB_INSH_CLASS_CMD(view_evd,scene_write_static_to_bsg,sg::gui_viewer::_node_to_bsg(m_holder.m_gv,a_args,m_holder.static_sg()),insh::no_help())
+  INLIB_INSH_CLASS_CMD(view_evd,scene_write_dynamic_to_bsg,sg::gui_viewer::_node_to_bsg(m_holder.m_gv,a_args,m_holder.dynamic_sg()),insh::no_help())
+  void insh_add_cmds() {
+    INLIB_VIEW_EVD_ADD_VOID_ARGS_CMD(camera_set_ortho,_camera_set_ortho,insh::no_help)
+    INLIB_VIEW_EVD_ADD_VOID_ARGS_CMD(camera_set_perspective,_camera_set_perspective,insh::no_help)
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_clear_static)
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_clear_dynamic)
+  //INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_clear_screen)
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_write_static_to_bsg)
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_write_dynamic_to_bsg)
+  }
+
+#undef INLIB_VIEW_EVD_ADD_VOID_ARGS_CMD
+
 private:
   gui_viewer& m_gv;
   head_light m_light;
@@ -615,7 +653,7 @@ inline return_action action_dynamic_to_vertices(gui_viewer& a_gv) {
   return return_to_render;
 }
 
-inline return_action action_view_evd_utils(gui_viewer& a_gv) {
+inline return_action action_menu_utils(gui_viewer& a_gv) {
   action_utils(a_gv);
   node* _node = a_gv.current_list();
   if(!_node) return return_none;
@@ -641,11 +679,81 @@ inline return_action action_send_static_sg(gui_viewer& a_gv) {
   if(!_evd) return return_none;
   VIEW_SG_CLIENT* _view_sg_client = safe_cast<viewer,VIEW_SG_CLIENT>(a_gv);
   if(!_view_sg_client) return return_none;
-  inlib::args opts;
+  args opts;
   _view_sg_client->send_sg(_evd->static_sg(),opts);
   return return_to_render;
 }
   
+inline bool vis_set_camera(sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  view_evd* _evd = cast_view_evd(a_gv);
+  if(!_evd) {a_gv.insh().warn("inlib::sg::vis_set_camera : bad evd cast.");return false;}
+
+  ////////////////////////////////////////
+  /// args : /////////////////////////////
+  ////////////////////////////////////////
+  args _args(a_args);
+
+  std::string stype;
+  _args.find("-type",stype,"ortho");
+
+  float znear = 1;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,znear,false)
+  float zfar = 10;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,zfar,false)
+  float dx = 0.01f;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,dx,false)
+  float da = 0.017f;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,da,false)
+  float ds = 0.99f;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,ds,false)
+  float focal = 1;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,focal,false)
+
+  vec3f position(0,0,1);
+  INLIB_GUI_VIEWER_GET_ARG_VEC3F(inlib::sg::vis_set_camera,position,false)
+  vec4f orientation(0,0,1,0);
+  INLIB_GUI_VIEWER_GET_ARG_VEC4F(inlib::sg::vis_set_camera,orientation,false)
+  rotf _rot(vec3f(orientation.v0(),orientation.v1(),orientation.v2()),orientation.v3());
+
+  ////////////////////////////////////////
+  ////////////////////////////////////////
+  ////////////////////////////////////////
+  base_camera* _camera = 0;
+  if(stype=="ortho") {  
+    float height = 2;
+    INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,height,false)
+    
+    ortho* camera = new ortho();
+    camera->height = height;
+    _camera = camera;
+
+  } else if(stype=="perspective") {  
+    float height_angle = fpi()/4.0f;
+    INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,height_angle,false)
+    
+    perspective* camera = new perspective();
+    camera->height_angle = height_angle;
+    _camera = camera;
+
+  } else {
+    a_gv.insh().warn("inlib::sg::vis_set_camera : "+stype+" is an unknown camera type.");
+    return false;
+  }
+    
+  _camera->znear = znear;
+  _camera->zfar = zfar;
+  _camera->focal = focal;
+  _camera->dx = dx;
+  _camera->da = da;
+  _camera->ds = ds;
+  _camera->position = position;
+  _camera->orientation = _rot;
+  
+  _evd->replace_camera(_camera);
+  
+  return true;
+}
+
 }}
 
 //inlib_build_use kernel

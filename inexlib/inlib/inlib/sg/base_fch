@@ -176,8 +176,7 @@ public:
           m_this.add(vs[0],cbk_);
         }}
     
-        m_this.m_stack.push_back
-          (stack_item(m_this.label.value(),m_this.items));
+        m_this.m_stack.push_back(stack_item(m_this.label.value(),m_this.items));
 
         return return_to_render;
 

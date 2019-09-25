@@ -195,6 +195,7 @@ public:
   ,m_file_chooser(a_ttf)
 
   ,m_active_index(-1)
+  ,m_etc()
   {
     add_fields();
     m_switch.which = WHICH_PANEL();
@@ -241,6 +242,7 @@ public:
 
   ,m_active_index(a_from.m_active_index)
   ,m_valops(a_from.m_valops)
+  ,m_etc(a_from.m_etc)
   {
     add_fields();
     m_switch.which = a_from.m_switch.which;
@@ -278,6 +280,7 @@ public:
     m_active_index = a_from.m_active_index;
 
     m_valops = a_from.m_valops;
+    m_etc = a_from.m_etc;  
 
     return *this;
   }
@@ -501,6 +504,9 @@ public:
   sg::edvalop& edvalop() {return m_edvalop;}
   sg::file_chooser& file_chooser() {return m_file_chooser;}
   const sg::numeric& numeric() const {return m_numeric;}
+public:  
+  const std::vector<std::string>& etc() const {return m_etc;}
+  std::vector<std::string>& etc() {return m_etc;}
 protected:
   typedef std::vector<std::string> opts_t;
 
@@ -1134,6 +1140,8 @@ protected:
   int m_active_index;
   std::vector<valop> m_valops;
   std::map<unsigned int,entry*> m_entries;
+  
+  std::vector<std::string> m_etc;
 };
 
 }}

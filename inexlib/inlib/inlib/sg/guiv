@@ -43,6 +43,7 @@ public:
 public:
   const xml::styles& styles() const {return m_styles;}
   xml::styles& styles() {return m_styles;}
+
 protected:
   void set_gui_style(const std::string& a_style) {
 

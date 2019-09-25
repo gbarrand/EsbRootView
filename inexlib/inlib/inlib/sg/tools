@@ -81,7 +81,7 @@ inline void add_string(
 
 }
 
-inline void add_string_opt(
+inline matrix* add_string_opt(
  separator& a_sep
 ,const std::string& a_font
 ,font_modeling a_font_modeling
@@ -95,7 +95,7 @@ inline void add_string_opt(
 ,const base_freetype& a_ttf
 ){
   //used in axis::update_sg()
-  if(a_string.empty()) return;
+  if(a_string.empty()) return 0;
 
   matrix* tsf = new matrix;
   tsf->mul_translate(a_x,a_y,a_z);
@@ -125,9 +125,10 @@ inline void add_string_opt(
     text->vjust.value(a_vjust);
     text->modeling = a_font_modeling;
     a_sep.add(text);
-
+    
   }
 
+  return tsf;
 }
 
 }}
