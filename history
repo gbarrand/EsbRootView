@@ -3,7 +3,7 @@
  - anim by time.
  - -terminal mode.
  - add insh.
- - camera panel left : add the "vis event" button (0,3) to redraw the current event (and/or exec again the vis_event.insh script).
+ - camera panel left : add the "vis event" button (0,3) to redraw the current event.
  - background_popup : "event infos" menu item.
 
 1.0.0 :
