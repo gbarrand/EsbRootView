@@ -30,6 +30,9 @@ fi
 
 file_exe=
 
+app_base_name=`basename ${app_src}`
+app_dir_name=`dirname ${app_src}`
+
 if [ "${build_app}" = "no" ] ; then
   if [ ${build_verbose} = yes ] ; then
     echo "bush/application : do not build app."
@@ -40,9 +43,12 @@ if [ "${build_app}" = "no" ] ; then
     file_exe=${build_path}/${app_exe}
   fi
   
+elif [ "${build_wasm}" = "yes" ] ; then
+
+. ${bush_home}/app_wasm
+
 else #build_app
 
-app_base_name=`basename ${app_src}`
 suffix=`echo ${app_base_name} | sed 's:.*\.::'`
 if [ "${suffix}" = "${app_base_name}" ] ; then suffix=none;fi
 
@@ -165,6 +171,8 @@ if [ "${link_it}" = "yes" ] ; then
 
 if [ ${build_sdk_android} = "yes" ] ; then
   echo "bush/application : sdk_android : don't know how to link ${app_exe}."
+elif [ "${build_wasm}" = "yes" ] ; then
+  echo dummy > /dev/null
 else
 
   file_exe=${build_path}/${app_exe}
