@@ -12,6 +12,8 @@ else
   set wxWidgets_home=
   if ( "`uname -n`" == deco.lal.in2p3.fr ) then
     set wxWidgets_home=/exp/si/barrand/usr/local/wxWidgets/3.1.0
+  else if ( -d /usr/local/wxWidgets/3.1.3 ) then
+    set wxWidgets_home=/usr/local/wxWidgets/3.1.3
   else if ( -d /usr/local/wxWidgets/3.1.1 ) then
     set wxWidgets_home=/usr/local/wxWidgets/3.1.1
   else if ( -d /usr/local/wxWidgets/3.1.0 ) then

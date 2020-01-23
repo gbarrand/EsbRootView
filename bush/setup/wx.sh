@@ -11,6 +11,8 @@ else
 
   if [ "`uname -n`" = deco.lal.in2p3.fr ] ; then
     wxWidgets_home=/exp/si/barrand/usr/local/wxWidgets/3.1.0
+  elif [ -d /usr/local/wxWidgets/3.1.3 ] ; then
+    wxWidgets_home=/usr/local/wxWidgets/3.1.3
   elif [ -d /usr/local/wxWidgets/3.1.1 ] ; then
     wxWidgets_home=/usr/local/wxWidgets/3.1.1
   elif [ -d /usr/local/wxWidgets/3.1.0 ] ; then
