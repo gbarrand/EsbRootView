@@ -160,7 +160,7 @@ inline void unique(std::vector<T>& a_vec) {
   for(it=a_vec.begin();it!=a_vec.end();++it) {
     it2 = it;it2++; //INLIB_STL : it2=it+1 does not compile.
     for(;it2!=a_vec.end();) {
-      if(*it2==*it) {
+      if((*it2)==(*it)) {
         it2 = a_vec.erase(it2);
       } else { 
         ++it2;

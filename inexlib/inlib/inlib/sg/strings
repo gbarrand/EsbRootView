@@ -145,6 +145,10 @@ inline const std::string& modeling_arrow() { //used in EsbRootView.
   static const std::string s_v("arrow");
   return s_v;
 }
+inline const std::string& modeling_cone() { //used in EsbRootView.
+  static const std::string s_v("cone");
+  return s_v;
+}
 
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
@@ -274,6 +278,7 @@ INLIB_GLOBAL_STRING(none)
 INLIB_GLOBAL_STRING_VALUE(send_placement,placement)
 INLIB_GLOBAL_STRING_VALUE(placement_static,static)
 INLIB_GLOBAL_STRING_VALUE(placement_dynamic,dynamic)
+INLIB_GLOBAL_STRING_VALUE(placement_static_blend,static_blend)
 INLIB_GLOBAL_STRING_VALUE(placement_screen,screen)
 INLIB_GLOBAL_STRING_VALUE(send_radius,radius)
 INLIB_GLOBAL_STRING_VALUE(send_scale,scale)

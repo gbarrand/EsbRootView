@@ -4,6 +4,8 @@
 extern "C" {
 inline double inlib_toint(double a_x) {return (double)int(a_x);}
 inline double inlib_identity(double a_x) {return a_x;}
+inline double inlib_heaviside(double a_x) {return a_x>=0?1:0;}
+inline double inlib_todouble(double a_x) {return a_x;}
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -570,6 +572,10 @@ inline val_funcs::val_funcs() {
   m_funcs.push_back(new cfunc_t("abs",::fabs,in_domain_all));
   m_funcs.push_back(new cfunc_t("toint",::inlib_toint,in_domain_all));
 
+  m_funcs.push_back(new cfunc_t("heaviside",::inlib_heaviside,in_domain_all));
+
+  m_funcs.push_back(new cfunc_t("todouble",::inlib_todouble,in_domain_all));  //permit to convert [unsigned]short,int,int64 to double.
+  
   m_funcs.push_back(new val_func_rndm(m_random_flat));
 
   //for OpenPAW/c_pawex20.kumac
@@ -598,6 +604,7 @@ inline val_funcs::val_funcs() {
 
   // For edvalop :
   m_funcs.push_back(new cfunc_t("",::inlib_identity,in_domain_all));
+
 }
 
 }

@@ -15,9 +15,11 @@ class ishell {
 public:
   virtual ~ishell() {}
 public:
+  virtual bool in_backquote() const = 0;
   virtual void warn(const std::string&,bool /*a_to_stop*/ = true) = 0;
   virtual void out_begin() = 0;
   virtual void out(const std::string&,bool /*a_append*/ = false,bool /*a_endl*/ = true) = 0;
+  virtual void out(const std::vector<std::string>& a_ss,bool a_append = false,bool a_endl = true) = 0;
   virtual void unix_print(const std::vector<std::string>&,size_t /*a_spaces*/ = 2) const = 0;
   virtual std::ostream& out() const = 0;
 public:

@@ -462,7 +462,6 @@ protected:
 
   bool read_streamer_infos_data() {
     key& k = m_streamer_infos_key;
-    std::ostream& out = k.out();
     if(k.object_class()!="TList") {
       m_out << "inlib::rroot::file::read_streamer_infos_data : key not a TList." << std::endl;
       return false;
@@ -475,7 +474,7 @@ protected:
           << std::endl;
       return false;
     }
-    buffer b(out,byte_swap(),sz,buf,k.key_length(),false);
+    buffer b(m_out,byte_swap(),sz,buf,k.key_length(),false);
     return m_streamer_infos.stream(b);
   }
   

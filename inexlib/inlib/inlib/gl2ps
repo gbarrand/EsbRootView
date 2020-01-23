@@ -2291,7 +2291,7 @@ static void inlib_gl2psParseFeedbackBuffer(inlib_GLint used)
   inlib_GLboolean boundary;
   inlib_GLint i, sizeoffloat, count, v, vtot, offset = 0, factor = 0, auxindex = 0;
   inlib_GLint lcap = 0, ljoin = 0;
-  inlib_GLfloat lwidth = 1.0F, psize = 1.0F, ofactor, ounits;
+  inlib_GLfloat lwidth = 1.0F, psize = 1.0F, ofactor = 0.0F, ounits = 0.0F; /*G.Barrand : init ofactor, ounits to 0.0F.*/
   inlib_GLfloat *current;
   inlib_GL2PSvertex vertices[3];
   inlib_GL2PSprimitive *prim;
@@ -2529,7 +2529,8 @@ static void inlib_gl2psWriteByte(unsigned char byte)
   inlib_gl2psPrintf("%x%x", h, l);
 }
 
-static void inlib_gl2psPrintPostScriptPixmap(inlib_GLfloat x, inlib_GLfloat y, inlib_GL2PSimage *im)
+static void inlib_gl2psPrintPostScriptPixmap(inlib_GLfloat x, inlib_GLfloat y, inlib_GL2PSimage *im,
+                                             int greyscale,int nbit) /*G.Barrand : to quiet coverity : add last greyscale,nbit.*/
 {
   inlib_GLuint nbhex, nbyte, nrgb, nbits;
   inlib_GLuint row, col, ibyte, icase;
@@ -2540,8 +2541,8 @@ static void inlib_gl2psPrintPostScriptPixmap(inlib_GLfloat x, inlib_GLfloat y, i
 
   /* FIXME: should we define an option for these? Or just keep the
      8-bit per component case? */
-  int greyscale = 0; /* set to 1 to output greyscale image */
-  int nbit = 8; /* number of bits per color compoment (2, 4 or 8) */
+  /*int greyscale = 0;*/ /* set to 1 to output greyscale image */
+  /*int nbit = 8;*/ /* number of bits per color compoment (2, 4 or 8) */
 
   if((width <= 0) || (height <= 0)) return;
 
@@ -2742,7 +2743,7 @@ static void inlib_gl2psPrintPostScriptImagemap(inlib_GLfloat x, inlib_GLfloat y,
   inlib_gl2psPrintf("gsave\n");
   inlib_gl2psPrintf("%.2f %.2f translate\n", x, y);
   inlib_gl2psPrintf("%d %d scale\n%d %d\ntrue\n", width, height,width, height);
-  inlib_gl2psPrintf("[ %d 0 0 -%d 0 %d ] {<", width, height);
+  inlib_gl2psPrintf("[ %d 0 0 -%d 0 %d ] {<", width, height, height);
   for(i = 0; i < size; i++){
     inlib_gl2psWriteByte(*imagemap);
     imagemap++;
@@ -3161,8 +3162,7 @@ static void inlib_gl2psPrintPostScriptPrimitive(void *data)
     inlib_gl2psMsg(INLIB_GL2PS_WARNING, "There should not be any quad left to print");
     break;
   case INLIB_GL2PS_PIXMAP :
-    inlib_gl2psPrintPostScriptPixmap(prim->verts[0].xyz[0], prim->verts[0].xyz[1],
-                               prim->data.image);
+    inlib_gl2psPrintPostScriptPixmap(prim->verts[0].xyz[0], prim->verts[0].xyz[1],prim->data.image,0,8);
     break;
   case INLIB_GL2PS_IMAGEMAP :
     if(prim->data.image->type != INLIB_GL2PS_IMAGEMAP_WRITTEN){
@@ -4040,6 +4040,7 @@ static int inlib_inlib_gl2psPDFgroupListWriteXObjectResources(void)
       if(INLIB_GL_RGBA == p->data.image->format)  /* reserve one object for image mask */
         inlib_gl2ps_context->objects_stack++;
       offs += fprintf(inlib_gl2ps_context->stream, "/Im%d %d 0 R\n", gro->imno, gro->imobjno);
+      break; /*G.Barrand : add this break.*/
     case INLIB_GL2PS_TRIANGLE:
       if(gro->trgroupno >=0)
         offs += fprintf(inlib_gl2ps_context->stream, "/TrG%d %d 0 R\n", gro->trgroupno, gro->trgroupobjno);

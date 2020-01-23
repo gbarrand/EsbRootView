@@ -574,7 +574,7 @@ public:
       if(socket_failure(m_socket)) { 
         m_out << "inlib::inet_socket:::connect :"
               << " on host : " << this_host
-              << " socket() : " << serror()
+              << ", socket() : " << serror()
               << std::endl;
         m_socket = INVALID_SOCKET;
         return false;
@@ -590,7 +590,7 @@ public:
       if(!set_non_blocking(m_out,m_socket,old_flags)) {
         m_out << "inlib::inet_socket:::connect :"
               << " on host : " << this_host
-              << " set_non_blocking() failed."
+              << ", set_non_blocking() failed."
               << std::endl;
         close_socket(m_socket);
         m_socket = INVALID_SOCKET;
@@ -598,6 +598,7 @@ public:
       }
 
       ::connect(m_socket,(struct sockaddr*)(&address),sizeof(address));
+      
       {
         fd_set mask;
         FD_ZERO(&mask);
@@ -609,10 +610,7 @@ public:
         nfds = mx(nfds,int(m_socket));
         nfds++;
         if(::select(nfds,NULL,&mask,NULL,&timeout)!=1)    {
-          m_out << "inlib::inet_socket:::connect :"
-                << " on host : " << this_host
-                << " select() failed."
-                << std::endl;
+          m_out << "inlib::inet_socket:::connect : on host : " << this_host << ", select() failed." << std::endl;
           close_socket(m_socket);
           m_socket = INVALID_SOCKET;
           return false;
@@ -627,7 +625,7 @@ public:
         if(so_error!=0) {
           m_out << "inlib::inet_socket:::connect :"
                 << " on host : " << this_host
-                << " get_sock_error() : " << so_error << " : " << serror()
+                << ", get_sock_error() : " << so_error << " : " << serror()
                 << std::endl;
           close_socket(m_socket);
           m_socket = INVALID_SOCKET;
@@ -636,7 +634,7 @@ public:
         if(!restore_blocking(m_out,m_socket,old_flags)) {
           m_out << "inlib::inet_socket:::connect :"
                  << " on host : " << this_host
-                 << " restore_blocking() failed."
+                 << ", restore_blocking() failed."
                  << std::endl;
           close_socket(m_socket);
           m_socket = INVALID_SOCKET;
@@ -647,9 +645,9 @@ public:
           m_out << "inlib::inet_socket:::connect :"
                 << " on host : " << this_host
 #ifdef INLIB_SOCKET_DUMP_PID
-                << " with pid " << process_id()
+                << ", with pid " << process_id()
 #endif
-                << " connect to " << a_host << " on port " << a_port << " ok."
+                << ", connect to " << a_host << " on port " << a_port << " ok."
                 << " Socket is " << m_socket << "."
                 << std::endl;
         }
@@ -661,8 +659,8 @@ public:
           m_out << "inlib::inet_socket:::connect :"
                 << " on host : " << this_host
                 << " connect to " << a_host 
-                << " with port " << a_port
-                << " connect() : " << serror()
+                << ", with port " << a_port
+                << ", connect() : " << serror()
                 << " Retry..."
                 << std::endl;
         }
@@ -673,8 +671,8 @@ public:
         if(num_trial>=a_max_trial) { 
           m_out << "inlib::inet_socket:::connect :"
                 << " on host : " << this_host
-                << " connect to " << a_host 
-                << " with port " << a_port
+                << ", connect to " << a_host 
+                << ", with port " << a_port
                 << ". Max trials done. Can't connect."
                 << std::endl;
           return false;
@@ -685,9 +683,9 @@ public:
       } else { // not refused.
         m_out << "inlib::inet_socket:::connect :"
               << " on host : " << this_host
-              << " connect to " << a_host 
-              << " with port " << a_port
-              << " connect() : not refused : " << serror()
+              << ", connect to " << a_host 
+              << ", with port " << a_port
+              << ", connect() : not refused : " << serror()
               << std::endl;
         close_socket(m_socket);
         m_socket = INVALID_SOCKET;

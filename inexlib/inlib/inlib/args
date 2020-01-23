@@ -15,7 +15,7 @@
 #include "sto"
 #include "forit"
 #include "mnmx"
-#include "squote"
+//#include "squote"
 
 #include <ostream>
 
@@ -402,17 +402,17 @@ public:
     return true; //all options are a_known.
   }
 
-  void remove_string_delimiters_in_keys() {
-    inlib_vforit(arg,m_args,it) {
-      if(!rm_quotes((*it).first)) rm_double_quotes((*it).first);
-    }
-  }
+//void remove_string_delimiters_in_keys() {
+//  inlib_vforit(arg,m_args,it) {
+//    if(!rm_quotes((*it).first)) rm_double_quotes((*it).first);
+//  }
+//}
 
-  void remove_string_delimiters_in_values() {
-    inlib_vforit(arg,m_args,it) {
-      if(!rm_quotes((*it).second)) rm_double_quotes((*it).second);
-    }
-  }
+//void remove_string_delimiters_in_values() {
+//  inlib_vforit(arg,m_args,it) {
+//    if(!rm_quotes((*it).second)) rm_double_quotes((*it).second);
+//  }
+//}
 
   void files_at_end(bool a_skip_first = true) {
     // reorder to have "file" arguments at end.

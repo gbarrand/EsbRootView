@@ -149,9 +149,19 @@ inline void insh_particle_print(ishell& a_insh,const pdgs& a_pdgs,xml::styles& a
     }
   }
 
-  a_pdgs.out () << "pdg particles (" << cut_particles.size() << ") with cut " << sout(_style.cut.value()) << " : " << std::endl;
+  std::string sheader = "pdg particles (";
+  inlib::size_tas(cut_particles.size(),sheader);
+  sheader += ") with cut ";
+  sheader += sout(_style.cut.value())+" : ";
   
-  _eval_cut.dump(a_pdgs.out(),cut_particles,names);
+ {std::vector<std::string> vout;
+  if(a_insh.in_backquote()) {
+    _eval_cut.dump(a_pdgs.out(),cut_particles,names,sheader,true,vout);
+    a_insh.out_begin();
+    a_insh.out(vout,true);
+  } else {
+    _eval_cut.dump(a_pdgs.out(),cut_particles,names,sheader,false,vout);
+  }}
 }
 
 inline const std::string& insh_particle_print_help() {

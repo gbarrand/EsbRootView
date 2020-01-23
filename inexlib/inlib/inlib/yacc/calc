@@ -80,7 +80,7 @@ inline bool calc(std::ostream& a_out,const std::string& a_formula,const std::vec
   inlib::value res;
   std::string serror;
   if(!proc.execute(vals,res,serror)) {
-    a_out << "inlib::calc : exection failure of " << inlib::sout(a_formula)
+    a_out << "inlib::calc : execution failure of " << inlib::sout(a_formula)
           << ". Error message " << inlib::sout(serror) << std::endl;
     return false;
   }

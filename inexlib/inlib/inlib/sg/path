@@ -13,6 +13,13 @@ namespace sg {
 
 typedef std::vector<node*> path_t;
 
+inline bool parent_class(const path_t& a_path,std::string& a_class) {
+  if(a_path.size()<2) {a_class.clear();return false;}
+  node* parent = a_path[a_path.size()-2];
+  a_class = parent->s_cls();
+  return true;
+}
+
 template <class NODE>
 inline NODE* rfind(const path_t& a_path) {
   path_t::const_reverse_iterator it;

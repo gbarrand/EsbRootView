@@ -47,7 +47,7 @@ protected:
   }
 protected:
   static unsigned int INFOS()                {return 0;}
-  static unsigned int GEOM_DETECTOR_EVENT()  {return 1;}
+  static unsigned int GEOM_STATIC_DYNAMIC()  {return 1;}
   static unsigned int GEOM_SCREEN()          {return 2;}
 
   static unsigned int GEOM_CAMERA()  {return 0;}
@@ -63,7 +63,7 @@ public:
     if(m_gv.scene().size()<3) return false;
     infos* _node = safe_cast<node,infos>(*(m_gv.scene()[INFOS()]));
     if(!_node) return false;
-    separator* _sep = safe_cast<node,separator>(*(m_gv.scene()[GEOM_DETECTOR_EVENT()]));
+    separator* _sep = safe_cast<node,separator>(*(m_gv.scene()[GEOM_STATIC_DYNAMIC()]));
     if(!_sep) return false;
     if(!_sep->size()) return false;
     base_camera* old_scene_cam = m_gv.scene_camera();
@@ -126,7 +126,7 @@ public:
     //////////////////////////////////////////////
     //////////////////////////////////////////////
     //////////////////////////////////////////////
-   {separator* _sep = new separator;  //GEOM_DETECTOR_EVENT()
+   {separator* _sep = new separator;  //GEOM_STATIC_DYNAMIC()
     m_gv.scene().add(_sep);
 
     //WARNING : if changing things in sep, think to change the upper.
@@ -149,10 +149,11 @@ public:
 
     m_layout.set_identity();
     _sep->add(new noderef(m_layout));
-    _sep->add(new clrref<separator>(m_event));
-    // put m_detector after m_event in case
-    // there are transparent volumes in the detector sg.
-    _sep->add(new clrref<separator>(m_detector));
+    _sep->add(new clrref<separator>(m_static_sg));
+    _sep->add(new clrref<separator>(m_dynamic_sg));
+    _sep->add(new clrref<separator>(m_static_sg_blend));
+
+    // m_static_sg_blend can be used if wanting to have a transparent piece of detector over non-transparent event data.
 
     m_gv.set_scene_camera(camera);
     m_gv.set_scene_light(&m_light);
@@ -166,7 +167,7 @@ public:
     // case of a wall app to have a sg targeted to be
     // visualized within the screen handled by the app.
     // The nodes are put under a special branch parallel
-    // to the one with m_detector and m_event.
+    // to the one with m_static_sg, m_dynamic_sg and m_static_blend_sg.
 
    {separator* _sep = new separator; //GEOM_SCREEN()
     m_gv.scene().add(_sep);
@@ -176,16 +177,15 @@ public:
 
   }
 
-  //const separator& detector_sg() const {return m_detector;}
-  //separator& detector_sg() {return m_detector;}
-  const separator& static_sg() const {return m_detector;}
-  separator& static_sg() {return m_detector;}
+  const separator& static_sg() const {return m_static_sg;}
+  separator& static_sg() {return m_static_sg;}
 
-  //const separator& event_sg() const {return m_event;}
-  //separator& event_sg() {return m_event;}
-  const separator& dynamic_sg() const {return m_event;}
-  separator& dynamic_sg() {return m_event;}
+  const separator& dynamic_sg() const {return m_dynamic_sg;}
+  separator& dynamic_sg() {return m_dynamic_sg;}
 
+  const separator& static_blend_sg() const {return m_static_sg_blend;}
+  separator& static_blend_sg() {return m_static_sg_blend;}
+  
   const matrix& layout() const {return m_layout;}
   matrix& layout() {return m_layout;}
 
@@ -456,8 +456,7 @@ protected:
     if(m_gv.scene().size()<3) return 0;
     infos* _node = safe_cast<node,infos>(*(m_gv.scene()[INFOS()]));
     if(!_node) return 0;
-    separator* _sep =
-     safe_cast<node,separator>(*(m_gv.scene()[GEOM_DETECTOR_EVENT()]));
+    separator* _sep = safe_cast<node,separator>(*(m_gv.scene()[GEOM_STATIC_DYNAMIC()]));
     if(!_sep) return 0;
     if(!_sep->size()) return 0;
     node* chld = (*_sep)[GEOM_CAMERA()];    
@@ -504,6 +503,16 @@ protected: //insh
     camera->height = height;
     replace_camera(camera);
   }
+  static const std::string& _camera_set_ortho_help() {
+    static const std::string s_help("\
+camera_set_ortho: camera_set_ortho height\n\
+  Replace the current camera by an orthographic camera of given height.\n\
+  Example:\n\
+    camera_set_ortho 4\n\
+");
+    return s_help;
+  }
+
   void _camera_set_perspective(const std::vector<std::string>& a_args) {
     if(a_args.empty()) {
       m_gv.insh().warn("inlib::sg::view_evd::_camera_set_perspective : one argument expected.");
@@ -515,6 +524,40 @@ protected: //insh
     camera->height_angle = height_angle;
     replace_camera(camera);
   }
+  static const std::string& _camera_set_perspective_help() {
+    static const std::string s_help("\
+camera_set_perspective: camera_set_perspective angle\n\
+  Replace the current camera by a perspective camera with angle (in radians) height_angle.\n\
+  Example:\n\
+    camera_set_perspective 0.785  # pi/4.\n\
+");
+    return s_help;
+  }
+
+  static const std::string& scene_write_static_to_bsg_help() {
+    static const std::string s_help("\
+scene_write_static_to_bsg: scene_write_static_to_bsg [-out_dir] file\n\
+  Write the static scene graph to a bsg (binary file format) file.\n\
+  If no directory is given in file, the -out_dir option permits to prepend the\n\
+  application output directory to file.\n\
+  See also: app_dir -out_dir\n\
+  Example:\n\
+    scene_write_static_to_bsg -out_dir my_scene.bsg\n\
+");
+    return s_help;
+  }
+  static const std::string& scene_write_dynamic_to_bsg_help() {
+    static const std::string s_help("\
+scene_write_dynamic_to_bsg: scene_write_dynamic_to_bsg [-out_dir] file\n\
+  Write the dynamic scene graph to a bsg (binary file format) file.\n\
+  If no directory is given in file, the -out_dir option permits to prepend the\n\
+  application output directory to file.\n\
+  See also: app_dir -out_dir\n\
+  Example:\n\
+    scene_write_dynamic_to_bsg -out_dir my_scene.bsg\n\
+");
+    return s_help;
+  }
 
   INLIB_INSH_VOID_ARGS_CMD(view_evd)
   INLIB_INSH_BOOL_VOID_CMD(view_evd)
@@ -523,16 +566,18 @@ protected: //insh
 #define INLIB_VIEW_EVD_ADD_VOID_ARGS_CMD(a__name,a__method,a__help)\
    m_gv.insh().add_command(#a__name,new view_evd_void_args_cmd(*this,&view_evd::a__method,a__help));
    
-  INLIB_INSH_CLASS_CMD(view_evd,scene_clear_static,m_holder.static_sg().clear(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(view_evd,scene_clear_dynamic,m_holder.dynamic_sg().clear(),insh::no_help())
+  INLIB_INSH_CLASS_CMD(view_evd,scene_clear_static,m_holder.static_sg().clear(),"scene_clear_static: scene_clear_static\n  Clear the static scene graph.\n")
+  INLIB_INSH_CLASS_CMD(view_evd,scene_clear_dynamic,m_holder.dynamic_sg().clear(),"scene_clear_dynamic: scene_clear_dynamic\n  Clear the dynamic scene graph.\n")
+  INLIB_INSH_CLASS_CMD(view_evd,scene_clear_static_blend,m_holder.static_blend_sg().clear(),"scene_clear_static_blend: scene_clear_static_blend\n  Clear the static blend scene graph.\n")
 //INLIB_INSH_CLASS_CMD(view_evd,scene_clear_screen,m_holder.screen_sg().clear(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(view_evd,scene_write_static_to_bsg,sg::gui_viewer::_node_to_bsg(m_holder.m_gv,a_args,m_holder.static_sg()),insh::no_help())
-  INLIB_INSH_CLASS_CMD(view_evd,scene_write_dynamic_to_bsg,sg::gui_viewer::_node_to_bsg(m_holder.m_gv,a_args,m_holder.dynamic_sg()),insh::no_help())
+  INLIB_INSH_CLASS_CMD(view_evd,scene_write_static_to_bsg,sg::gui_viewer::_node_to_bsg(m_holder.m_gv,a_args,m_holder.static_sg()),scene_write_static_to_bsg_help())
+  INLIB_INSH_CLASS_CMD(view_evd,scene_write_dynamic_to_bsg,sg::gui_viewer::_node_to_bsg(m_holder.m_gv,a_args,m_holder.dynamic_sg()),scene_write_dynamic_to_bsg_help())
   void insh_add_cmds() {
-    INLIB_VIEW_EVD_ADD_VOID_ARGS_CMD(camera_set_ortho,_camera_set_ortho,insh::no_help)
-    INLIB_VIEW_EVD_ADD_VOID_ARGS_CMD(camera_set_perspective,_camera_set_perspective,insh::no_help)
+    INLIB_VIEW_EVD_ADD_VOID_ARGS_CMD(camera_set_ortho,_camera_set_ortho,_camera_set_ortho_help)
+    INLIB_VIEW_EVD_ADD_VOID_ARGS_CMD(camera_set_perspective,_camera_set_perspective,_camera_set_perspective_help)
     INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_clear_static)
     INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_clear_dynamic)
+    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_clear_static_blend)
   //INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_clear_screen)
     INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_write_static_to_bsg)
     INLIB_INSH_ADD_CMD(m_gv.insh(),*this,scene_write_dynamic_to_bsg)
@@ -545,8 +590,9 @@ private:
   head_light m_light;
   blend m_blend;
   matrix m_layout;
-  separator m_detector;
-  separator m_event;
+  separator m_static_sg;
+  separator m_dynamic_sg;
+  separator m_static_sg_blend;
   separator m_screen_sg; //if wall app.
   unsigned int m_event_index;
   unsigned int m_next_event_sleep;

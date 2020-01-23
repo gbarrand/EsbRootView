@@ -11,6 +11,7 @@
 #include "../sg/selection"
 #include "../sg/matrix4manip"
 #include "../mathf"
+#include "../sout"
 
 namespace inlib {
 namespace cbk {
@@ -356,7 +357,9 @@ public: //from a_node
     } else {
       sg::group* grp = sg::container<sg::group>(path);
       if(!grp) {
-        a_ui.warn("parent not found");
+        std::string sclass;
+        sg::parent_class(path,sclass);
+        a_ui.warn("container not found. Parent is of class "+sout(sclass));
         return false;     
       }
       if(!grp->remove(a_node)) {

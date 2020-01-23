@@ -904,6 +904,12 @@ public:
     m_group.add(new noderef(m_border_sep)); 
     m_group.add(new noderef(m_extras_sep)); 
   }
+  void clear_sg() { //used in GL_plots_viewer.
+    m_group.clear();
+    m_sep.clear();
+    m_border_sep.clear();
+    m_extras_sep.clear();
+  }
 protected:
   void update_if_touched() {
     if(touched()) {

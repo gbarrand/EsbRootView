@@ -293,7 +293,7 @@ protected:
     float rmn = rmin.value();
     float rmx = rmax.value();
 
-    if(!nstep || (angle.value()<=0) || (angle.value()>ftwo_pi()) || (rmn>=rmx) || (height.value()<=0) ) {
+    if(!nstep || (angle.value()<=0) || (angle.value()>ftwo_pi()) || (rmx<=0) || (rmn>=rmx) || (height.value()<=0) ) {
       _clear();
       return;
     }

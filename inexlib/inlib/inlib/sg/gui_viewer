@@ -58,6 +58,9 @@
 #include "../insh_ls"
 #include "../insh_console" //windows.h
 
+#include "slice_anim"
+#include "../sglprims"
+
 //#ifdef _MSC_VER
 //#pragma warning(disable:4355)
 //#endif
@@ -986,15 +989,11 @@ public:
       const path_t& p = *it;
       group* grp = container<group>(p);
       if(!grp) {
-        m_out << "inlib::sg::gui_viewer::reset_manips :"
-                      << " cube_manip parent group not found."
-                      << std::endl;       
+        m_out << "inlib::sg::gui_viewer::reset_manips : cube_manip parent group not found." << std::endl;
       } else {
         cm_t* cm = tail<cm_t>(p);
         if(!cm) {
-          m_out << "inlib::sg::gui_viewer::reset_manips :"
-                        << " cube_manip path with bad tail."
-                        << std::endl;       
+          m_out << "inlib::sg::gui_viewer::reset_manips : cube_manip path with bad tail." << std::endl;
         } else {
           matrix* m = new matrix;
           m->mtx = cm->m_start_matrix;
@@ -4651,7 +4650,7 @@ public: //insh:
   const inlib::insh& insh() const {return m_insh;}
   inlib::insh& insh() {return m_insh;}
 
-  void exec_dot_insh() {
+  void source_dot_insh() {
     // home/.insh :
     std::string home_path;
     dir::home(home_path);
@@ -4661,11 +4660,13 @@ public: //insh:
     std::string doc_path = doc_dir()+sep()+".insh";
     if( (doc_path!=home_path) && file::exists(doc_path) ) m_insh.exec_line_reset_to_stop(". "+doc_path); //sourced.
   }
-  void exec_startup_insh() {
+  void source_startup_insh() {
     // a sourced startup file :
     if(is_doc_res_file("startup.insh")) {  //for app without a startup.insh in doc_res.
       m_insh.exec_line_reset_to_stop(". startup.insh");
     }
+  }
+  void exec_insh_startup() {
     // a not sourced startup file :
     if(is_doc_res_file("insh_startup")) {  //for app without a insh_startup in doc_res.
       m_insh.exec_line_reset_to_stop("insh_startup");
@@ -4679,11 +4680,20 @@ protected:
 #define INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(a__name,a__method,a__help)\
    m_insh.add_command(#a__name,new gui_viewer_void_args_cmd(*this,&gui_viewer::a__method,a__help));
 
+#define INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD_HELP(a__name,a__method,a__help_text)\
+   m_insh.add_command(#a__name,new gui_viewer_void_args_cmd(*this,&gui_viewer::a__method,a__help_text));
+
 #define INLIB_GUI_VIEWER_ADD_BOOL_VOID_CMD(a__name,a__method,a__help)\
    m_insh.add_command(#a__name,new gui_viewer_bool_void_cmd(*this,&gui_viewer::a__method,a__help));
 
+#define INLIB_GUI_VIEWER_ADD_BOOL_VOID_CMD_HELP(a__name,a__method,a__help_text)\
+   m_insh.add_command(#a__name,new gui_viewer_bool_void_cmd(*this,&gui_viewer::a__method,a__help_text));
+
 #define INLIB_GUI_VIEWER_ADD_VOID_VOID_CMD(a__name,a__method,a__help)\
    m_insh.add_command(#a__name,new gui_viewer_void_void_cmd(*this,&gui_viewer::a__method,a__help));
+
+#define INLIB_GUI_VIEWER_ADD_VOID_VOID_CMD_HELP(a__name,a__method,a__help_text)\
+   m_insh.add_command(#a__name,new gui_viewer_void_void_cmd(*this,&gui_viewer::a__method,a__help_text));
 
   void _exec_menu_item(const std::vector<std::string>& a_args) {
     if(a_args.empty()) {
@@ -4752,13 +4762,102 @@ scene_set_clear_color: scene_set_clear_color [color name] [colormap/color name] 
   See style_print_colormaps to print the known colormaps with their colors.\n\
   Example:\n\
     scene_set_clear_color lightgrey\n\
-    scene_set_clear_color ROOT/ROOT/kMagenta+3\n\
+    scene_set_clear_color ROOT/kMagenta+3\n\
     scene_set_clear_color '#FFFF00'\n\
     scene_set_clear_color 0.2 0.1 0.2\n\
 ");
     return s_help;
   }
   
+  void _scene_bounding_box(const std::vector<std::string>& a_args) {
+    static const std::string s_header("inlib::sg::gui_viewer::_scene_bounding_box :");
+    bbox_action action(m_out);
+    m_scene->bbox(action);
+    if(!action.end()) {
+      m_insh.warn(s_header+" bbox_action.end() failed.");
+      return;
+    }
+    const box3f& _box = action.box();
+    if(_box.is_empty()) {
+      m_insh.out("empty");
+      return;
+    }
+    vec3f center;
+    if(!_box.center(center)) {}
+    float dx,dy,dz;
+    if(!_box.get_size(dx,dy,dz)) {}
+    
+    std::vector<std::string> ss;    
+   {std::string _s;
+    numas(center.x(),_s);
+    _s += " ";
+    numas(center.y(),_s);
+    _s += " ";
+    numas(center.z(),_s);
+    ss.push_back(_s);}
+
+   {std::string _s;
+    numas(dx,_s);
+    _s += " ";
+    numas(dy,_s);
+    _s += " ";
+    numas(dz,_s);
+    ss.push_back(_s);}
+    
+    m_insh.out_begin();
+    m_insh.out(ss);
+  }
+
+  static const std::string& _scene_bounding_box_help() {
+    static const std::string s_help("\
+scene_bounding_box: scene_bounding_box\n\
+  Print the center and size of the scene bounding box.\n\
+  Example:\n\
+    scene_bounding_box\n\
+");
+    return s_help;
+  }
+  
+  void _scene_remove_nodes(const std::vector<std::string>& a_args) {
+    static const std::string s_header("inlib::sg::gui_viewer::_scene_remove_nodes :");
+    args _args(a_args);
+    std::string sclass;
+    if(_args.find("-class",sclass)) {
+      search_action sa(m_out);
+      const paths_t& paths = find_paths(sa,*m_scene,sclass);
+      paths_t::const_iterator it;
+      for(it=paths.begin();it!=paths.end();++it) {
+        const path_t& p = *it;
+        group* grp = container<group>(p);
+        if(!grp) {
+          m_insh.warn(s_header+" node parent group not found.");
+        } else {
+          node* _node = p.size()?p[p.size()-1]:0;
+          if(!_node) {
+            m_insh.warn(s_header+" node path with bad tail.");
+          } else {
+            if(!grp->remove(_node)) {
+              m_insh.warn(s_header+" remove in group failed");
+              return;
+            }
+	    //::printf("debug : delete node of class %s\n",sclass.c_str());
+            delete _node;
+          }
+        }
+      }
+      return;
+    }
+  }
+  static const std::string& _scene_remove_nodes_help() {
+    static const std::string s_help("\
+scene_remove_nodes: scene_remove_nodes [-class]\n\
+  If -class=string, remove nodes of the given class name in the scene.\n\
+  Example:\n\
+    scene_remove_nodes -class=inlib::sg::cube\n\
+");
+    return s_help;
+  }
+
   void _style_print_colormaps(const std::vector<std::string>& a_args) {
     static const std::string s_header("inlib::sg::gui_viewer::_style_print_colormaps :");
     // first round trip to get item string sizes :
@@ -5021,6 +5120,16 @@ camera_rotate: camera_rotate [-x,-y,-z] [-at_focal] [-deg,-degree] [-angle=angle
 ");
     return s_help;
   }
+
+  void _count_points() {
+    count_action ca(m_out);
+    m_scene->bbox(ca);
+    m_insh.out_begin();
+    std::string _s;
+    num2s(ca.number_of_points(),_s);
+    m_insh.out(_s);
+  }
+
   
 #define INLIB_INSH_CAMERA_SET(a__field)\
   void _camera_set_##a__field(const std::vector<std::string>& a_args) {\
@@ -5316,6 +5425,80 @@ app_dir: app_dir [-res,-doc,-out,-tmp,-start].\n\
     return s_help;
   }
 
+  void _app_color_value(const std::vector<std::string>& a_args) {
+    static const std::string s_header("inlib::sg::gui_viewer::_app_color_value :");
+    inlib::args _args(a_args);
+    std::string scolor;
+    if(!_args.first_not_hyphen(scolor)) {
+      m_insh.warn(s_header+" no color given.");
+      return;
+    }
+    colorf _value;
+    if(!find_color(m_styles.cmaps(),scolor,_value)) {
+      m_insh.warn(s_header+" "+sout(scolor)+" is not a color.");
+      return;
+    }
+    if(_args.is_arg("-r")) {
+      std::string _s;
+      num2s(_value.r(),_s);
+      m_insh.out(_s);
+      return;
+    } 
+    if(_args.is_arg("-g")) {
+      std::string _s;
+      num2s(_value.g(),_s);
+      m_insh.out(_s);
+      return;
+    } 
+    if(_args.is_arg("-b")) {
+      std::string _s;
+      num2s(_value.b(),_s);
+      m_insh.out(_s);
+      return;
+    } 
+    if(_args.is_arg("-a")) {
+      std::string _s;
+      num2s(_value.a(),_s);
+      m_insh.out(_s);
+      return;
+    } 
+    if(_args.is_arg("-rgb")) {
+      std::string _s;
+      numas(_value.r(),_s);
+      _s += " ";
+      numas(_value.g(),_s);
+      _s += " ";
+      numas(_value.b(),_s);
+      m_insh.out(_s);
+      return;
+    } 
+    std::string _s;
+    numas(_value.r(),_s);
+    _s += " ";
+    numas(_value.g(),_s);
+    _s += " ";
+    numas(_value.b(),_s);
+    _s += " ";
+    numas(_value.a(),_s);
+    m_insh.out(_s);
+  }
+  static const std::string& _app_color_value_help() {
+    static const std::string s_help("\
+app_color_value: app_color_value [-r,-g,-b,-a,-rgba] colorname.\n\
+  Print the rgba of a color given its name.\n\
+  -r to print only the red value (in [0,1]).\n\
+  -g to print only the green value (in [0,1]).\n\
+  -b to print only the blue value (in [0,1]).\n\
+  -a to print only the alpha value (in [0,1]).\n\
+  -rgb to print only red, green, blue.\n\
+  Example:\n\
+    app_color_value red\n\
+    app_color_value -r red\n\
+    app_color_value -rgb red\n\
+");
+    return s_help;
+  }
+  
 public:
   static bool _write_scene_to_paper(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
     static const std::string s_header("inlib::sg::gui_viewer::_write_scene_to_paper :");
@@ -5433,64 +5616,150 @@ scene_write_to_paper: scene_write_to_paper [-out_dir] [-scale] [-format] [-show_
     a_gv.show_console(path+" produced.");
     return true;
   }
+  static const std::string& _scene_write_to_bsg_help() {
+    static const std::string s_help("\
+scene_write_to_bsg: scene_write_to_bsg [-out_dir] file\n\
+  Write the scene scene graph to a bsg (binary file format) file.\n\
+  If no directory is given in file, the -out_dir option permits to prepend the\n\
+  application output directory to file.\n\
+  See also: app_dir -out_dir\n\
+  Example:\n\
+    scene_write_to_bsg -out_dir my_scene.bsg\n\
+");
+    return s_help;
+  }
+
+  static void setup_anims(std::ostream& a_out,node& a_from,float a_time_min,float a_time_max,float a_delay,bool a_end_begin) {
+    search_action sa(a_out);
+    typedef search_action::path_t path_t;
+    const std::vector<path_t>& paths = find_paths(sa,a_from,slice_anim::s_class());
+    inlib_vforcit(path_t,paths,it) {
+      const path_t& p = *it;
+      node* _node = p.size()?p[p.size()-1]:0;
+      if(!_node) continue;
+      slice_anim* _anim = safe_cast<node,slice_anim>(*_node);
+      if(!_anim) continue;
+      _anim->time_min = a_time_min;
+      _anim->time_max = a_time_max;
+      _anim->delay = a_delay;
+      _anim->end_begin = a_end_begin;
+      _anim->set_start(atime::now());
+      //::printf("debug : start anim %lu\n",_anim);
+    }
+  }
+
+#define INLIB_GUI_VIEWER__GET_ARG_DOUBLE(a__variable)\
+   {std::string svalue;\
+    if(_args.find(std::string("-")+#a__variable,svalue)) {\
+      double _value;\
+      if(!inlib::to<double>(svalue,_value)) {\
+        m_insh.warn(s_header+" : "+svalue+" is not a double.");\
+        return;\
+      }\
+      a__variable  = _value;\
+    }}
+
+#define INLIB_GUI_VIEWER__GET_ARG_BOOL(a__variable)\
+   {std::string svalue;\
+    if(_args.find(std::string("-")+#a__variable,svalue)) {\
+      bool _value;\
+      if(!inlib::to(svalue,_value)) {\
+        m_insh.warn(s_header+" : "+svalue+" is not a bool.");\
+        return;\
+      }\
+      a__variable  = _value;\
+    }}
+
+  void scene_start_anim(const std::vector<std::string>& a_args) {
+    static const std::string s_header("inlib::sg::gui_viewer::scene_start_anim :");
+    args _args(a_args);
+    double time_min = DBL_MAX;
+    INLIB_GUI_VIEWER__GET_ARG_DOUBLE(time_min)
+    double time_max = DBL_MIN;
+    INLIB_GUI_VIEWER__GET_ARG_DOUBLE(time_max)
+    double delay = 0;
+    INLIB_GUI_VIEWER__GET_ARG_DOUBLE(delay)
+    bool end_begin = false;
+    INLIB_GUI_VIEWER__GET_ARG_BOOL(end_begin)
+    setup_anims(m_out,scene(),time_min,time_max,delay,end_begin);
+    enable_anim();
+  }
+#undef INLIB_GUI_VIEWER__GET_ARG_DOUBLE
+#undef INLIB_GUI_VIEWER__GET_ARG_BOOL
+
+  static const std::string& scene_start_anim_help() {
+    static const std::string s_help("\
+scene_start_anim: scene_start_anim [-tim_min,-time_max,-delay,-end_begin]\n\
+  Start scene animation. It operates on all nodes in the scene inheriting sg::slice_anim\n\
+  as xyzt_anim, cone_anim, show_time_anim.\n\
+  -time_min=real event time start (in app specific unit).\n\
+  -time_max=real event time end (in app specific unit).\n\
+  -delay=real user elapsed time of the anim in secs.\n\
+  -end_begin=bool if true, start again at end (default is false).\n\
+  Example:\n\
+    scene_start_anim -tim_min=0 -time_max=20 -delay=10\n\
+");
+    return s_help;
+  }
+
 private:
   INLIB_INSH_CLASS_CMD(gui_viewer,camera_rotate,m_holder._camera_rotate(a_args),_camera_rotate_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,camera_yaw,m_holder._camera_yaw(a_args),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,camera_pitch,m_holder._camera_pitch(a_args),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,camera_roll,m_holder._camera_roll(a_args),insh::no_help())
+  INLIB_INSH_CLASS_CMD(gui_viewer,camera_yaw,m_holder._camera_yaw(a_args),"camera_yaw: camera_yaw [-deg,-degree] value\n  Rotate the camera around the up axis.\n  If specifying -deg or -degree, the value is taken in degrees.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,camera_pitch,m_holder._camera_pitch(a_args),"camera_pitch: camera_pitch [-deg,-degree] value\n  Rotate the camera around the left-right/x axis.\n  If specifying -deg or -degree, the value is taken in degrees.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,camera_roll,m_holder._camera_roll(a_args),"camera_roll: camera_roll [-deg,-degree] value\n  Rotate the camera around the direction of view axis.\n  If specifying -deg or -degree, the value is taken in degrees.\n")
 
   INLIB_INSH_CLASS_CMD(gui_viewer,scene_write_to_paper,_write_scene_to_paper(m_holder,a_args),_scene_write_to_paper_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,scene_write_to_bsg,_node_to_bsg(m_holder,a_args,m_holder.scene()),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,scene_count_points,m_holder.count_points(),insh::no_help())
+  INLIB_INSH_CLASS_CMD(gui_viewer,scene_write_to_bsg,_node_to_bsg(m_holder,a_args,m_holder.scene()),_scene_write_to_bsg_help())
+  INLIB_INSH_CLASS_CMD(gui_viewer,scene_count_points,m_holder._count_points(),"scene_count_points: scene_count_points\n Count number of points in the scene.\n")
 //INLIB_INSH_CLASS_CMD(gui_viewer,scene_clear,m_holder.clear_scene(),insh::no_help())
 
-  INLIB_INSH_CLASS_CMD(gui_viewer,event_stop_anim,m_holder.stop_event_anim(),insh::no_help())
+  INLIB_INSH_CLASS_CMD(gui_viewer,event_stop_anim,m_holder.stop_event_anim(),"event_stop_anim: event_stop_anim\n  Stop the looping on events animation.\n")
 
-  INLIB_INSH_CLASS_CMD(gui_viewer,scene_light_on,m_holder.set_scene_light_on(true),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,scene_light_off,m_holder.set_scene_light_on(false),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,scene_blend_on,m_holder.set_scene_blend_on(true),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,scene_blend_off,m_holder.set_scene_blend_on(false),insh::no_help())
+  INLIB_INSH_CLASS_CMD(gui_viewer,scene_light_on,m_holder.set_scene_light_on(true),"scene_light_on: scene_light_on\n  Switch on the overall light.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,scene_light_off,m_holder.set_scene_light_on(false),"scene_light_off: scene_light_off\n  Switch off the overall light.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,scene_blend_on,m_holder.set_scene_blend_on(true),"scene_blend_on: scene_blend_on\n  Switch on the overall blending (and then transparency).\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,scene_blend_off,m_holder.set_scene_blend_on(false),"scene_blend_off: scene_blend_off\n  Switch off the overall blending (and then transparency).\n")
   
-  INLIB_INSH_CLASS_CMD(gui_viewer,window_render,m_holder.win_render(),insh::no_help())
+  INLIB_INSH_CLASS_CMD(gui_viewer,window_render,m_holder.win_render(),"window_render: window_render\n  Enforce an immediate rendering of the window.\n")
   INLIB_INSH_CLASS_CMD(gui_viewer,window_to_png,action_window_to_png(m_holder,a_args),_window_to_png_help())
   INLIB_INSH_CLASS_CMD(gui_viewer,window_to_jpeg,action_window_to_jpeg(m_holder,a_args),_window_to_jpeg_help())
   
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_hide_console,m_holder.hide_console(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_hide_main_menu,m_holder.hide_main_menu(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_show_main_menu,m_holder.show_main_menu(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_hide_camera_menu,m_holder.hide_camera_menu(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_show_camera_menu,m_holder.show_camera_menu(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_push_home,m_holder.push_home(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_push_back_item,m_holder.push_back_item(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_hide_meta_zone,m_holder.hide_meta_zone(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_set_viewing_mode,m_holder.set_param_viewing(true),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_set_picking_mode,m_holder.set_param_viewing(false),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_set_to_exit,m_holder.set_to_exit(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_text,m_holder.gui_text(a_args),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,gui_scroll_text,m_holder.gui_scroll_text(a_args),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,sys_home_dir,{std::string s;dir::home(s);m_holder.insh().out(s);},insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,sys_file_sep,m_holder.insh().out(sep()),insh::no_help())
-  INLIB_INSH_CLASS_CMD(gui_viewer,sys_path_sep,m_holder.insh().out(psep()),insh::no_help())
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_hide_console,m_holder.hide_console(),"gui_hide_console: gui_hide_console\n  Hide the upper left console text.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_hide_main_menu,m_holder.hide_main_menu(),"gui_hide_main_menu: gui_hide_main_menu\n  Hide the main menu and show the scene.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_show_main_menu,m_holder.show_main_menu(),"gui_show_main_menu: gui_show_main_menu\n  Show the main menu.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_hide_camera_menu,m_holder.hide_camera_menu(),"gui_hide_camera_menu: gui_hide_camera_menu\n  Hide the camera menu items.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_show_camera_menu,m_holder.show_camera_menu(),"gui_show_camera_menu: gui_show_camera_menu\n  Show the camera menu items.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_push_home,m_holder.push_home(),"gui_push_home: gui_push_home\n  Show the top list items in the main menu.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_push_back_item,m_holder.push_back_item(),"gui_push_back_item: gui_push_back_item\n  If being in a submenu of the main menu, return to the parent menu.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_hide_meta_zone,m_holder.hide_meta_zone(),"gui_hide_meta_zone: gui_hide_meta_zone\n  Hide the light blue area at the bottom of the window that permits to switch between scene mode and main menu mode.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_set_viewing_mode,m_holder.set_param_viewing(true),"gui_set_viewing_mode: gui_set_viewing_mode\n  When in scene mode, pass the cursor/touching in viewing mode.\n  It permits to move the camera with the mouse/touches.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_set_picking_mode,m_holder.set_param_viewing(false),"gui_set_picking_mode: gui_set_picking_mode\n  When in scene mode, pass the cursor/touching in picking mode.\n  It permits to pick an object and have a contextual popup on it.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_set_to_exit,m_holder.set_to_exit(),"gui_set_to_exit: gui_set_to_exit\n  Raise the application exit flag.\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_text,m_holder.gui_text(a_args),"gui_text: gui_text [strings]\n  Show strings in a text widget.\n  gui_text line_1 line_2 line_3\n  gui_show_main_menu\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,gui_scroll_text,m_holder.gui_scroll_text(a_args),"gui_scroll_text: gui_scroll_text [strings]\n  Show strings in a scrolling text widget.\n  gui_scroll_text line_1 line_2 line_3 line_4 line_5 line_6\n  gui_show_main_menu\n")
+  INLIB_INSH_CLASS_CMD(gui_viewer,sys_home_dir,{std::string s;dir::home(s);m_holder.insh().out(s);},sys_home_dir_help())
+  INLIB_INSH_CLASS_CMD(gui_viewer,sys_file_sep,m_holder.insh().out(sep()),sys_file_sep_help())
+  INLIB_INSH_CLASS_CMD(gui_viewer,sys_path_sep,m_holder.insh().out(psep()),sys_path_sep_help())
   INLIB_INSH_CLASS_CMD(gui_viewer,ls,inlib::insh_ls(m_holder.insh(),a_args),inlib::insh_ls_help())
   INLIB_INSH_CLASS_CMD(gui_viewer,tput,inlib::insh_tput(m_holder.m_insh,a_args),inlib::insh_tput_help())
 
   void insh_add_cmds() {
   //INLIB_GUI_VIEWER_ADD_BOOL_VOID_CMD(camera_adapt_to_scene,adapt_camera_to_scene,insh::no_help)
-    INLIB_GUI_VIEWER_ADD_BOOL_VOID_CMD(camera_view_all,adapt_camera_to_scene,insh::no_help)
-    INLIB_GUI_VIEWER_ADD_VOID_VOID_CMD(camera_reset,reset_camera,insh::no_help)
-    INLIB_GUI_VIEWER_ADD_BOOL_VOID_CMD(camera_swap_kind,swap_camera_kind,insh::no_help)
+    INLIB_GUI_VIEWER_ADD_BOOL_VOID_CMD_HELP(camera_view_all,adapt_camera_to_scene,"camera_view_all: camera_view_all\n  Arrange the camera so that all the scene elements are viewed.\n")
+    INLIB_GUI_VIEWER_ADD_VOID_VOID_CMD_HELP(camera_reset,reset_camera,"camera_reset: camera_reset\n  Reset camera parameters.\n  It is usefull if being lost in space.\n")
+    INLIB_GUI_VIEWER_ADD_BOOL_VOID_CMD_HELP(camera_swap_kind,swap_camera_kind,"camera_swap_kind: camera_swap_kind\n  Swap camera between ortho and perspective.\n")
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_start_anim,_camera_start_anim,_camera_start_anim_help)
-    INLIB_GUI_VIEWER_ADD_VOID_VOID_CMD(camera_stop_anim,stop_cam_anim,insh::no_help)
+    INLIB_GUI_VIEWER_ADD_VOID_VOID_CMD_HELP(camera_stop_anim,stop_cam_anim,"camera_stop_anim: camera_stop_anim,\n  If any on, stop a camera animation.\n")
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_translate_position,_camera_translate_position,_camera_translate_position_help)
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_position,_camera_set_position,_camera_set_position_help)
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_orientation,_camera_set_orientation,_camera_set_orientation_help)
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_zoom,_camera_zoom,_camera_zoom_help)
-    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_znear,_camera_set_znear,insh::no_help)
-    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_zfar,_camera_set_zfar,insh::no_help)
-    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_focal,_camera_set_focal,insh::no_help)
-    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_da,_camera_set_da,insh::no_help)
-    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_dx,_camera_set_dx,insh::no_help)
-    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_ds,_camera_set_ds,insh::no_help)
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_znear,_camera_set_znear,"camera_set_znear: camera_set_znear value\n  Set the camera znear (default 1).\n  znear is the distance toward the forward cut plan.\n")
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_zfar,_camera_set_zfar,"camera_set_zfar: camera_set_zfar value\n  Set the camera zfar (default 10).\n  zfar is the distance toward the backward cut plan.\n")
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_focal,_camera_set_focal,"camera_set_focal: camera_set_focal value\n  Set the camera focal length (default 1).\n")
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_da,_camera_set_da,"camera_set_da: camera_set_da value\n  Set the rotation step factor in radians (default 0.017).\n")
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(camera_set_dx,_camera_set_dx,"camera_set_dx: camera_set_dx value\n  Set the translation step factor (default 0.01).\n")
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD_HELP(camera_set_ds,_camera_set_ds,"camera_set_ds: camera_set_ds value\n  Set the zoom step factor (default 0.99).\n")
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(gui_set_console_layout,_set_console_layout,_set_console_layout_help)
 
     INLIB_INSH_ADD_CMD(m_insh,*this,camera_rotate)
@@ -5511,6 +5780,9 @@ private:
   //INLIB_INSH_ADD_CMD(m_insh,*this,clear_scene)
     INLIB_INSH_ADD_CMD(m_insh,*this,scene_count_points)
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(scene_set_clear_color,_scene_set_clear_color,_scene_set_clear_color_help)
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(scene_bounding_box,_scene_bounding_box,_scene_bounding_box_help)
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(scene_remove_nodes,_scene_remove_nodes,_scene_remove_nodes_help)
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(scene_start_anim,scene_start_anim,scene_start_anim_help)
     
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(style_print_colormaps,_style_print_colormaps,_style_print_colormaps_help)
 
@@ -5529,12 +5801,13 @@ private:
     INLIB_INSH_ADD_CMD(m_insh,*this,gui_set_viewing_mode)
     INLIB_INSH_ADD_CMD(m_insh,*this,gui_set_picking_mode)
     INLIB_INSH_ADD_CMD(m_insh,*this,gui_set_to_exit)
-    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(gui_show_console,_show_console,insh::no_help)
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(gui_show_console,_show_console,"gui_show_console: gui_show_console\n  Show the upper left console text.\n")
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(gui_exec_main_menu_item,_exec_menu_item,_exec_menu_item_help)
 
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(app_open,_open,_open_help)
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(app_openers,_openers,_openers_help)
     INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(app_dir,_app_dir,_app_dir_help)
+    INLIB_GUI_VIEWER_ADD_VOID_ARGS_CMD(app_color_value,_app_color_value,_app_color_value_help)
     
     INLIB_INSH_ADD_CMD(m_insh,*this,sys_home_dir)
     INLIB_INSH_ADD_CMD(m_insh,*this,sys_file_sep)
@@ -5839,7 +6112,7 @@ inline void add_white_item(gui_viewer& a_gv,list& a_widget,const std::string& a_
 /// insh : //////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
-inline return_action action_insh_exec_script(inlib::sg::gui_viewer& a_gv,const std::string& a_script) {
+inline return_action action_insh_source_script(inlib::sg::gui_viewer& a_gv,const std::string& a_script) {
   std::vector<std::string> lines;
   get_lines(a_script,lines);
   a_gv.insh().exec_lines_reset_to_stop(lines);  
@@ -5847,10 +6120,10 @@ inline return_action action_insh_exec_script(inlib::sg::gui_viewer& a_gv,const s
 }
 
 inline void add_item_insh(gui_viewer& a_gv,ilist& a_widget,const std::string& a_label,const std::string& a_script) {
-  add_item(a_gv,a_widget,a_label,action_insh_exec_script,a_script);
+  add_item(a_gv,a_widget,a_label,action_insh_source_script,a_script);
 }
 inline void add_image_item_insh(gui_viewer& a_gv,list& a_widget,const std::string& a_label,const std::string& a_img_file,const std::string& a_script) {
-  add_image_item(a_gv,a_widget,a_label,a_img_file,action_insh_exec_script,a_script);
+  add_image_item(a_gv,a_widget,a_label,a_img_file,action_insh_source_script,a_script);
 }
 
 inline void add_white_item_insh(gui_viewer& a_gv,list& a_widget,const std::string& a_label,const std::string& a_script) {
@@ -5859,16 +6132,16 @@ inline void add_white_item_insh(gui_viewer& a_gv,list& a_widget,const std::strin
 
 inline void add_image_item_insh_before(gui_viewer& a_gv,list& a_widget,const std::string& a_before,
                                   const std::string& a_label,const std::string& a_img_file,const std::string& a_script) {
-  add_image_item_before(a_gv,a_widget,a_before,a_label,a_img_file,action_insh_exec_script,a_script);
+  add_image_item_before(a_gv,a_widget,a_before,a_label,a_img_file,action_insh_source_script,a_script);
 }
 
 inline void add_image_item_insh_after(gui_viewer& a_gv,list& a_widget,const std::string& a_before,
                                   const std::string& a_label,const std::string& a_img_file,const std::string& a_script) {
-  add_image_item_after(a_gv,a_widget,a_before,a_label,a_img_file,action_insh_exec_script,a_script);
+  add_image_item_after(a_gv,a_widget,a_before,a_label,a_img_file,action_insh_source_script,a_script);
 }
 inline void add_image_item_insh_at_top(gui_viewer& a_gv,list& a_widget,
                                   const std::string& a_label,const std::string& a_img_file,const std::string& a_script) {
-  add_image_item_at_top(a_gv,a_widget,a_label,a_img_file,action_insh_exec_script,a_script);
+  add_image_item_at_top(a_gv,a_widget,a_label,a_img_file,action_insh_source_script,a_script);
 }
 
 
@@ -5880,7 +6153,7 @@ inline void create_main_button_insh(gui_viewer& a_gv,
   create_main_button(a_gv.out(),a_gv.res_dir(),a_gv.m_params,a_gv.image_readers(),a_gv.ttf(),
                      a_gv.camenu_sep(),a_wcw,a_wch,a_wb,a_hb,a_roffset,a_col,a_row,
                      a_label,a_img_label,a_img,
-                     new gv_data_cbk<std::string>(a_gv,action_insh_exec_script,a_script));
+                     new gv_data_cbk<std::string>(a_gv,action_insh_source_script,a_script));
 }
 
 inline void create_main_button_insh(gui_viewer& a_gv,
@@ -5892,7 +6165,25 @@ inline void create_main_button_insh(gui_viewer& a_gv,
   create_main_button(a_gv.out(),a_gv.res_dir(),a_gv.m_params,a_gv.image_readers(),
                      a_gv.camenu_sep(),a_wcw,a_wch,a_wb,a_hb,a_roffset,a_col,a_row,
                      a_img_button,a_button,a_label,a_img,
-                     new gv_data_cbk<std::string>(a_gv,action_insh_exec_script,a_script));
+                     new gv_data_cbk<std::string>(a_gv,action_insh_source_script,a_script));
+}
+
+inline void gui_push_list(gui_viewer& a_gv,const std::vector<std::string>& a_text){
+  if(a_text.empty()) {
+    a_gv.map_warn_empty();
+    return;
+  }
+  size_t nitem = a_text.size()/2;
+  if(nitem*2!=a_text.size()) {
+    a_gv.map_warn("even number of arguments expected.");
+    return;
+  }
+  list* _list = new list(a_gv.ttf());
+  a_gv.set_style(*_list);
+  for(size_t index=0;index<nitem;index++) {
+    add_white_item_insh(a_gv,*_list,a_text[2*index+0],a_text[2*index+1]);
+  }
+  a_gv.push_list(_list);
 }
 
 }}
@@ -6197,79 +6488,106 @@ inline base_camera* astro_pimg_camera(gui_viewer& a_gv,double a_sky_radius) {
     
 #define INLIB_GUI_VIEWER_GET_ARG_FLOAT(a__where,a__variable,a__return)\
    {std::string svalue;\
-    if(_args.find(std::string("-")+#a__variable,svalue)) {\
+    std::string _key = std::string("-")+#a__variable;\
+    if(_args.find(_key,svalue)) {\
       float _value;\
       if(!inlib::to<float>(svalue,_value)) {\
         a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not a float.");\
         return a__return;\
       }\
       a__variable  = _value;\
+      _args.remove(_key);\
     }}
 
 #define INLIB_GUI_VIEWER_GET_ARG_DOUBLE(a__where,a__variable,a__return)\
    {std::string svalue;\
-    if(_args.find(std::string("-")+#a__variable,svalue)) {\
+    std::string _key = std::string("-")+#a__variable;\
+    if(_args.find(_key,svalue)) {\
       double _value;\
       if(!inlib::to<double>(svalue,_value)) {\
         a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not a double.");\
         return a__return;\
       }\
       a__variable  = _value;\
+      _args.remove(_key);\
     }}
 
 #define INLIB_GUI_VIEWER_GET_ARG_UINT(a__where,a__variable,a__return)\
    {std::string svalue;\
-    if(_args.find(std::string("-")+#a__variable,svalue)) {\
+    std::string _key = std::string("-")+#a__variable;\
+    if(_args.find(_key,svalue)) {\
       unsigned int _value;\
       if(!inlib::to<unsigned int>(svalue,_value)) {\
         a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not a uint.");\
         return a__return;\
       }\
       a__variable  = _value;\
+      _args.remove(_key);\
     }}
 
 #define INLIB_GUI_VIEWER_GET_ARG_BOOL(a__where,a__variable,a__return)\
    {std::string svalue;\
-    if(_args.find(std::string("-")+#a__variable,svalue)) {\
+    std::string _key = std::string("-")+#a__variable;\
+    if(_args.find(_key,svalue)) {\
       bool _value;\
       if(!inlib::to(svalue,_value)) {\
         a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not a bool.");\
         return a__return;\
       }\
       a__variable  = _value;\
+      _args.remove(_key);\
     }}
 
 #define INLIB_GUI_VIEWER_GET_ARG_COLOR(a__where,a__variable,a__return)\
    {std::string svalue;\
-    if(_args.find(std::string("-")+#a__variable,svalue)) {\
+    std::string _key = std::string("-")+#a__variable;\
+    if(_args.find(_key,svalue)) {\
       inlib::colorf _value;\
-      if(!find_color(a_gv.styles().cmaps(),svalue,_value)) {\
+      if(!inlib::sg::find_color(a_gv.styles().cmaps(),svalue,_value)) {\
         a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not a color.");\
         return a__return;\
       }\
       a__variable  = _value;\
+      _args.remove(_key);\
+    }}
+
+#define INLIB_GUI_VIEWER_GET_ARG_GL_PRIM(a__where,a__variable,a__return)\
+   {std::string svalue;\
+    std::string _key = std::string("-")+#a__variable;\
+    if(_args.find(_key,svalue)) {\
+      inlib::gl::mode_t _value;\
+      if(!inlib::gl::s2glprim(svalue,_value)) {\
+        a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not a gl primitive mode.");\
+        return a__return;\
+      }\
+      a__variable  = _value;\
+      _args.remove(_key);\
     }}
 
 #define INLIB_GUI_VIEWER_GET_ARG_VEC3F(a__where,a__variable,a__return)\
    {std::string svalue;\
-    if(_args.find(std::string("-")+#a__variable,svalue)) {\
+    std::string _key = std::string("-")+#a__variable;\
+    if(_args.find(_key,svalue)) {\
       float x,y,z;\
       if(!inlib::to_3(svalue,x,y,z)) {\
         a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not three floats.");\
         return a__return;\
       }\
       a__variable.set_value(x,y,z);\
+      _args.remove(_key);\
     }}
 
 #define INLIB_GUI_VIEWER_GET_ARG_VEC4F(a__where,a__variable,a__return)\
    {std::string svalue;\
-    if(_args.find(std::string("-")+#a__variable,svalue)) {\
+    std::string _key = std::string("-")+#a__variable;\
+    if(_args.find(_key,svalue)) {\
       float x,y,z,t;\
       if(!inlib::to_4(svalue,x,y,z,t)) {\
         a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not four floats.");\
         return a__return;\
       }\
       a__variable.set_value(x,y,z,t);\
+      _args.remove(_key);\
     }}
 
 #define INLIB_GUI_VIEWER_GET_WIDGET_UINT(a__header,a__index,a__variable)\

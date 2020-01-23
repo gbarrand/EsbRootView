@@ -13,6 +13,7 @@
 #include "../sjust"
 #include "../mnmx"
 #include <cfloat>
+#include <sstream>
 
 namespace inlib {
 
@@ -138,7 +139,9 @@ public:
   ////////////////////////////////////////////////////////////////////////////////////////////////
   /// DATA* //////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////
-  void dump(std::ostream& a_out,const std::vector<DATA*>& a_vec,const std::vector<std::string>& a_names) {
+  void dump(std::ostream& a_out,const std::vector<DATA*>& a_vec,const std::vector<std::string>& a_names,
+            const std::string& a_header,bool a_to_vout,std::vector<std::string>& a_vout) {
+    a_vout.clear();
     std::vector<named_value_ref*> to_dump;
     if(a_names.empty()) {
       to_dump = m_data_cols;
@@ -150,11 +153,37 @@ public:
     }
     if(to_dump.empty()) return;
 
-    size_t loffset = 1;
+    size_t to_dump_size = to_dump.size();
     inlib::value v;
+
+    if(a_to_vout) {
+      std::string sout;
+      inlib_typename_vforcit(DATA*,a_vec,it) {
+        get_variables(*(*it));
+        for(size_t icol=0;icol<to_dump_size;icol++) {
+          to_dump[icol]->get_value(v);
+          switch(v.type()) {
+          case value::FLOAT:
+            soutd(v.get_float(),sout);
+            a_vout.push_back(sout);
+            break;
+          case value::DOUBLE:
+            soutd(v.get_double(),sout);
+            a_vout.push_back(sout);
+            break;
+          default:
+            if(!v.tos(sout)) {}
+            a_vout.push_back(sout);
+            break;
+          }
+        }
+      }
+      return;
+    }
+    
+    size_t loffset = 1;
     std::string svalue;
 
-    size_t to_dump_size = to_dump.size();
     std::vector<size_t> widths(to_dump_size,0);
 
     // first pass to get col widths :
@@ -175,6 +204,8 @@ public:
     }}
     
     // header :
+    if(a_header.size()) a_out << a_header << std::endl;
+    
    {for(size_t icol=0;icol<to_dump_size;icol++) {
       svalue = to_dump[icol]->name();
       inlib::justify(svalue,widths[icol],inlib::side_right);
@@ -198,7 +229,9 @@ public:
     }}
   }
 
-  void stats(std::ostream& a_out,const std::vector<DATA*>& a_vec,const std::vector<std::string>& a_names) {
+  void stats(std::ostream& a_out,const std::vector<DATA*>& a_vec,const std::vector<std::string>& a_names,
+             const std::string& a_header,const std::string& a_arg,std::string& a_sout) {
+    a_sout.clear(); // a_sout is filled when only one number is printed. (It permits to do backquoting when used within insh).
     std::vector<named_value_ref*> to_dump;
    {std::vector<named_value_ref*> _tmp;
     if(a_names.empty()) {
@@ -266,54 +299,75 @@ public:
       inlib::num2s(rmss[icol],svalue);
       widths[icol] = inlib::max_of(widths[icol],loffset+svalue.size());
     }}
-    
-    // header :
-   {for(size_t icol=0;icol<to_dump_size;icol++) {
-      svalue = to_dump[icol]->name();
-      inlib::justify(svalue,widths[icol],inlib::side_right);
-      a_out << svalue;
-    }}
-    a_out << std::endl;
-    
-    // Ss :
-   {for(size_t icol=0;icol<to_dump_size;icol++) {
-      inlib::num2s(Ss[icol],svalue);
-      inlib::justify(svalue,widths[icol],inlib::side_right);
-      a_out << svalue;
-    }}
-    a_out << std::endl;
-    
-    // mins :
-   {for(size_t icol=0;icol<to_dump_size;icol++) {
-      inlib::num2s(mins[icol],svalue);
-      inlib::justify(svalue,widths[icol],inlib::side_right);
-      a_out << svalue;
-    }}
-    a_out << std::endl;
-    
-    // maxs :
-   {for(size_t icol=0;icol<to_dump_size;icol++) {
-      inlib::num2s(maxs[icol],svalue);
-      inlib::justify(svalue,widths[icol],inlib::side_right);
-      a_out << svalue;
-    }}
-    a_out << std::endl;
 
-    // means :
-   {for(size_t icol=0;icol<to_dump_size;icol++) {
-      inlib::num2s(means[icol],svalue);
-      inlib::justify(svalue,widths[icol],inlib::side_right);
-      a_out << svalue;
-    }}
-    a_out << std::endl;
+    if(a_arg.empty()||(to_dump_size!=1)) {
 
-    // rmss :
-   {for(size_t icol=0;icol<to_dump_size;icol++) {
-      inlib::num2s(rmss[icol],svalue);
-      inlib::justify(svalue,widths[icol],inlib::side_right);
-      a_out << svalue;
-    }}
-    a_out << std::endl;
+      if(a_header.size()) a_out << a_header << std::endl;
+
+      // name :
+     {for(size_t icol=0;icol<to_dump_size;icol++) {
+        svalue = to_dump[icol]->name();
+        inlib::justify(svalue,widths[icol],inlib::side_right);
+        a_out << svalue;
+      }}
+      a_out << std::endl;
+      
+      // Ss :
+     {for(size_t icol=0;icol<to_dump_size;icol++) {
+        inlib::num2s(Ss[icol],svalue);
+        inlib::justify(svalue,widths[icol],inlib::side_right);
+        a_out << svalue;
+      }}
+      a_out << std::endl;
+      
+      // mins :
+     {for(size_t icol=0;icol<to_dump_size;icol++) {
+        inlib::num2s(mins[icol],svalue);
+        inlib::justify(svalue,widths[icol],inlib::side_right);
+        a_out << svalue;
+      }}
+      a_out << std::endl;
+      
+      // maxs :
+     {for(size_t icol=0;icol<to_dump_size;icol++) {
+        inlib::num2s(maxs[icol],svalue);
+        inlib::justify(svalue,widths[icol],inlib::side_right);
+        a_out << svalue;
+      }}
+      a_out << std::endl;
+  
+      // means :
+     {for(size_t icol=0;icol<to_dump_size;icol++) {
+        inlib::num2s(means[icol],svalue);
+        inlib::justify(svalue,widths[icol],inlib::side_right);
+        a_out << svalue;
+      }}
+      a_out << std::endl;
+  
+      // rmss :
+     {for(size_t icol=0;icol<to_dump_size;icol++) {
+        inlib::num2s(rmss[icol],svalue);
+        inlib::justify(svalue,widths[icol],inlib::side_right);
+        a_out << svalue;
+      }}
+      a_out << std::endl;
+  
+    } else if(a_arg=="sum") {
+      //inlib::num2s(Ss[0],a_sout);
+      soutd(Ss[0],a_sout);
+    } else if(a_arg=="min") {
+      //inlib::num2s(mins[0],a_sout);
+      soutd(mins[0],a_sout);
+    } else if(a_arg=="max") {
+      //inlib::num2s(maxs[0],a_sout);
+      soutd(maxs[0],a_sout);
+    } else if(a_arg=="mean") {
+      //inlib::num2s(means[0],a_sout);
+      soutd(means[0],a_sout);
+    } else if(a_arg=="rms") {
+      //inlib::num2s(rmss[0],a_sout);
+      soutd(rmss[0],a_sout);
+    }
   }
   
   bool evaluate_double_min_max(const std::vector<DATA*>& a_vec,double& a_min,double& a_max) {
@@ -342,7 +396,9 @@ public:
   ////////////////////////////////////////////////////////////////////////////////////////////////
   /// DATA ///////////////////////////////////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////////////////////////////////////////////
-  void dump(std::ostream& a_out,const std::vector<DATA>& a_vec,const std::vector<std::string>& a_names) {
+  void dump(std::ostream& a_out,const std::vector<DATA>& a_vec,const std::vector<std::string>& a_names,
+            const std::string& a_header,bool a_to_vout,std::vector<std::string>& a_vout) {
+    a_vout.clear();
     std::vector<named_value_ref*> to_dump;
     if(a_names.empty()) {
       to_dump = m_data_cols;
@@ -354,11 +410,37 @@ public:
     }
     if(to_dump.empty()) return;
 
-    size_t loffset = 1;
     inlib::value v;
+    size_t to_dump_size = to_dump.size();
+
+    if(a_to_vout) {
+      std::string sout;
+      inlib_typename_vforcit(DATA,a_vec,it) {
+        get_variables(*it);
+        for(size_t icol=0;icol<to_dump_size;icol++) {
+          to_dump[icol]->get_value(v);
+          switch(v.type()) {
+          case value::FLOAT:
+            soutd(v.get_float(),sout);
+            a_vout.push_back(sout);
+            break;
+          case value::DOUBLE:
+            soutd(v.get_double(),sout);
+            a_vout.push_back(sout);
+            break;
+          default:
+            if(!v.tos(sout)) {}
+            a_vout.push_back(sout);
+            break;
+          }
+        }
+      }
+      return;
+    }
+    
+    size_t loffset = 1;
     std::string svalue;
 
-    size_t to_dump_size = to_dump.size();
     std::vector<size_t> widths(to_dump_size,0);
 
     // first pass to get col widths :
@@ -379,6 +461,8 @@ public:
     }}
     
     // header :
+    if(a_header.size()) a_out << a_header << std::endl;
+
    {for(size_t icol=0;icol<to_dump_size;icol++) {
       svalue = to_dump[icol]->name();
       inlib::justify(svalue,widths[icol],inlib::side_right);
@@ -505,6 +589,13 @@ protected:
   
   void add_named_value_ref(const std::string& a_name,value& a_ref) {
     m_data_cols.push_back(new named_value_ref(a_name,a_ref));
+  }
+  
+  static void soutd(double a_d,std::string& a_s) {
+    std::ostringstream ossd;
+    ossd.precision(25);
+    ossd << a_d;
+    a_s = ossd.str();
   }
 protected:
   std::ostream& m_out;

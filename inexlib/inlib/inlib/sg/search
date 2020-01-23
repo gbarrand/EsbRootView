@@ -72,6 +72,14 @@ inline const path_t& find_path(search_action& a_action,node& a_from,node& a_node
   return path;
 }  
 
+inline const search_action::paths_t& find_paths(search_action& a_action,node& a_from,const std::string& a_class){
+  a_action.reset();
+  a_action.set_what(search_action::search_path_to_node_of_class);
+  a_action.set_class(a_class);
+  a_from.search(a_action);
+  return a_action.paths();
+}
+
 template <class NODE>
 inline const search_action::paths_t& find_paths(search_action& a_action,node& a_from){
   a_action.reset();

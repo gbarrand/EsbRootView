@@ -66,6 +66,15 @@ inline void args2style(std::ostream& a_out,const cmaps_t& a_cmaps,const args& a_
   if(a_args.find("-filling",svalue)) a_style.filling = svalue;}
   
  {std::string svalue;
+  if(a_args.find("-filling_x",svalue)) a_style.filling_x = svalue;}
+  
+ {std::string svalue;
+  if(a_args.find("-filling_y",svalue)) a_style.filling_y = svalue;}
+  
+ {std::string svalue;
+  if(a_args.find("-filling_z",svalue)) a_style.filling_z = svalue;}
+  
+ {std::string svalue;
   if(a_args.find("-modeling",svalue)) a_style.modeling = svalue;}
 
  {std::string svalue;

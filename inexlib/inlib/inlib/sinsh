@@ -88,7 +88,7 @@ class sh_string : public std::string {
 #endif
 public:
   enum string_type {
-    string_none,
+    string_none,    //none is for none of simple,double,back,space cases.
     string_simple,
     string_double,
     string_back,
@@ -102,6 +102,15 @@ public:
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
 #endif
+  }
+  sh_string(const std::string& a_value,string_type a_type)
+  :parent()
+  ,m_type(a_type)
+  {
+#ifdef INLIB_MEM
+    mem::increment(s_class().c_str());
+#endif
+    parent::operator=(a_value);
   }
   virtual ~sh_string(){
 #ifdef INLIB_MEM
@@ -125,6 +134,16 @@ public:
   sh_string& operator=(const std::string& a_from){
     parent::operator=(a_from);
     return *this;
+  }
+public:
+  std::string stype() const {
+    switch(m_type) {
+    case string_none:return "string_none";
+    case string_simple:return "string_simple";
+    case string_double:return "string_double";
+    case string_back:return "string_back";
+    case string_space:return "string_space";
+    }
   }
 public:
   string_type m_type;
@@ -163,52 +182,52 @@ inline bool get_strings(const std::string& a_string,std::vector<sh_string>& a_ar
       }
       //token += *p;
 
-    if((*p)=='\'') {
-      if(in_dq_string || in_bq_string) {
-        token += *p;
-      } else {
-        if(!in_sq_string) {
-          in_sq_string = true;
-          if(token.size()) {a_args.push_back(token);token.clear();}
-          token.m_type = sh_string::string_simple;
+      if((*p)=='\'') {
+        if(in_dq_string || in_bq_string) {
+          token += *p;
         } else {
-          in_sq_string = false;
-          if(token.size()) {a_args.push_back(token);token.clear();}
-          token.m_type = sh_string::string_none;
+          if(!in_sq_string) {
+            in_sq_string = true;
+            if(token.size()) {a_args.push_back(token);token.clear();}
+            token.m_type = sh_string::string_simple;
+          } else {
+            in_sq_string = false;
+            if(token.size()) {a_args.push_back(token);token.clear();}
+            token.m_type = sh_string::string_none;
+          }
         }
-      }
-    } else if((*p)=='"') {
-      if(in_sq_string || in_bq_string) {
-        token += *p;
-      } else {
-        if(!in_dq_string) {
-          in_dq_string = true;
-          if(token.size()) {a_args.push_back(token);token.clear();}
-          token.m_type = sh_string::string_double;
+      } else if((*p)=='"') {
+        if(in_sq_string || in_bq_string) {
+          token += *p;
         } else {
-          in_dq_string = false;
-          if(token.size()) {a_args.push_back(token);token.clear();}
-          token.m_type = sh_string::string_none;
+          if(!in_dq_string) {
+            in_dq_string = true;
+            if(token.size()) {a_args.push_back(token);token.clear();}
+            token.m_type = sh_string::string_double;
+          } else {
+            in_dq_string = false;
+            if(token.size()) {a_args.push_back(token);token.clear();}
+            token.m_type = sh_string::string_none;
+          }
         }
-      }
-    } else if((*p)=='`') {
-      if(in_sq_string || in_dq_string) {
-        token += *p;
-      } else {
-        if(!in_bq_string) {
-          in_bq_string = true;
-          if(token.size()) {a_args.push_back(token);token.clear();}
-          token.m_type = sh_string::string_back;
+      } else if((*p)=='`') {
+        if(in_sq_string || in_dq_string) {
+          token += *p;
         } else {
-          in_bq_string = false;
-          if(token.size()) {a_args.push_back(token);token.clear();}
-          token.m_type = sh_string::string_none;
+          if(!in_bq_string) {
+            in_bq_string = true;
+            if(token.size()) {a_args.push_back(token);token.clear();}
+            token.m_type = sh_string::string_back;
+          } else {
+            in_bq_string = false;
+            if(token.size()) {a_args.push_back(token);token.clear();}
+            token.m_type = sh_string::string_none;
+          }
         }
+        
+      } else {
+        token += *p;
       }
-      
-    } else {
-      token += *p;
-    }
 
     }
   }

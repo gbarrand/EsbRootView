@@ -348,9 +348,7 @@ public:
 
     const hep::polyhedron& sbPolyhedron = ph.value();
     if(sbPolyhedron.GetNoFacets()<=0) {
-      a_out << "inlib::sg::polyhedron::update_sg :"
-            << " abnormal polyhedron."
-            << std::endl;
+      //a_out << "inlib::sg::polyhedron::update_sg : abnormal polyhedron." << std::endl;
       return; // Abnormal polyhedron.
     }
 

@@ -95,8 +95,8 @@ protected:
   }
   static const std::string& _plots_set_layout_factors_help() {
     static const std::string s_help("\
-plots_set_layout_factors: plots_set_layout_factors x y scale_x scale_y.\n\
-  Set the set the positionning and size of the first sg::plots node found in the scene.\n\
+plots_set_layout_factors: plots_set_layout_factors x y scale_x scale_y\n\
+  Set the position and size of the first sg::plots node found in the scene.\n\
   x, y, scale_x and scale_y are in normal window coordinates (in [0,1]).\n\
   Example:\n\
     plots_set_layout_factors 0.3   0.35 0.3 0.2  # up right.\n\
@@ -105,19 +105,19 @@ plots_set_layout_factors: plots_set_layout_factors x y scale_x scale_y.\n\
     return s_help;
   }
 
-  INLIB_INSH_CLASS_CMD(plotarea,plots_show,m_holder.show_plots(),insh::no_help())
-  INLIB_INSH_CLASS_CMD(plotarea,plots_hide,m_holder.hide_plots(),insh::no_help())
+  INLIB_INSH_CLASS_CMD(plotarea,plots_show,m_holder.show_plots(),"plots_show: plots_show\n  Show the scene plotting area.\n")
+  INLIB_INSH_CLASS_CMD(plotarea,plots_hide,m_holder.hide_plots(),"plots_hide: plots_hide\n  Hide the scene plotting area.\n")
   INLIB_INSH_CLASS_CMD(plotarea,plots_set_layout_factors,m_holder._plots_set_layout_factors(a_args),_plots_set_layout_factors_help())
 
-  INLIB_INSH_CLASS_CMD(plotarea,histos_create,m_holder.create_histos(),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(plotarea,histos_reset,m_holder.reset_histos(),inlib::insh::no_help())
+//INLIB_INSH_CLASS_CMD(plotarea,histos_create,m_holder.create_histos(),inlib::insh::no_help())
+//INLIB_INSH_CLASS_CMD(plotarea,histos_reset,m_holder.reset_histos(),inlib::insh::no_help())
   void insh_add_cmds() {
     INLIB_INSH_ADD_CMD(m_gv.insh(),*this,plots_show)
     INLIB_INSH_ADD_CMD(m_gv.insh(),*this,plots_hide)
     INLIB_INSH_ADD_CMD(m_gv.insh(),*this,plots_set_layout_factors)
 
-    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,histos_create)
-    INLIB_INSH_ADD_CMD(m_gv.insh(),*this,histos_reset)
+  //INLIB_INSH_ADD_CMD(m_gv.insh(),*this,histos_create)
+  //INLIB_INSH_ADD_CMD(m_gv.insh(),*this,histos_reset)
   }
 protected:
   class cbk_data  {

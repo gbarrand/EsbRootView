@@ -9,6 +9,7 @@
 #include "../vfind"
 #include "../forit"
 #include "../sout"
+#include "../cstr"
 
 #include <cstdio>
 #include <cstdlib>
@@ -221,6 +222,220 @@ public:
         const particle* ap = find_particle((*it).anti_particle());
         if(ap->anti_particle()!=(*it).name()) {
           m_out << "inlib::hep::pdgs::load_table_file : anti mismatch(2) for particle " << sout((*it).name()) << "." << std::endl;
+          if(a_clear) m_particles.clear();
+          return false;
+	}
+      }
+    }}
+    return true;
+  }
+
+  int get_char(char*& a_pos,char* a_max) {
+    if(a_pos>=a_max) return EOF;
+    char c = *a_pos;a_pos++;return c;
+  }
+  
+  void unget_char(char a_c,char*& a_pos) {a_pos--;*a_pos = a_c;}
+
+  char* get_string(char* a_s,size_t a_size,char*& a_pos,char* a_max) {
+    char* pos = a_s;
+    for(size_t count=0;count<(a_size-1);count++) {
+      if(a_pos>=a_max) {
+        pos++;*pos = 0;
+        break;
+      }
+      *pos = *a_pos;a_pos++;
+      if(*pos=='\n') {
+        pos++;*pos = 0;
+        break;
+      }
+      pos++;
+    }
+    return a_s;
+  }
+  void read_int(char*& a_pos,char* a_max,int* a_int) {
+    char* end;
+    long l = ::strtol(a_pos,&end,10);
+    if(end==a_pos) {*a_int=0;return;}
+    a_pos = end;
+    *a_int = (int)l;
+    while((a_pos<a_max)&&(*a_pos==' ')) a_pos++;
+  }
+  void read_double(char*& a_pos,char* a_max,double* a_d) {
+    char* end;
+    double d = ::strtod(a_pos,&end);
+    if(end==a_pos) {*a_d=0;return;}
+    a_pos = end;
+    *a_d = d;
+    while((a_pos<a_max)&&(*a_pos==' ')) a_pos++;
+  }
+  void read_string(char*& a_pos,char* a_max,char* a_s) {
+    char* pos = a_s;
+    while((a_pos<a_max)&&(*a_pos!=' ')&&(*a_pos!='\n')) {
+      *pos = *a_pos;pos++;a_pos++;
+    }
+    *pos = 0;
+  }
+
+  bool load_table_buffer(const char* a_buffer,size_t a_size,bool a_clear = true) {
+    if(a_clear) m_particles.clear();
+    
+    // from root-6.16.00/TDatabasePDG::ReadPDGTable() function.
+    if(!a_size) return false;
+
+    char   c[512];
+    int    class_number, anti, isospin, i3, spin, tracking_code;
+    int    ich, kf, nch, charge;
+    char   name[30], class_name[30];
+    double mass, width, branching_ratio;
+    int    idecay, decay_type, flavor;
+    bool   stable;
+
+    char* olcn = beg_LC_NUMERIC();
+    
+    char* pos = (char*)a_buffer;
+    char* pmax = (char*)a_buffer+a_size;
+    
+    int input;
+    while ( (input=get_char(pos,pmax)) != EOF) {
+      c[0] = input;
+      if (c[0] != '#') {
+         unget_char(c[0],pos);
+         // read channel number
+         // coverity [secure_coding : FALSE]
+         read_int(pos,pmax,&ich);
+         // coverity [secure_coding : FALSE]
+         read_string(pos,pmax,name);
+         // coverity [secure_coding : FALSE]
+         read_int(pos,pmax,&kf);
+         // coverity [secure_coding : FALSE]
+         read_int(pos,pmax,&anti);
+	 
+	 //::printf("debug : ich %d, name %s, kf %d, anti %d\n",ich,name,kf,anti);
+  
+         if (kf < 0) {
+            add_anti_particle(name,kf);
+            // nothing more on this line
+            if (get_string(c,200,pos,pmax)) {;}
+         } else {
+            // coverity [secure_coding : FALSE]
+            read_int(pos,pmax,&class_number);
+            // coverity [secure_coding : FALSE]
+            read_string(pos,pmax,class_name);
+            // coverity [secure_coding : FALSE]
+            read_int(pos,pmax,&charge);
+            // coverity [secure_coding : FALSE]
+            read_double(pos,pmax,&mass);
+            // coverity [secure_coding : FALSE]
+            read_double(pos,pmax,&width);
+            // coverity [secure_coding : FALSE]
+            read_int(pos,pmax,&isospin);
+            // coverity [secure_coding : FALSE]
+            read_int(pos,pmax,&i3);
+            // coverity [secure_coding : FALSE]
+            read_int(pos,pmax,&spin);
+            // coverity [secure_coding : FALSE]
+            read_int(pos,pmax,&flavor);
+            // coverity [secure_coding : FALSE]
+            read_int(pos,pmax,&tracking_code);
+            // coverity [secure_coding : FALSE]
+            read_int(pos,pmax,&nch);
+            // nothing more on this line
+            if (get_string(c,200,pos,pmax)) {;}
+            if (width > 1e-10) stable = false;
+            else               stable = true;
+  
+            // create particle
+            particle* part = add_particle(name,mass,stable,width,charge,class_name,kf,anti,tracking_code);
+					     
+            if(nch) {
+               // read in decay channels
+               ich = 0;
+               int c_input = 0;
+               while ( ((c_input=get_char(pos,pmax)) != EOF) && (ich <nch)) {
+                  c[0] = c_input;
+                  if (c[0] != '#') {
+                     unget_char(c[0],pos);
+  
+                     // coverity [secure_coding : FALSE]
+                     read_int(pos,pmax,&idecay);
+                     // coverity [secure_coding : FALSE]
+                     read_int(pos,pmax,&decay_type);
+                     // coverity [secure_coding : FALSE]
+                     read_double(pos,pmax,&branching_ratio);
+                     // coverity [secure_coding : FALSE]
+                     int ndau;
+                     read_int(pos,pmax,&ndau);
+                     std::vector<int> daus(ndau,0);
+                     for (int idau=0; idau<ndau; idau++) {
+                        // coverity [secure_coding : FALSE]
+                        read_int(pos,pmax,&daus[idau]);
+                     }
+                     // add decay channel
+                     if(part) part->add_decay_channel(decay_type,branching_ratio,daus);
+                     ich++;
+                  }
+                  // skip end of line
+                  if (get_string(c,200,pos,pmax)) {;}
+               }
+            }
+         }
+      } else {
+         // skip end of line
+         if (get_string(c,200,pos,pmax)) {;}
+      }
+    }
+
+    end_LC_NUMERIC(olcn);
+
+    // in the end, loop over the antiparticles and define their decay lists :
+    inlib_vforit(particle,m_particles,it) {
+      particle& p = *it;
+      if(p.pdg_code()>=0) continue;
+      // define decay channels for antiparticles
+      particle* ap = find_particle(-p.pdg_code());
+      if(!ap) {
+        m_out << "inlib::hep::pdgs::load_table_buffer : warning : antiparticle " << p.pdg_code() << " without particle !" << std::endl;
+        continue;
+      }
+      inlib_vforcit(decay_channel,ap->decay_channels(),itd) {
+        const decay_channel& dc = *itd;
+        size_t ndau = dc.daughters().size();
+        std::vector<int> codes(ndau,0);
+        for(size_t i=0;i<ndau;i++) {
+          // conserve CPT :
+          codes[i] = dc.daughters()[i];
+          particle* daughter = find_particle(codes[i]);
+          if(!daughter) {
+            m_out << "inlib::hep::pdgs::load_table_buffer : warning :"
+                  << " find_particle(codes[" << i << "]) failed." << std::endl;
+	    continue;
+	  }
+	  if(daughter->anti_particle().size()) { //should be "tmp" at this point.
+            codes[i] = -codes[i];   // this particle does have an antiparticle.
+          }
+        }
+        p.add_decay_channel(dc.matrix_element_code(),dc.branching_ratio(),codes);
+      }
+      p.set_anti_particle(ap->name());
+      ap->set_anti_particle(p.name());
+    }
+    // some cross checks :
+   {inlib_vforcit(particle,m_particles,it) {
+      if((*it).name().empty()) {
+        m_out << "inlib::hep::pdgs::load_table_buffer : particle without name." << std::endl;
+        if(a_clear) m_particles.clear();
+        return false;
+      }
+      if((*it).anti_particle()=="tmp") {
+        m_out << "inlib::hep::pdgs::load_table_buffer : anti mismatch(1) for particle " << sout((*it).name()) << "." << std::endl;
+        if(a_clear) m_particles.clear();
+        return false;
+      }
+      if((*it).anti_particle().size()) {
+        const particle* ap = find_particle((*it).anti_particle());
+        if(ap->anti_particle()!=(*it).name()) {
+          m_out << "inlib::hep::pdgs::load_table_buffer : anti mismatch(2) for particle " << sout((*it).name()) << "." << std::endl;
           if(a_clear) m_particles.clear();
           return false;
 	}

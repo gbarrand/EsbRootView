@@ -15,7 +15,7 @@ namespace rroot {
 class dummy_fac : public virtual ifac {
 public: //ifac
   virtual std::ostream& out() const {return m_out;}
-  virtual iro* create(const std::string& a_class,const args& a_args) {
+  virtual iro* create(const std::string& a_class,const args& /*a_args*/) {
     if(rcmp(a_class,"TGraph")) { //for TH_read_1D/List.
       return new graph();
 /*

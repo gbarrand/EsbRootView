@@ -11,6 +11,7 @@
 #include "event_dispatcher"
 #include "plots"
 #include "plotter_style"
+#include "dummy_freetype"
 
 namespace inlib {
 namespace sg {
@@ -187,8 +188,8 @@ inline plotter* plot(gui_viewer& a_gv,const histo::c3d& a_histo,bool a_cp = true
 /////////////////////////////////////////////////////////////////////////////
 /// insh commands : /////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
-inline void insh_plots_set_regions(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plots_set_regions :");
+inline void insh_plots_set_grid(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plots_set_grid :");
   plots* _plots = search_plots(a_gv);
   if(!_plots) {
     a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
@@ -209,21 +210,41 @@ inline void insh_plots_set_regions(gui_viewer& a_gv,const std::vector<std::strin
   _plots->set_regions(cols,rows,transfer);
 }
 
-inline const std::string& insh_plots_set_regions_help() {
+inline const std::string& insh_plots_set_grid_help() {
   static const std::string s_help("\
-plots_set_regions: plots_set_regions cols rows [transfer].\n\
+plots_set_grid: plots_set_grid cols rows [transfer]\n\
   Set the grid of inlib::sg::plotters in the first inlib::sg::plots node found in the scene.\n\
-  The optional transfer argument (false by default) says is the content of\n\
-  previous plotters are to be transfered in the plotter in the new grid.\n\
+  The optional boolean transfer argument (false by default) says if the content of\n\
+  previous plotters are transfered in the plotter in the new grid.\n\
   Example:\n\
-    plots_set_regions 2 2  # then four regions are created.\n\
-    plots_set_regions 2 3 true\n\
+    plots_set_grid 2 2  # then four plotters are created.\n\
+    plots_set_grid 2 3 true\n\
 ");
   return s_help;
 }
 
-inline void insh_plots_set_current_region(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plots_set_current_region :");
+inline void insh_plots_clear(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plots_clear :");
+  plots* _plots = search_plots(a_gv);
+  if(!_plots) {
+    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
+    return;
+  }
+  _plots->clear();
+}
+
+inline void insh_plots_current_to_one(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plots_current_to_one :");
+  plots* _plots = search_plots(a_gv);
+  if(!_plots) {
+    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
+    return;
+  }
+  _plots->current_to_one();
+}
+
+inline void insh_plots_set_current_plotter(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plots_set_current_plotter :");
   plots* _plots = search_plots(a_gv);
   if(!_plots) {
     a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
@@ -238,22 +259,160 @@ inline void insh_plots_set_current_region(gui_viewer& a_gv,const std::vector<std
   _plots->set_current_plotter(index);
 }
 
-inline const std::string& insh_plots_set_current_region_help() {
+inline const std::string& insh_plots_set_current_plotter_help() {
   static const std::string s_help("\
-plots_set_current_region: plots_set_current_region index.\n\
-  Set the current region index in the first sg::plots node found in the scene.\n\
-  index is in [0,number of regions[.\n\
+plots_set_current_plotter: plots_set_current_plotter index\n\
+  Set the current plotter given its index in the grid of the first sg::plots node found in the scene.\n\
+  index is in [0,number of plotters[.\n\
   Example:\n\
-    plots_set_regions 2 2       # then four regions.\n\
-    plots_set_current_region 3  # then the bottom right region will be the current one.\n\
+    plots_set_grid 2 2           # then four plotters.\n\
+    plots_set_current_plotter 3  # then the bottom right plotter will be the current one.\n\
 ");
   return s_help;
 }
 
-INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_regions,insh_plots_set_regions(m_holder,a_args),insh_plots_set_regions_help())
-INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_current_region,insh_plots_set_current_region(m_holder,a_args),insh_plots_set_current_region_help())
+inline void insh_plotter_set_field(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plotter_set_field :");
+  plots* _plots = search_plots(a_gv);
+  if(!_plots) {
+    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
+    return;
+  }      
+  if(a_args.size()!=2) {
+    a_gv.insh().warn(s_header+" two arguments expected.");
+    return;
+  }
+  plotter& plotter = _plots->current_plotter();
+  const std::string& field = a_args[0];
+  const std::string& value = a_args[1];
+  if(!plotter.set_from_string(a_gv.out(),a_gv.styles().cmaps(),field,value)) {
+    a_gv.insh().warn("plotter.set_from_field("+sout(field)+","+sout(value)+") failed.");
+    return;
+  }
+}
+inline const std::string& insh_plotter_set_field_help() {
+  static const std::string s_help("\
+plotter_set_field: plotter_set_field field value\n\
+  Set a field or style field in the current plotter.\n\
+  Field examples:\n\
+    title_automated, title, bins_style.0.color\n\
+    x_axis.divisions, x_axis.line_style.color\n\
+    background_style.back_color\n\
+  Example:\n\
+    plots_set_grid 2 2           # then four plotters.\n\
+    plots_set_current_plotter 3  # then the bottom right plotter will be the current one.\n\
+    plotter_set_field title_automated false\n\
+    plotter_set_field title 'my title'\n\
+    plotter_set_field bins_style.0.color blue\n\
+");
+  return s_help;
+}
+
+
+inline void insh_plotter_clear(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plotter_clear :");
+  plots* _plots = search_plots(a_gv);
+  if(!_plots) {
+    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
+    return;
+  }      
+  plotter& plotter = _plots->current_plotter();
+  plotter.clear();
+}
+inline const std::string& insh_plotter_clear_help() {
+  static const std::string s_help("\
+plotter_clear: plotter_clear\n\
+  Clear the current plotter.\n\
+");
+  return s_help;
+}
+
+inline void insh_plotter_reset_style(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plotter_reset_style :");
+  plots* _plots = search_plots(a_gv);
+  if(!_plots) {
+    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
+    return;
+  }
+  _plots->current_plotter().reset_style(true);
+  _plots->touch(); //to apply indirectly plots::set_plotter_layout() on the plotter.
+}
+
+inline void insh_plotter_set_style(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plotter_set_style :");
+  plots* _plots = search_plots(a_gv);
+  if(!_plots) {
+    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
+    return;
+  }
+  if(a_args.size()!=1) {
+    a_gv.insh().warn(s_header+" one arguments expected.");
+    return;
+  }
+  style_from_res(a_gv.styles(),a_args[0],_plots->current_plotter(),false);
+}
+
+inline void insh_plotter_print_customization(gui_viewer& a_gv) {
+  dummy_freetype _ttf;
+  plotter _plotter(_ttf);
+  _plotter.print_available_customization(a_gv.out());
+}
+
+inline void insh_plotter_print_style(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plotter_print_style :");
+  if(a_args.size()!=1) {
+    a_gv.insh().warn(s_header+" one arguments expected.");
+    return;
+  }
+  const std::string& arg0 = a_args[0];
+  if(!a_gv.styles().print_plotter_style(a_gv.out(),arg0)) {
+    a_gv.insh().warn("style "+arg0+" not found.");
+    return;
+  }
+}
+inline const std::string& insh_plotter_print_style_help() {
+  static const std::string s_help("\
+plotter_print_style: plotter_print_style\n\
+  Print a plotter style.\n\
+  Example:\n\
+    plotter_print_style ROOT_default\n\
+  See also: style_load_file.\n\
+");
+  return s_help;
+}
+
+INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_grid,insh_plots_set_grid(m_holder,a_args),insh_plots_set_grid_help())
+INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_current_plotter,insh_plots_set_current_plotter(m_holder,a_args),insh_plots_set_current_plotter_help())
+INLIB_INSH_CLASS_CMD(gui_viewer,plots_clear,insh_plots_clear(m_holder,a_args),"plots_clear: plots_clear\n  Clear all plotters.\n")
+INLIB_INSH_CLASS_CMD(gui_viewer,plots_current_to_one,insh_plots_current_to_one(m_holder,a_args),"plots_current_to_one: plots_current_to_one\n  Have the current plotter in a 1x1 grid.\n")
+INLIB_INSH_CLASS_CMD(gui_viewer,plotter_set_field,insh_plotter_set_field(m_holder,a_args),insh_plotter_set_field_help())
+INLIB_INSH_CLASS_CMD(gui_viewer,plotter_clear,insh_plotter_clear(m_holder,a_args),insh_plotter_clear_help())
+INLIB_INSH_CLASS_CMD(gui_viewer,plotter_reset_style,insh_plotter_reset_style(m_holder,a_args),"plotter_reset_style: plotter_reset_style\n  Reset the current plotter style.\n")
+INLIB_INSH_CLASS_CMD(gui_viewer,plotter_set_style,insh_plotter_set_style(m_holder,a_args),"plotter_set_style: plotter_set_style style\n  Set the current plotter style.\n  Example:\n    plotter_set_style ROOT_default\n    plotter_set_style hippodraw\n  See also: plotter_list_styles, style_load_file\n")
+
+INLIB_INSH_CLASS_CMD(gui_viewer,plotter_list_styles,m_holder.styles().list_plotter_styles(m_holder.out()),"plotter_list_styles: plotter_list_styles\n  List available plotter styles.\n  See also: style_load_file.\n")
+INLIB_INSH_CLASS_CMD(gui_viewer,plotter_print_customization,insh_plotter_print_customization(m_holder),"plotter_print_customization: plotter_print_customization\n  Print available plotter customization items.\n")
+INLIB_INSH_CLASS_CMD(gui_viewer,plotter_print_style,insh_plotter_print_style(m_holder,a_args),insh_plotter_print_style_help())
+
+// deprecated:
+INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_regions,insh_plots_set_grid(m_holder,a_args),"plots_set_regions: plots_set_regions\n  Deprecated, use plots_set_grid\n")
+INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_current_region,insh_plots_set_current_plotter(m_holder,a_args),"plots_set_current_region: plots_set_current_region\n  Deprecated, use plots_set_current_plotter\n")
 
 inline void view_evd_insh_add_cmds(gui_viewer& a_gv) {
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_grid)
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_current_plotter)
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_clear)
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_current_to_one)
+  
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_set_field)
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_clear)
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_reset_style)
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_set_style)
+
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_list_styles)
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_print_customization)
+  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_print_style)
+  //deprecated:
   INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_regions)
   INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_current_region)
 }
