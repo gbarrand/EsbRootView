@@ -4,6 +4,7 @@ scene_clear_dynamic
 
 scene_set_clear_color black
 scene_blend_off
+scene_clear_static_blend
 
 plots_show
 gui_set_picking_mode
@@ -16,6 +17,9 @@ fard_vis_geometry
 
 fard_vis_floor
 fard_vis_sarah
+
+scene_add_axes -color=green -translate='0 -2740 0' -rotate='1 0 0 0' -scale=5480 -x_title='x(cm)' -x_width=1 -x_min=0 -x_max=5480 -y_title='y(cm)' -y_width=1 -y_min=0 -y_max=5480 -z_title='z(cm)' -z_width=1 -z_min=0 -z_max=5480
+
 app_open_event_file -doc_res fard_evetest.root
 
 gui_hide_main_menu
