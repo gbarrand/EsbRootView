@@ -1,19 +1,129 @@
-#gui_push_home
 
-# detector :
-app_open_geometry_file -res neard_geo_full.root
-neard_vis_geometry
 
-# event :
-app_open_event_file -res neard_evetest.root
-event_next
-event_vis MCTrack -color=red
-event_vis WCDetectorPoint -color=green
+res_dir=`app_dir -res`
+sep=`sys_file_sep`
 
+#//////////////////////////////////////////////
+#//////////////////////////////////////////////
+#/// neard : //////////////////////////////////
+#//////////////////////////////////////////////
+. ${res_dir}${sep}neard_startup.insh
+
+event_next -no_exec
+. ${res_dir}${sep}neard_event.insh
+
+scene_write_to_paper out_neard_ortho.png
+scene_write_to_paper -format=inzb_ps out_neard_ortho.ps
+
+event_next -no_exec
+event_next -no_exec
+event_next -no_exec
+. ${res_dir}${sep}neard_event.insh
+
+camera_swap_kind
+camera_rotate -at_focal -y -deg -angle=125
+scene_light_on
+scene_write_to_paper out_neard_perspective.png
+scene_write_to_paper -format=inzb_ps out_neard_perspective.ps
+
+#//////////////////////////////////////////////
+#//////////////////////////////////////////////
+#/// fard : ///////////////////////////////////
+#//////////////////////////////////////////////
+. ${res_dir}${sep}fard_startup.insh
+
+event_next -no_exec
+. ${res_dir}${sep}fard_event.insh
+
+scene_write_to_paper out_fard_ortho.png
+scene_write_to_paper -format=inzb_ps out_fard_ortho.ps
+
+camera_swap_kind
+camera_rotate -at_focal -y -deg -angle=125
+scene_light_on
+scene_write_to_paper out_fard_perspective.png
+scene_write_to_paper -format=inzb_ps out_fard_perspective.ps
+
+#//////////////////////////////////////////////
+#//////////////////////////////////////////////
+#/// fgd : ////////////////////////////////////
+#//////////////////////////////////////////////
+#. ${res_dir}${sep}fgd_startup.insh #have fgd geometry in wire_frame in the below:
+scene_clear_static
+scene_clear_dynamic
+scene_set_clear_color black
 plots_show
-event_plot WCDetectorPoint -modeling=neard  # example of a comment at end of line.
+neard_set_camera
+app_open_geometry_file -doc_res fgd_geo_full.root
+neard_vis_geometry
+fgd_vis_geometry -modeling=wire_frame
+neard_vis_floor
+neard_vis_sarah
+scene_add_axes -color=green -translate='-300 -300 0' -rotate='1 0 0 0' -scale=600 -x_title='x(cm)' -x_width=1 -x_min=0 -x_max=600 -y_title='y(cm)' -y_width=1 -y_min=0 -y_max=600 -z_title='z(cm)' -z_width=1 -z_min=0 -z_max=600
+#//////////////////////////////////////////////
+
+camera_zoom 0.5  # zoom in.
+camera_translate_position 0 0 -300
+
+app_open_event_file -doc_res fgd_evetest.root
 
 gui_hide_main_menu
-gui_hide_meta_zone
 
-scene_write_to_paper out.png
+event_next -no_exec
+. ${res_dir}${sep}fgd_event.insh
+
+camera_rotate -at_focal -y -deg -angle=90
+
+scene_write_to_paper out_fgd_ortho.png
+scene_write_to_paper -format=inzb_ps out_fgd_ortho.ps
+
+#//////////////////////////////////////////////
+#//////////////////////////////////////////////
+#/// fgd_hist : ///////////////////////////////
+#//////////////////////////////////////////////
+scene_clear_static
+scene_clear_dynamic
+scene_set_clear_color white
+plots_show
+neard_set_camera
+app_open_geometry_file -doc_res fgd_geo_full.root
+neard_vis_geometry
+fgd_vis_geometry -modeling=wire_frame
+neard_vis_floor
+#//////////////////////////////////////////////
+
+camera_set_ortho 50
+camera_set_znear 1
+camera_set_zfar 10000
+camera_set_focal 500   # focal : 200+300
+camera_set_dx 10
+camera_set_da 0.0174
+camera_set_ds 0.99
+camera_set_position 0 0 -300
+
+#camera_swap_kind
+#camera_rotate -at_focal -y -deg -angle=10
+#camera_rotate -at_focal -y -deg -angle=45
+
+app_open_event_file -doc_res fgd_dig.root
+
+gui_hide_main_menu
+
+event_next -no_exec
+#. ${res_dir}${sep}fgd_hit_event.insh
+
+event_index=`event_index`
+gui_show_console ${event_index}
+
+event_vis FgdDetectorPoint -pickable=true -color=blue
+
+#event_vis FgdHit -modeling=cube -color=skyblue    # FgdHits represented as cubes in solid.
+#event_vis FgdHit -color=skyblue    # FgdHits represented as cubes in solid.
+event_vis FgdHit -cut=photoE!=0 -modeling=cube -coloring=photoE -painting=violet_to_red -cube_size=eval(photoE)
+
+event_plot FgdHit -cut=photoE!=0 -filling=photoE
+
+
+scene_write_to_paper out_fgd_hit_ortho.png
+scene_write_to_paper -format=inzb_ps out_fgd_hit_ortho.ps
+
