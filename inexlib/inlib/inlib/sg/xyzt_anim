@@ -1,0 +1,57 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_inlib_xyzt_anim
+#define inlib_inlib_xyzt_anim
+
+#include "slice_anim"
+
+#include "noderef"
+#include "vertices"
+
+namespace inlib {
+namespace sg {
+
+class xyzt_anim : public slice_anim {
+  INLIB_NODE(xyzt_anim,inlib::sg::xyzt_anim,slice_anim)
+public:
+  virtual void begin_anim() {m_vtxs.clear();}
+  virtual bool slice_action(std::ostream&,double a_slice_begin,double a_slice_end) {
+    inlib_vforcit(vec4f,m_xyzts,it) {
+      const vec4f& xyzt = *it;
+      if((a_slice_begin<=xyzt.t()) && (xyzt.t()<a_slice_end)) {
+        m_vtxs.add(xyzt.x(),xyzt.y(),xyzt.z());
+      }
+    }
+    return true;
+  }
+public:
+  xyzt_anim(const std::vector<vec4f>& a_xyzts)  // we are not owner of tracks.
+  :parent()
+  ,m_xyzts(a_xyzts)
+  {
+    m_group.add(new noderef(m_vtxs));
+    m_vtxs.mode = gl::points();
+  }
+  virtual ~xyzt_anim() {}
+protected:
+  xyzt_anim(const xyzt_anim& a_from)
+  :parent(a_from)
+  ,m_xyzts(a_from.m_xyzts)
+  {
+    m_group.add(new noderef(m_vtxs));
+    m_vtxs.mode = gl::points();
+  }
+  xyzt_anim& operator=(const xyzt_anim& a_from){
+    parent::operator=(a_from);
+    m_xyzts = a_from.m_xyzts;
+    return *this;
+  }
+protected:
+  std::vector<vec4f> m_xyzts;
+  vertices m_vtxs;
+};
+
+}}
+
+#endif

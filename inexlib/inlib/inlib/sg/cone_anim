@@ -1,0 +1,121 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_sg_cone_anim
+#define inlib_sg_cone_anim
+
+#include "slice_anim"
+
+#include "noderef"
+#include "matrix"
+#include "cone_hat"
+#include "sf_vec3f"
+
+namespace inlib {
+namespace sg {
+
+class cone_anim : public slice_anim {
+  INLIB_NODE(cone_anim,inlib::sg::cone_anim,slice_anim)
+public:
+  virtual bool slice_action(std::ostream&,double /*a_slice_begin*/,double a_slice_end) {
+    double time_cone = a_slice_end-time_cone_begin.value();
+
+    double height = 0;
+    if(time_cone<=0) {
+      height = 0;
+    } else if(time_cone<=time_cone_elapse.value()) {
+      height = time_cone*speed.value();
+    } else {
+      height = time_cone_elapse.value()*speed.value();
+    }
+
+    float rmax = ftan(angle.value())*float(height);
+
+    m_matrix.set_translate(position.value());
+    m_matrix.mul_rotate(vec3f(0,0,-1),direction.value());
+    m_matrix.mul_translate(0,0,-float(height)*0.5f); //applied first.
+    
+    m_cone.height = float(height);
+    m_cone.rmin = 0;
+    m_cone.rmax = rmax;
+
+    return true;
+  }
+public:
+  sf_vec3f position;
+  sf_vec3f direction;
+  sf<float> angle;
+  sf<double> time_cone_begin;
+  sf<double> time_cone_elapse;
+  sf<double> speed;
+public:
+  virtual const desc_fields& node_desc_fields() const {
+    INLIB_FIELD_DESC_NODE_CLASS(slice_anim)
+    static const desc_fields s_v(parent::node_desc_fields(),6, //WARNING : take care of count.
+      INLIB_ARG_FIELD_DESC(position),
+      INLIB_ARG_FIELD_DESC(direction),
+      INLIB_ARG_FIELD_DESC(angle),
+      INLIB_ARG_FIELD_DESC(time_cone_begin),
+      INLIB_ARG_FIELD_DESC(time_cone_elapse),
+      INLIB_ARG_FIELD_DESC(speed)
+    );
+    return s_v;
+  }
+protected:
+  void add_fields(){
+    add_field(&position);
+    add_field(&direction);
+    add_field(&angle);
+    add_field(&time_cone_begin);
+    add_field(&time_cone_elapse);
+    add_field(&speed);
+  }
+public:
+  cone_anim()
+  :parent()
+
+  ,position()
+  ,direction(vec3f(0,0,1))
+  ,angle(fpi()/4.0f)
+  ,time_cone_begin(0)
+  ,time_cone_elapse(1)
+  ,speed(1)
+  {
+    add_fields();    
+    m_group.add(new noderef(m_matrix));
+    m_group.add(new noderef(m_cone));
+  }
+  virtual ~cone_anim() {}
+protected:
+  cone_anim(const cone_anim& a_from)
+  :parent(a_from)
+
+  ,position(a_from.position)
+  ,direction(a_from.direction)
+  ,angle(a_from.angle)
+  ,time_cone_begin(a_from.time_cone_begin)
+  ,time_cone_elapse(a_from.time_cone_elapse)
+  ,speed(a_from.speed)
+  {
+    add_fields();    
+    m_group.add(new noderef(m_matrix));
+    m_group.add(new noderef(m_cone));
+  }
+  cone_anim& operator=(const cone_anim& a_from){
+    parent::operator=(a_from);
+    position = a_from.position;
+    direction = a_from.direction;
+    angle = a_from.angle;
+    time_cone_begin = a_from.time_cone_begin;
+    time_cone_elapse = a_from.time_cone_elapse;
+    speed = a_from.speed;
+    return *this;
+  }
+protected:  
+  matrix m_matrix;
+  cone_hat m_cone;
+};
+
+}}
+
+#endif
