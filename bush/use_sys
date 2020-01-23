@@ -70,6 +70,13 @@ if [ ${build_sdk_android} = "yes" ] ; then
   ar_cmd="${ndk_ar_cmd}"
   ranlib_cmd="${ndk_ranlib_cmd}"
 
+elif [ ${build_emcc} = "yes" ] ; then
+  #shex=so
+  #shopts="${shopts} -shared"
+
+  ar_cmd="emar"
+  ranlib_cmd="emranlib"
+
 elif [ "`uname | grep CYGWIN`" != "" ] ; then
   if [ ${build_visual} = "yes" ] ; then
     shex=lib

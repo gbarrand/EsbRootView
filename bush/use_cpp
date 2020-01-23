@@ -31,6 +31,9 @@ if [ ${build_gnu} = "yes" ] ; then
     elif [ "`echo ${osx_vers} | sed -e 's:10.13::g'`" != "${osx_vers}" ] ; then
       cpp_compiler=/opt/local/bin/g++-mp-5
       cpp_linker=/opt/local/bin/g++-mp-5
+    elif [ "`echo ${osx_vers} | sed -e 's:10.14::g'`" != "${osx_vers}" ] ; then
+      cpp_compiler=/opt/local/bin/g++-mp-8
+      cpp_linker=/opt/local/bin/g++-mp-8
     else
       echo 'bush/use_cpp : g++ not found under /opt/local/bin.'
       exit
@@ -70,7 +73,7 @@ elif [ ${build_clang} = "yes" ] ; then
   done
   
   if [ ${found} = no ] ; then
-    echo "${items} not found."
+    echo "bush/use_cpp : ${items} not found."
     exit
   fi
 
@@ -94,22 +97,17 @@ elif [ ${build_clang} = "yes" ] ; then
 elif [ ${build_emcc} = "yes" ] ; then
   config_name=emcc
 
-  found=no
-  items="emcc"
-  for item in ${items} ; do
-    ${bush_home}/check_app ${item}
-    use_status=$?;
-    if [ ${use_status} = 0 ] ; then
-      cpp_compiler=${item}
-      cpp_linker=${item}
-      found=yes
-      break
-    fi
-  done
+  ${bush_home}/check_app emcc 'bush/use_cpp : emcc not found.'
+  use_status=$?;
+  if [ ${use_status} != 0 ] ; then exit; fi
+
+  cpp_compiler=em++
+  cpp_linker=em++
   
-  if [ ${found} = no ] ; then
-    echo "${items} not found."
-    exit
+  if [ ${build_cxx11} = "yes" ] ; then
+    cppflags="${cppflags} -std=c++11"
+  elif [ ${build_cxx14} = "yes" ] ; then
+    cppflags="${cppflags} -std=c++14"
   fi
 
 elif [ ${build_cling_clang} = "yes" ] ; then
@@ -354,7 +352,7 @@ elif [ ${build_visual} = "yes" ] ; then
     cppflags="${cppflags} -std=c++11"
   elif [ ${build_cxx14} = "yes" ] ; then
     if [ "`uname -n`" == "PC-PANO" ] ; then
-      echo 'c++14 not available on this machine.'
+      echo 'bush/use_cpp : c++14 not available on this machine.'
       exit
     fi
     cppflags="${cppflags} -std=c++14"
@@ -410,8 +408,18 @@ if [ ${build_visual} = "yes" ] ; then
     cppflags="${cppflags} -DNDEBUG"
   fi
 
-else
+elif [ ${build_emcc} = "yes" ] ; then
 
+  if [ ${build_debug} = "yes" ] ; then
+    cppflags="${cppflags} -g -g4"
+    cppflags="${cppflags} -s DEMANGLE_SUPPORT=1"
+    cppflags="${cppflags} -s ASSERTIONS=1"
+    cppflags="${cppflags} -Werror"
+  else
+    cppflags="${cppflags} -O3 -g0"
+  fi
+
+else
   if [ ${build_debug} = "yes" ] ; then
     cppflags="${cppflags} -g"
   else
