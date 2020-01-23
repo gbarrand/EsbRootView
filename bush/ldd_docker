@@ -16,7 +16,7 @@ fi
 app_exe="$1"
 
 if [ ! -x ${app_exe} ] ; then
-  echo 'bush/ldd_docker : ${app_exe} is not an executable.'
+  echo "bush/ldd_docker : ${app_exe} is not an executable."
   exit
 fi
 
