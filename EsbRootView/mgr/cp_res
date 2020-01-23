@@ -66,15 +66,35 @@ files="${files} event.jpg clear_event.jpg stop_events.jpg vis_events.jpg"
 files="${files} icon.jpg favicon.ico"
 files="${files} iu_stop_clock.jpg"
 
-#files="${files} startup.insh event.insh anim.insh"
-
-files="${files} test.insh"
-
+#/////////////////////////////////////////////////////////////
+#/// insh : //////////////////////////////////////////////////
+#/////////////////////////////////////////////////////////////
 files="${files} neard_startup.insh neard_event.insh neard_anim.insh"
 files="${files} fard_startup.insh fard_event.insh fard_anim.insh"
 files="${files} fgd_startup.insh fgd_event.insh fgd_anim.insh"
 files="${files} fgd_hit_startup.insh fgd_hit_event.insh fgd_hit_anim.insh"
 
+files="${files} mctrack_cone.insh mctrack_arrow.insh"
+files="${files} mctrack_wcpoint.insh"
+files="${files} mctrack_wcpoint_anim.insh neard_cone_anim.insh fard_cone_anim.insh fgdpoint_anim.insh"
+files="${files} fgdhit_duplicate.insh fgdhit_wire_frame.insh"
+
+files="${files} mctrack_secondary_plots.insh"
+files="${files} mctrack_not_secondary_plots.insh"
+files="${files} mctrack_wcpoint_plots.insh"
+files="${files} mctrack_mu_to_nu_mu.insh"
+files="${files} mctrack_cherenkov_not_secondary_mother_pdg.insh"
+files="${files} neard_wcpoint_hedgehog.insh"
+files="${files} fard_wcpoint_hedgehog.insh"
+
+files="${files} wcpoint_plots.insh"
+files="${files} gui_event_model.insh"
+
+files="${files} test.insh eiffel_tower.insh"
+
+#/////////////////////////////////////////////////////////////
+#/////////////////////////////////////////////////////////////
+#/////////////////////////////////////////////////////////////
 #files="${files} neard_geo_full.root neard_evetest.root"
 #files="${files} fard_geo_full.root fard_evetest.root"
 #files="${files} fgd_geo_full.root fgd_evetest.root fgd_dig.root"
