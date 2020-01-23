@@ -5,13 +5,12 @@
 #define exlib_sg_GL_manager
 
 #include "gl"
+#include "../glbuf"
 
 #include <inlib/sg/render_manager>
 #include <inlib/mapmanip>
 
 #include <cmath> //::sqrt
-
-#include "../glbuf"
 
 #ifdef INLIB_MEM
 #include <inlib/mem>
@@ -81,6 +80,8 @@ public:
 // GL-ES
 #elif defined(ANDROID)
 // GL-ES
+#elif defined(EMSCRIPTEN)
+// GL-ES
 #else
     ::glDisable(GL_POLYGON_STIPPLE); //CoinGL : reading a .wrl having Material::transparency may enable GL_POLYGON_STIPPLE.
 #endif
@@ -111,7 +112,10 @@ public:
     ::glDisable(GL_TEXTURE_2D);
 
     ::glDisable(GL_POINT_SMOOTH);
+#ifdef EMSCRIPTEN
+#else
     ::glPointSize(1);
+#endif
     ::glDisable(GL_LINE_SMOOTH); //NOTE : it does not work on all platforms !
     ::glLineWidth(1);
 

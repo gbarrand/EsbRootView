@@ -4,9 +4,9 @@
 #ifndef exlib_sg_GL_action
 #define exlib_sg_GL_action
 
-#include <inlib/sg/render_action>
-
 #include "GL_manager"
+
+#include <inlib/sg/render_action>
 
 namespace exlib {
 namespace sg {
@@ -361,7 +361,13 @@ public:
     ::glColor4f(a_r,a_g,a_b,a_a);
   }
   virtual void line_width(float a_v){::glLineWidth(a_v);}
-  virtual void point_size(float a_v){::glPointSize(a_v);}
+  virtual void point_size(float a_v){
+#ifdef EMSCRIPTEN
+    (void)a_v;
+#else
+    ::glPointSize(a_v);
+#endif
+  }
   virtual void set_polygon_offset(bool a_v) {
     if(a_v) ::glEnable(GL_POLYGON_OFFSET_FILL);	
     else    ::glDisable(GL_POLYGON_OFFSET_FILL);
@@ -420,6 +426,11 @@ public:
   virtual void enable_light(unsigned int a_light,
                             float a_dx,float a_dy,float a_dz,
                             float a_r,float a_g,float a_b,float a_a){
+#ifdef EMSCRIPTEN
+    if(do_glLight_warning()) {
+      ::printf("debug : exlib::sg::GL_action::enable_light : EMSCRIPTEN : dummy (shown once).\n");
+    }
+#else
     ::glEnable(GL_LIGHTING);
     GLenum light = GL_LIGHT0+a_light;
     //::printf("debug : GL_MAX_LIGHTS %d\n",GL_MAX_LIGHTS);
@@ -459,11 +470,15 @@ public:
     //::printf("debug : GL_MAX_LIGHTS %d\n",GL_MAX_LIGHTS);
 
     ::glEnable(light);
+#endif
   }
 
   virtual void set_lighting(bool a_on) {
+#ifdef EMSCRIPTEN
+#else
     if(a_on) ::glEnable(GL_LIGHTING);
     else     ::glDisable(GL_LIGHTING);
+#endif    
   }
   virtual void set_blend(bool a_on) {
     if(a_on) ::glEnable(GL_BLEND);
@@ -526,11 +541,17 @@ public:
     }
 
     ::glLineWidth(_state.m_line_width);
+
+#ifdef EMSCRIPTEN
+#else
     ::glPointSize(_state.m_point_size);
+#endif
 
 #if TARGET_OS_IPHONE
 // GL-ES
 #elif defined(ANDROID)
+// GL-ES
+#elif defined(EMSCRIPTEN)
 // GL-ES
 #else
     ::glDisable(GL_POLYGON_STIPPLE); //CoinGL : reading a .wrl having Material::transparency may enable GL_POLYGON_STIPPLE.
@@ -619,6 +640,18 @@ protected:
     ::glDisableClientState(GL_VERTEX_ARRAY);
   }
 
+#ifdef EMSCRIPTEN
+protected:
+  static bool do_glLight_warning() {
+    static bool s_glLight_warning = true;
+    if(s_glLight_warning) {
+      s_glLight_warning = false;
+      return true;
+    } else {
+      return false;
+    }
+  }
+#endif
 protected:
   GL_manager& m_mgr;  
   gstoid m_gsto;
