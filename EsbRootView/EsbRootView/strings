@@ -1,0 +1,16 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_EsbRootView_strings
+#define EsbRootView_EsbRootView_strings
+
+#include <inlib/S_STRING>
+
+namespace EsbRootView {
+
+INLIB_GLOBAL_STRING_VALUE(modeling_neard,neard)
+INLIB_GLOBAL_STRING_VALUE(modeling_fard,fard)
+
+}
+
+#endif
