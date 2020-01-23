@@ -29,8 +29,7 @@ public:
     m_insh.m_complete_state = false;
     if(!(*p)) {  // ^D
       m_ui.set_to_exit();
-      update_prompt();
-      ::ourex_Getlinem(-1,m_prompt.c_str());
+      _update_prompt();
       return;
     }
     std::string cmd(p);
@@ -64,8 +63,7 @@ public:
       m_ui.win_render();
     }
 
-    update_prompt();
-    ::ourex_Getlinem(-1,m_prompt.c_str());
+    _update_prompt();
   }
 public:
   INLIB_SCLASS(exlib::insh_term_timer)
@@ -89,8 +87,7 @@ public:
     Gl_tab_tag = &m_insh;
     ::ourex_Gl_histinit((char*)m_history_file.c_str()); //have to use Gl_histadd so that keys up/down work.
     if(!m_insh.is_variable("PS1")) m_insh.add_variable("PS1",m_prompt);
-    update_prompt();
-    ::ourex_Getlinem(-1,m_prompt.c_str());
+    _update_prompt();
   }
   virtual ~insh_term_timer(){
     ::ourex_Gl_erase_line();
@@ -106,7 +103,12 @@ private:
   {}
   insh_term_timer& operator=(const insh_term_timer&){return *this;}
 protected:
-  void update_prompt() {m_insh.find_variable("PS1",m_prompt);}
+  void _update_prompt() {
+    unsigned int _cols,_rows;
+    if(inlib::console_size(_cols,_rows)) {::Gl_setwidth(_cols);}
+    m_insh.find_variable("PS1",m_prompt);
+    ::ourex_Getlinem(-1,m_prompt.c_str());
+  }
 protected:
   inlib::insh& m_insh;
   inlib::sg::ui& m_ui;
