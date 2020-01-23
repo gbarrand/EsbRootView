@@ -49,9 +49,9 @@ cd "${save_dir}"
 
 if [ ${build_to_git_pages} = yes ] ; then
   if [ ${app} = softinex ] ; then
-    web_dir="${bush_home}/../github/gbarrand.github.io/${doc_version}"
+    web_dir="${bush_home}/../../github/gbarrand.github.io/${doc_version}"
   else    
-    web_dir="${bush_home}/../github/gbarrand.github.io/${app}/${doc_version}"
+    web_dir="${bush_home}/../../github/gbarrand.github.io/${app}/${doc_version}"
   fi      
 else
   web_dir="${bush_home}/../docs/${app}_doc/${doc_version}"
@@ -117,3 +117,23 @@ fi
 
 cd "${save_dir}"
 
+#///////////////////////////////////////////////////////////////
+#/// wasm : ////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////
+wasm_from="../mgr/bin_wasm/"
+if [ -d ../mgr/bin_wasm_c++11 ] ; then
+  wasm_from="../mgr/bin_wasm_c++11"
+fi    
+if [ -d ${wasm_from} ] ; then
+  wasm_to="${web_dir}/wasm"
+  /bin/mkdir -p ${wasm_to}
+
+  find "${wasm_to}"  -name '*.html' -type f -exec /bin/rm -f {} \;
+  find "${wasm_to}"  -name '*.js'   -type f -exec /bin/rm -f {} \;
+  find "${wasm_to}"  -name '*.wasm' -type f -exec /bin/rm -f {} \;
+  find "${wasm_to}"  -name '*.data' -type f -exec /bin/rm -f {} \;
+
+  find ${wasm_from} -maxdepth 1 -name '*' -type f -exec /bin/cp {} ${wasm_to}/. \;
+  
+  find "${wasm_to}"  -name '*.o' -type f -exec /bin/rm -f {} \;
+fi
