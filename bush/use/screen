@@ -5,6 +5,8 @@
 
 if [ ${build_wx} = "yes" ] ; then
   use_wx=yes
+elif [ ${build_sdl2} = "yes" ] ; then
+  use_SDL2=yes
 elif [ ${build_visual} = "yes" ] ; then
   use_Windows=yes
   if [ ${build_no_gl} = "yes" ] ; then
@@ -33,6 +35,7 @@ fi
 . ${bush_home}/use/iOS
 . ${bush_home}/use/Android
 . ${bush_home}/use/wx
+. ${bush_home}/use/SDL2
 
 . ${bush_home}/use/GLU
 . ${bush_home}/use/GL
