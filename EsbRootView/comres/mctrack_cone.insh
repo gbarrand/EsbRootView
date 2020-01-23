@@ -1,0 +1,32 @@
+
+#pickable='-pickable=true'
+pickable=
+
+cut_first="(pdg==50000050)&&(is_secondary==true)"
+event_vis MCTrack -cut=${cut_first} -color=red ${pickable}
+
+cut_second="(pdg==50000050)&&(is_secondary==false)"
+event_vis MCTrack -cut=${cut_second} -color=pink ${pickable}
+
+event_vis MCTrack -cut=pdg!=50000050 -color=orange ${pickable}
+
+scene_blend_on
+cone_length=100
+
+red_a=`app_color_value -rgb red`
+red_a="${red_a} 0.5"
+event_vis MCTrack -cut=${cut_first} -color="${red_a}" -modeling=cone -cone_length=${cone_length}
+
+pink_a=`app_color_value -rgb pink`
+pink_a="${pink_a} 0.5"
+event_vis MCTrack -cut=${cut_second} -color="${pink_a}" -modeling=cone -cone_length=${cone_length}
+
+return
+event_vis MCTrack -cut=${cut_first} -color="${red_a}" -modeling=cone_fard
+event_vis MCTrack -cut=${cut_second} -color="${pink_a}" -modeling=cone_fard
+
+return
+event_vis MCTrack -cut=${cut_first} -color="${red_a}" -modeling=cone_neard
+event_vis MCTrack -cut=${cut_second} -color="${pink_a}" -modeling=cone_neard
+
+

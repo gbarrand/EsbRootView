@@ -1,0 +1,31 @@
+
+gui_hide_console
+gui_hide_camera_menu
+
+plots_full_window
+
+plots_set_grid 2 2
+
+cut_first="(pdg==50000050)&&(is_secondary==true)"
+plots_set_current_plotter 0
+event_plot MCTrack -cut=${cut_first} -filling=t
+plotter_set_field title_box_width 0.6
+plotter_set_field title_box_height 0.08
+
+plots_set_current_plotter 1
+event_plot WCDetectorPoint -cut=${cut_first} -filling=time
+plotter_set_field title_box_width 0.6
+plotter_set_field title_box_height 0.08
+
+cut_second="(pdg==50000050)&&(is_secondary==false)"
+
+plots_set_current_plotter 2
+event_plot MCTrack -cut=${cut_second} -filling=t
+plotter_set_field title_box_width 0.6
+plotter_set_field title_box_height 0.08
+
+plots_set_current_plotter 3
+event_plot WCDetectorPoint -cut=${cut_second} -filling=time
+plotter_set_field title_box_width 0.6
+plotter_set_field title_box_height 0.08
+
