@@ -123,6 +123,10 @@ if [ "${compile}" = "yes" ] ; then
     cl_exe_cmd="${cl_exe_cmd} /MD"
   fi
 
+  #if [ ${show_incs} = yes ] ; then
+  #  cl_exe_cmd="${cl_exe_cmd} /showIncludes"
+  #fi
+
   if [ ${language} = none ] ; then
     suffix=`echo ${file_cpp} | sed 's:.*\.::'`
     language=c++ #default for files without extension.
