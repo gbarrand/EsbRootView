@@ -234,6 +234,34 @@ public:
   int container_index() const {return m_container_index;}
 public:  
   double GetP() const {return ::sqrt(fPx*fPx+fPy*fPy+fPz*fPz);}
+  bool get_location(bool a_neard,double a_radius,double a_length,int& a_location) const {
+    double x,y,z,r;
+    if(a_neard) {
+      x = GetX();
+      y = GetY();
+      z = GetZ();
+      r = ::sqrt(x*x + y*y);
+    } else {
+      x =  GetX();
+      y = -GetZ();
+      z =  GetY();
+      r = ::sqrt(x*x + y*y);
+    }
+    if(::fabs(z - a_length/2.0) < 1) { // front
+      a_location = 1;
+      return true;
+    }
+    if(::fabs(z + a_length/2) < 1) { // back
+      a_location = 3;
+      return true;
+    }
+    if (::fabs(r - a_radius) < 1) { // side
+      a_location = 2;
+      return true;
+    }
+    a_location = -1;
+    return false;
+  }
 protected:
   int fTrackID;            ///< Track index
   unsigned int fEventId;   ///< MC Event id
@@ -465,6 +493,18 @@ public:
 
   double time_min() const {return m_time_min;}
   double time_max() const {return m_time_max;}
+
+  bool is_primary(const EsbMCTrack& a_track) const {
+    int mother_id = a_track.GetMotherId();
+    return (mother_id==(-1)) ? true:false;
+  }
+  bool is_secondary(const EsbMCTrack& a_track,bool& a_is) const {
+    int mother_id = a_track.GetMotherId();
+    if(mother_id==(-1)) {a_is=false;return true;}
+    if((mother_id<0)||(mother_id>=int(m_mc_tracks.size()))) {a_is = false;return false;}
+    a_is = (m_mc_tracks[mother_id]->GetMotherId()==(-1)) ? true:false;
+    return true;
+  }
 public:
   // when reading the event :
   std::vector<EsbMCTrack*>& mc_tracks() {return m_mc_tracks;}
@@ -500,5 +540,57 @@ protected:
 };
 
 inline int no_mother() {return -1;}
+
+inline bool FgdHits_unique_at_pos(std::ostream& a_out,
+                                  const std::vector<EsbFgdHit*>& a_hits,
+                                  std::vector<EsbFgdHit*>& a_uhits,bool a_verbose) {
+  a_uhits.clear();
+
+  double aphotoE = 0;
+ {inlib_vforcit(EsbFgdHit*,a_hits,it) aphotoE += (*it)->photoE();}
+ 
+  inlib_vforcit(EsbFgdHit*,a_hits,it) {
+    EsbFgdHit* hit = *it;
+    bool found = false;
+    inlib_vforit(EsbFgdHit*,a_uhits,uit) {
+      EsbFgdHit* uhit = *uit;
+      if( (uhit->mppc_x() == hit->mppc_x()) &&
+          (uhit->mppc_y() == hit->mppc_y()) &&
+          (uhit->mppc_z() == hit->mppc_z()) ){
+        uhit->add_photoE_x(hit->photoE_x());
+        uhit->add_photoE_y(hit->photoE_y());
+        uhit->add_photoE_z(hit->photoE_z());
+        uhit->increment_added();
+        //if(hit->photoE()) ::printf("debug : add a duplicate with photoE %g\n",hit->photoE());
+        found = true;
+        break;
+      }
+    }
+    if(!found) {
+      a_uhits.push_back(new EsbFgdHit(*hit)); //we shall have to delete.
+    }
+  }
+  if(a_verbose && (a_hits.size()!=a_uhits.size()) ) {
+    a_out << "EsbRootView::unique_FgdHits : " << a_hits.size() << ", reduced to " << a_uhits.size() << std::endl;
+  }
+  double uphotoE = 0;
+ {inlib_vforcit(EsbFgdHit*,a_uhits,it) uphotoE += (*it)->photoE();}
+  if(aphotoE!=uphotoE) {
+    a_out << "EsbRootView::FgdHits_unique_at_pos : photoE mismatch with added : " << aphotoE << ", " << uphotoE << std::endl;
+    return false;
+  }
+  size_t check_added = 0;
+ {inlib_vforcit(EsbFgdHit*,a_uhits,it) {
+    if(a_verbose && ((*it)->added()>1) ) {
+      a_out << "EsbRootView::FgdHits_unique_at_pos : there are " << ((*it)->added()+1) << " hits at same position." << std::endl;
+    }
+    check_added += (*it)->added();
+  }}
+  if((check_added+a_uhits.size())!=a_hits.size()) {
+    a_out << "EsbRootView::FgdHits_unique_at_pos : added mismatch " << (check_added+a_uhits.size()) << ", expected " << a_hits.size() << std::endl;
+    return false;
+  }
+  return true;
+}
 
 #endif

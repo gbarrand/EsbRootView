@@ -356,58 +356,6 @@ inline void unique_FgdHits(std::ostream& a_out,std::vector<EsbFgdHit*>& a_hits,b
 }
 */
 
-inline bool FgdHits_unique_at_pos(std::ostream& a_out,
-                                  const std::vector<EsbFgdHit*>& a_hits,
-                                  std::vector<EsbFgdHit*>& a_uhits,bool a_verbose) {
-  a_uhits.clear();
-
-  double aphotoE = 0;
- {inlib_vforcit(EsbFgdHit*,a_hits,it) aphotoE += (*it)->photoE();}
- 
-  inlib_vforcit(EsbFgdHit*,a_hits,it) {
-    EsbFgdHit* hit = *it;
-    bool found = false;
-    inlib_vforit(EsbFgdHit*,a_uhits,uit) {
-      EsbFgdHit* uhit = *uit;
-      if( (uhit->mppc_x() == hit->mppc_x()) &&
-          (uhit->mppc_y() == hit->mppc_y()) &&
-          (uhit->mppc_z() == hit->mppc_z()) ){
-        uhit->add_photoE_x(hit->photoE_x());
-        uhit->add_photoE_y(hit->photoE_y());
-        uhit->add_photoE_z(hit->photoE_z());
-        uhit->increment_added();
-        //if(hit->photoE()) ::printf("debug : add a duplicate with photoE %g\n",hit->photoE());
-        found = true;
-        break;
-      }
-    }
-    if(!found) {
-      a_uhits.push_back(new EsbFgdHit(*hit)); //we shall have to delete.
-    }
-  }
-  if(a_verbose && (a_hits.size()!=a_uhits.size()) ) {
-    a_out << "EsbRootView::unique_FgdHits : " << a_hits.size() << ", reduced to " << a_uhits.size() << std::endl;
-  }
-  double uphotoE = 0;
- {inlib_vforcit(EsbFgdHit*,a_uhits,it) uphotoE += (*it)->photoE();}
-  if(aphotoE!=uphotoE) {
-    a_out << "EsbRootView::FgdHits_unique_at_pos : photoE mismatch with added : " << aphotoE << ", " << uphotoE << std::endl;
-    return false;
-  }
-  size_t check_added = 0;
- {inlib_vforcit(EsbFgdHit*,a_uhits,it) {
-    if(a_verbose && ((*it)->added()>1) ) {
-      a_out << "EsbRootView::FgdHits_unique_at_pos : there are more than two hits (" << (*it)->added() << ") at same position." << std::endl;
-    }
-    check_added += (*it)->added();
-  }}
-  if((check_added+a_uhits.size())!=a_hits.size()) {
-    a_out << "EsbRootView::FgdHits_unique_at_pos : added mismatch " << (check_added+a_uhits.size()) << ", expected " << a_hits.size() << std::endl;
-    return false;
-  }
-  return true;
-}
-
 inline void init_MCTracks(std::vector<EsbMCTrack*>& a_tracks,const inlib::hep::pdgs& a_pdgs) {
   inlib_vforit(EsbMCTrack*,a_tracks,it) (*it)->initialize(a_pdgs);
 }

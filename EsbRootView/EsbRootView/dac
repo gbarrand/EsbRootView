@@ -35,7 +35,7 @@ public:
   ,m_pdgs(a_gv.out())
   ,m_one_event()
   {
-    if(!inlib::hep::load_default_pdg_table(a_gv.tmp_dir(),m_pdgs)) {}
+    if(!inlib::hep::load_default_pdg_table(m_pdgs)) {}
   }
   virtual ~dac(){
     delete m_tree;

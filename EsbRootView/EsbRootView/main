@@ -73,7 +73,7 @@ public:
     return s_v;
   }
 private:
-//INLIB_CLASS_STRING_VALUE(edit_plots,edit plots) 
+  INLIB_CLASS_STRING_VALUE(scene_anims,scene anims) 
 protected:
   virtual inlib::sg::node* create_main_menu() {
     //m_out << "EsbRootView::main::create_home_menu : " << std::endl;
@@ -92,24 +92,27 @@ protected:
     inlib::sg::add_white_item_insh(*this,*list,"show plots","plots_show\ngui_hide_main_menu");
     inlib::sg::add_white_item_insh(*this,*list,"hide plots","plots_hide\ngui_hide_main_menu");
     inlib::sg::add_white_item(*this,*list,"plot items",action_menu_plot_items);
+    inlib::sg::add_white_item_insh(*this,*list,"event model",". gui_event_model.insh");
 
-    inlib::sg::add_white_item_insh(*this,*list,"exec startup.insh","startup.insh");
+    inlib::sg::add_white_item_insh(*this,*list,". startup.insh","startup.insh");
     
     inlib::sg::add_image_item(*this,*list,inlib::sg::s_files(),"files.jpg",inlib::cbk::action_menu_files);
     if(has_open_panel()) {
       inlib::sg::add_image_item(*this,*list,"open...","files.jpg",inlib::sg::action_open_open_panel);
     }
 
+#ifdef EMSCRIPTEN
+#else
     if(m_ftps.size()) {
-      inlib::sg::add_image_item
-        (*this,*list,"ftp","location_ftp.jpg",inlib::ftp::action_ftp,inlib::ftp::pos_data(m_ftps,false,0,0));
+      inlib::sg::add_image_item(*this,*list,"ftp","location_ftp.jpg",inlib::ftp::action_ftp,inlib::ftp::pos_data(m_ftps,false,0,0));
     }
+#endif
 
     inlib::sg::add_image_item_insh(*this,*list,"next event","event.jpg","event_next\ngui_hide_main_menu");
     inlib::sg::add_image_item(*this,*list,"vis events","vis_events.jpg",action_menu_vis_events);
     inlib::sg::add_image_item_insh(*this,*list,"stop events","stop_events.jpg","event_stop_anim");
 
-    inlib::sg::add_white_item(*this,*list,"insh anim",action_menu_insh_anim);
+    inlib::sg::add_white_item(*this,*list,s_scene_anims(),action_menu_scene_anims);
     inlib::sg::add_image_item(*this,*list,"plots","set_current_region.jpg",inlib::sg::action_menu_plots_layout);
   //inlib::sg::add_image_item(*this,*list,s_edit_plots(),"edit_plot.jpg",inlib::sg::action_edit_plot);
 
@@ -120,11 +123,14 @@ protected:
     inlib::sg::add_image_item_insh(*this,*list,"clear event","clear_event.jpg","scene_clear_dynamic");
     inlib::sg::add_image_item_insh(*this,*list,"reset","edit_undo.jpg","camera_reset\ngui_hide_main_menu");
 
+#ifdef EMSCRIPTEN
+#else
     //if(m_walls._walls().size()) {
     inlib::sg::add_image_item(*this,*list,inlib::sg::s_to_serv(),"connect_to_wall.jpg",inlib::cbk::action_menu_sg_client);
     //}
     inlib::sg::add_white_item(*this,*list,inlib::sg::s_sg_serv(),inlib::cbk::action_menu_sg_serv);
-    
+#endif
+
     inlib::sg::add_image_item(*this,*list,"export","document_export.jpg",inlib::cbk::action_menu_export);
     inlib::sg::add_image_item(*this,*list,"utils","tools.jpg",inlib::sg::action_menu_utils);
 
@@ -148,9 +154,12 @@ protected:
 
     create_main_button_insh(*this,a_wcw,a_wch,a_wb,a_hb,0,0,4,"next","","event.jpg","event_next\ngui_push_home");
 
-    create_main_button_insh(*this,a_wcw,a_wch,a_wb,a_hb,0,0,3,"evis","","object_rotate_left.jpg","event_exec_insh");
+    create_main_button_insh(*this,a_wcw,a_wch,a_wb,a_hb,0,0,3,"evis","","object_rotate_left.jpg","event_source_insh");
 
     create_main_button_insh(*this,a_wcw,a_wch,a_wb,a_hb,0,2,1,"clear","","edit_clear.jpg","scene_clear_dynamic");
+
+    create_main_button_insh(*this,a_wcw,a_wch,a_wb,a_hb,0,2,2,"anim","","","gui_hide_camera_menu\ngui_show_main_menu\ngui_push_home\ngui_exec_main_menu_item '"+s_scene_anims()+"'");
+
   }
 
 protected:
@@ -194,11 +203,10 @@ protected:
     static const std::string s_help("\
 open_geometry_file: open_geometry_file [-doc_res,-res,-doc] path\n\
   Open a root geometry file.\n\
-  If no directory is given in path, the -doc_res option permits to search\n\
   If no directory is given in path, the -doc_res option permits to search a file first\n\
   in the document directory declared to the app, and then in the app (internal) resource directory.\n\
   -res for the resource directory only, -doc for the document directory only.\n\
-  See also : app_res_dir, app_doc_dir.\n\
+  See also : app_dir.\n\
 ");
     return s_help;
   }
@@ -247,7 +255,7 @@ open_event_file: open_event_file [-doc_res,-res,-doc] path\n\
   If no directory is given in path, the -doc_res option permits to search a file first\n\
   in the document directory declared to the app, and then in the app (internal) resource directory.\n\
   -res for the resource directory only, -doc for the document directory only.\n\
-  See also : app_res_dir, app_doc_dir.\n\
+  See also : app_dir.\n\
 ");
     return s_help;
   }
@@ -263,27 +271,72 @@ open_event_file: open_event_file [-doc_res,-res,-doc] path\n\
     m_insh.unix_print(names);\
   }}
 
-  void _event_model(const std::vector<std::string>&) {
-    m_insh.out_begin();
-    
-    m_insh.out("MCTrack :",true);
-    ESBROOTVIEW_PRINT_FIELDS(MCTrack)
-    m_insh.out("WCDetectorPoint :",true);
-    ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
-    m_insh.out("FgdDetectorPoint :",true);
-    ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
-    m_insh.out("FgdHit :",true);
-    ESBROOTVIEW_PRINT_FIELDS(FgdHit)
+  void _event_model(const std::vector<std::string>&  a_args) {
+    if(a_args.empty()) {
+      m_insh.out_begin();
+      m_insh.out("MCTrack :",true);
+      ESBROOTVIEW_PRINT_FIELDS(MCTrack)
+      m_insh.out("",true);
+      m_insh.out("WCDetectorPoint :",true);
+      ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
+      m_insh.out("",true);
+      m_insh.out("FgdDetectorPoint :",true);
+      ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
+      m_insh.out("",true);
+      m_insh.out("FgdHit :",true);
+      ESBROOTVIEW_PRINT_FIELDS(FgdHit)
+      return;
+    }
+    inlib::args _args(a_args);
+    if(_args.is_arg("-items")) {
+      m_insh.out_begin();
+      m_insh.out("MCTrack",true);
+      m_insh.out("WCDetectorPoint",true);
+      m_insh.out("FgdDetectorPoint",true);
+      m_insh.out("FgdHit",true);
+      return;
+    }
+    std::string event_model_item;
+    if(!_args.first_not_hyphen(event_model_item)) return;
+    if(event_model_item=="MCTrack") {
+      m_insh.out_begin();
+      ESBROOTVIEW_PRINT_FIELDS(MCTrack)
+      return;
+    }
+    if(event_model_item=="WCDetectorPoint") {
+      m_insh.out_begin();
+      ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
+      return;
+    }
+    if(event_model_item=="FgdDetectorPoint") {
+      m_insh.out_begin();
+      ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
+      return;
+    }
+    if(event_model_item=="FgdHit") {
+      m_insh.out_begin();
+      ESBROOTVIEW_PRINT_FIELDS(FgdHit)
+      return;
+    }
+    static const std::string s_cmd_header("EsbRootView::_event_model :");
+    m_insh.warn(s_cmd_header+" unknown even model item "+inlib::sout(event_model_item)+".");
   }
 
 #undef ESBROOTVIEW_PRINT_FIELDS
 
   static const std::string& _event_model_help() {
     static const std::string s_help("\
-event_model: event_model\n\
+event_model: event_model [class]\n\
   Print event model items along with their fields.\n\
+  -items prints event model items only.\n\
+  If a class is given, print the fields of this class.\n\
   Fields permit, for example, to pass cut in event_vis,\n\
-  event_count, event_stats, event_print, event_plot as in :\n\
+  event_count, event_stats, event_print, event_plot commands.\n\
+  Examples:\n\
+    event_model\n\
+    event_model -items\n\
+    event_model MCTrack\n\
+  Related examples:\n\
     event_vis  MCTrack -cut=(pdg==50000050) -color=red\n\
     event_vis MCTrack -cut=name==\"'opticalphoton'\" -color=blue\n\
     event_plot MCTrack -cut=(pdg!=50000050) -filling=p\n\
@@ -359,15 +412,20 @@ event_count: event_count item [cut].\n\
   }
   static const std::string& _event_stats_help() {
     static const std::string s_help("\
-event_stats: event_stats item [cut] [fields].\n\
-  Print event model item fields min/max/mean/rms.\n\
+event_stats: event_stats item [-cut,-sum,-min,-max,-mean,-rms] [fields].\n\
+  Print event model item fields sum/min/max/mean/rms.\n\
   Someone can give a cut in option and a list of fields.\n\
-  If no field is given, all are considered.\n\
+  If only one field and one of [-sum,-min,-max,-mean,-rms] are specifed, then\n\
+  the single number [sum,min,max,mean,rms] is printed. This number can be used\n\
+  with backquoting. If no field is given, all are considered.\n\
   Without any argument, the event model items are printed.\n\
   Example :\n\
     event_stats\n\
     event_stats MCTrack\n\
     event_stats MCTrack -cut=pdg==50000050 x y z p\n\
+    event_stats MCTrack -cut=pdg==50000050 -mean p\n\
+    mean_p=`event_stats MCTrack -cut=pdg==50000050 -mean p`\n\
+    echo \"Mean impulse is ${mean_p}\"\n\
 ");
     return s_help;
   }
@@ -427,14 +485,17 @@ event_fields: event_fields item.\n\
   INLIB_INSH_CLASS_CMD(main,app_open_geometry_file,m_holder._open_geometry_file(a_args),_open_geometry_file_help())
   INLIB_INSH_CLASS_CMD(main,app_open_event_file,m_holder._open_event_file(a_args),_open_event_file_help())
 
-  INLIB_INSH_CLASS_CMD(main,event_index,m_holder.insh().out_num(m_holder.event().event_index()),inlib::insh::no_help())
+  INLIB_INSH_CLASS_CMD(main,plots_full_window,plain_plot_setup(m_holder),"plots_full_window: plots_full_window\n  Set scene ready for full window plotting.\n")
 
-  INLIB_INSH_CLASS_CMD(main,plots_full_window,plain_plot_setup(m_holder),inlib::insh::no_help())
+  INLIB_INSH_CLASS_CMD(main,event_index,m_holder.insh().out_num(m_holder.event().event_index()),"event_index: event_index\n  Print the event index.\n")
+  INLIB_INSH_CLASS_CMD(main,event_next,vis_next_event(m_holder,a_args),"event_next: event_next\n  Get next event in file and source the event.insh script.\n  -no_exec to not source event.insh.\n")
 
-  INLIB_INSH_CLASS_CMD(main,event_next,vis_next_event(m_holder),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,event_exec_insh,exec_event_insh(m_holder),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,event_time_min,m_holder.insh().out_num(m_holder.event().time_min()),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,event_time_max,m_holder.insh().out_num(m_holder.event().time_max()),inlib::insh::no_help())
+  INLIB_INSH_CLASS_CMD(main,event_exec_insh,source_event_insh(m_holder),"event_exec_insh: event_exec_insh\n  Source the event.insh script.\n  Deprecated, use event_source_insh.\n")  //deprecated.
+
+  INLIB_INSH_CLASS_CMD(main,event_source_insh,source_event_insh(m_holder),"event_source_insh: event_source_insh\n  Source the event.insh script.\n")
+
+  INLIB_INSH_CLASS_CMD(main,event_time_min,m_holder.insh().out_num(m_holder.event().time_min()),"event_time_min: event_time_min\n  Print event min time taking the min of all\n  MCTrack.t, WCDetectorPoint.time and FgdDetectorPoint.time\n")
+  INLIB_INSH_CLASS_CMD(main,event_time_max,m_holder.insh().out_num(m_holder.event().time_max()),"event_time_max: event_time_max\n  Print event max time taking the max of all\n  MCTrack.t, WCDetectorPoint.time and FgdDetectorPoint.time\n")
     
   INLIB_INSH_CLASS_CMD(main,event_model,m_holder._event_model(a_args),_event_model_help())
 
@@ -444,30 +505,38 @@ event_fields: event_fields item.\n\
   INLIB_INSH_CLASS_CMD(main,event_print,m_holder._event_print(a_args),_event_print_help())
   INLIB_INSH_CLASS_CMD(main,event_plot,m_holder._event_plot(a_args),_event_plot_help())
   INLIB_INSH_CLASS_CMD(main,event_fields,m_holder._event_fields(a_args),_event_fields_help())
-    
+
   ///////////////////////////////////////////////////////////////
   /// static scene graph : //////////////////////////////////////
   ///////////////////////////////////////////////////////////////
-  INLIB_INSH_CLASS_CMD(main,neard_set_camera,vis_set_neard_camera(m_holder),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,neard_vis_geometry,vis_neard_geometry(m_holder),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,neard_vis_floor,vis_neard_floor(m_holder),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,neard_vis_sarah,vis_neard_sarah(m_holder),inlib::insh::no_help())
+  INLIB_INSH_CLASS_CMD(main,neard_set_camera,vis_set_neard_camera(m_holder),"neard_set_camera: neard_set_camera\n  Set camera for the neard.\n")
+  INLIB_INSH_CLASS_CMD(main,neard_vis_geometry,vis_neard_geometry(m_holder,a_args),"neard_vis_geometry: neard_vis_geometry [-modeling,-placement]\n  Add the neard geometry in the static scene graph.\n  -modeling=[solid,wire_frame] to represent volumes in solid/wire_frame (default wire_frame).\n  -placement=[static,dynamic,static_blend] to add to static_sg, dynamic_sg or static_blend_sg.\n")
+  INLIB_INSH_CLASS_CMD(main,neard_vis_floor,vis_neard_floor(m_holder),"neard_vis_floor: neard_vis_floor\n  Add a grid floor in the neard setup.\n")
+  INLIB_INSH_CLASS_CMD(main,neard_vis_sarah,vis_neard_sarah(m_holder),"neard_vis_sarah: neard_vis_sarah\n  Add the sarah avatar in the neard setup.\n")
 
-  INLIB_INSH_CLASS_CMD(main,fard_set_camera,vis_set_fard_camera(m_holder),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,fard_vis_geometry,vis_fard_geometry(m_holder),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,fard_vis_floor,vis_fard_floor(m_holder),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,fard_vis_sarah,vis_fard_sarah(m_holder),inlib::insh::no_help())
+  INLIB_INSH_CLASS_CMD(main,fard_set_camera,vis_set_fard_camera(m_holder),"fard_set_camera: fard_set_camera\n  Set camera for the fard.\n")
+  INLIB_INSH_CLASS_CMD(main,fard_vis_geometry,vis_fard_geometry(m_holder,a_args),"fard_vis_geometry: fard_vis_geometry [-modeling,-placement]\n  Add the fard geometry in the static scene graph.\n  -modeling=[solid,wire_frame] to represent volumes in solid/wire_frame (default wire_frame).\n  -placement=[static,dynamic,static_blend] to add to static_sg, dynamic_sg or static_blend_sg.\n")
+  INLIB_INSH_CLASS_CMD(main,fard_vis_floor,vis_fard_floor(m_holder),"fard_vis_floor: fard_vis_floor\n  Add a grid floor in the fard setup.\n")
+  INLIB_INSH_CLASS_CMD(main,fard_vis_sarah,vis_fard_sarah(m_holder),"fard_vis_sarah: fard_vis_sarah\n  Add the sarah avatar in the fard setup.\n")
     
-  INLIB_INSH_CLASS_CMD(main,fgd_vis_geometry,vis_fgd_geometry(m_holder),inlib::insh::no_help())
+  INLIB_INSH_CLASS_CMD(main,fgd_vis_geometry,vis_fgd_geometry(m_holder,a_args),"fgd_vis_geometry: fgd_vis_geometry [-modeling,-placement]\n  Add the fgd geometry in the static scene graph.\n  -modeling=[solid,wire_frame] to represent volumes in solid/wire_frame (default wire_frame).\n  -placement=[static,dynamic,static_blend] to add to static_sg, dynamic_sg or static_blend_sg.\n")
 
-  INLIB_INSH_CLASS_CMD(main,calc,inlib::insh_calc(m_holder.insh(),a_args),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,scene_read_bsg,exlib::cbk::vis_read_bsg(m_holder,a_args),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,scene_add_xy_grid,inlib::cbk::vis_xy_grid(m_holder,a_args),inlib::insh::no_help())
-  INLIB_INSH_CLASS_CMD(main,scene_add_insh_anim,vis_insh_anim(m_holder,a_args),inlib::insh::no_help())
-
+  INLIB_INSH_CLASS_CMD(main,calc,inlib::insh_calc(m_holder.insh(),a_args),inlib::insh_calc_help())
+  INLIB_INSH_CLASS_CMD(main,scene_read_bsg,exlib::cbk::vis_read_bsg(m_holder,a_args),exlib::cbk::scene_read_bsg_help())
+  INLIB_INSH_CLASS_CMD(main,scene_add_xy_grid,inlib::cbk::scene_add_xy_grid(m_holder,a_args),inlib::cbk::scene_add_xy_grid_help())
+  INLIB_INSH_CLASS_CMD(main,scene_add_axes,inlib::cbk::scene_add_axes(m_holder,a_args),inlib::cbk::scene_add_axes_help())
+  INLIB_INSH_CLASS_CMD(main,scene_add_cone,inlib::cbk::scene_add_cone_hat(m_holder,a_args),inlib::cbk::scene_add_cone_help())
+  INLIB_INSH_CLASS_CMD(main,scene_add_vertices,inlib::cbk::scene_add_vertices(m_holder,a_args),inlib::cbk::scene_add_vertices_help())
+//INLIB_INSH_CLASS_CMD(main,scene_add_insh_anim,inlib::cbk::scene_add_insh_anim(m_holder,a_args),inlib::cbk::scene_add_insh_anim_help())
+  INLIB_INSH_CLASS_CMD(main,scene_add_show_time_anim,inlib::cbk::scene_add_show_time_anim(m_holder,a_args),inlib::cbk::scene_add_show_time_anim_help())
+  
   INLIB_INSH_CLASS_CMD(main,pdg,inlib::hep::insh_pdg(m_holder.m_insh,m_holder.m_pdgs,a_args),inlib::hep::insh_pdg_help())
   INLIB_INSH_CLASS_CMD(main,particle_print,insh_particle_print(m_holder.m_insh,m_holder.m_pdgs,m_holder.m_styles,a_args),inlib::hep::insh_particle_print_help())
 
+  //INLIB_INSH_VOID_ARGS_CMD(main)
+//#define ESBROOTVIEW_ADD_VOID_ARGS_CMD(a__name,a__method,a__help)\
+  // m_gv.insh().add_command(#a__name,new main_void_args_cmd(*this,&main::a__method,a__help));
+  
   void insh_add_cmds() {
     view_evd_insh_add_cmds(*this);
 
@@ -488,15 +557,21 @@ event_fields: event_fields item.\n\
 
     INLIB_INSH_ADD_CMD(m_insh,*this,scene_read_bsg)
     INLIB_INSH_ADD_CMD(m_insh,*this,scene_add_xy_grid)
+    INLIB_INSH_ADD_CMD(m_insh,*this,scene_add_axes)
+    INLIB_INSH_ADD_CMD(m_insh,*this,scene_add_cone)
+    INLIB_INSH_ADD_CMD(m_insh,*this,scene_add_vertices)
+    INLIB_INSH_ADD_CMD(m_insh,*this,scene_add_show_time_anim)
+
     INLIB_INSH_ADD_CMD(m_insh,*this,event_next)
-    INLIB_INSH_ADD_CMD(m_insh,*this,event_exec_insh)
+    INLIB_INSH_ADD_CMD(m_insh,*this,event_exec_insh) //deprecated.
+    INLIB_INSH_ADD_CMD(m_insh,*this,event_source_insh)
 
     INLIB_INSH_ADD_CMD(m_insh,*this,plots_full_window)
 
     INLIB_INSH_ADD_CMD(m_insh,*this,app_open_geometry_file)
     INLIB_INSH_ADD_CMD(m_insh,*this,app_open_event_file)
 
-    INLIB_INSH_ADD_CMD(m_insh,*this,scene_add_insh_anim)
+  //INLIB_INSH_ADD_CMD(m_insh,*this,scene_add_insh_anim) //not safe logic.
 
     INLIB_INSH_ADD_CMD(m_insh,*this,neard_set_camera)
     INLIB_INSH_ADD_CMD(m_insh,*this,neard_vis_geometry)

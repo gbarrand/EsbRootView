@@ -30,11 +30,8 @@ protected:
     
     m_value_mother_id.set(a_data.GetMotherId());
 
-   {bool is_secondary = false;
-    int mother_id = a_data.GetMotherId();
-    if((mother_id>=0)&&(mother_id<int(m_event.mc_tracks().size()))) {
-      if(m_event.mc_tracks()[mother_id]->GetMotherId()==(-1)) is_secondary = true;
-    }
+   {bool is_secondary;
+    if(!m_event.is_secondary(a_data,is_secondary)) {}
     m_value_is_secondary.set(is_secondary);}
 
     m_value_container_index.set(a_data.container_index());
@@ -106,6 +103,7 @@ protected:
     m_value_time.set(a_data.GetTime());
     m_value_length.set(a_data.GetLength());
     m_value_Eloss.set(a_data.GetEnergyLoss());
+    m_value_detector_id.set(a_data.GetDetectorID());
     
    {int track_id = a_data.GetTrackID();
     if((track_id<0)||(track_id>=int(m_event.mc_tracks().size())))  {
@@ -113,10 +111,16 @@ protected:
       // we should have a warning.
       m_out << "EsbDetectorPoint_evaluator::get_variables : point with a bad track ID (" << track_id << ")." << std::endl;
       m_value_pdg.set(int(0));
+      m_value_is_secondary.set(false);
     } else {
-      m_value_pdg.set(m_event.mc_tracks()[track_id]->GetPdgCode());
+      const EsbMCTrack& _track = *(m_event.mc_tracks()[track_id]);
+      m_value_pdg.set(_track.GetPdgCode());
+      bool is_secondary;
+      if(!m_event.is_secondary(_track,is_secondary)) {}
+      m_value_is_secondary.set(is_secondary);
     }}
-
+    
+    m_value_track_id.set(a_data.GetTrackID());
     m_value_p.set(a_data.GetP());
 
     m_value_container_index.set(a_data.container_index());
@@ -137,7 +141,10 @@ public:
     add_named_value_ref("p",m_value_p);
     add_named_value_ref("length",m_value_length);
     add_named_value_ref("Eloss",m_value_Eloss);
+    add_named_value_ref("detector_id",m_value_detector_id);
     add_named_value_ref("pdg",m_value_pdg);
+    add_named_value_ref("track_id",m_value_track_id);
+    add_named_value_ref("is_secondary",m_value_is_secondary);
     add_named_value_ref("index",m_value_container_index);
     m_is_valid = initialize();
   }
@@ -162,7 +169,10 @@ protected:
   inlib::value m_value_time;
   inlib::value m_value_length;
   inlib::value m_value_Eloss;
+  inlib::value m_value_detector_id;
   inlib::value m_value_pdg;
+  inlib::value m_value_track_id;
+  inlib::value m_value_is_secondary;
   inlib::value m_value_p;
   inlib::value m_value_container_index;
 };

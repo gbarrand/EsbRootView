@@ -6,6 +6,7 @@
 
 #include "dac"
 #include "evaluators"
+#include "strings"
 
 #include <exlib/xml/xml_style>
 #include <inlib/xml/wrap_viewplot_style> // inlib/xml/viewplot.style file embeded in an inline function.
@@ -19,205 +20,143 @@ namespace EsbRootView {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// hist : ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-inline inlib::histo::h1d* hist_MCTracks(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  dac* _dac = cast_dac(a_gv);
-  if(!_dac) {a_gv.insh().warn("EsbRootView::hist_MCTracks : bad dac cast.");return 0;}
-
-  const std::vector<EsbMCTrack*>& tracks = _dac->event().mc_tracks();
-
-  //////////////////////////////////////
-  //// get style : /////////////////////
-  //////////////////////////////////////
-
-  inlib::sg::style _style;
-  inlib::sg::get_style(a_gv.styles(),"MCTrack",a_args,_style);
-
-  if(_style.filling.value().empty()) {
-    a_gv.insh().warn("EsbRootView::hist_MCTracks : no filling script given.");
-    return 0;
-  }
-
-  //////////////////////////////////////
-  //////////////////////////////////////
-  //////////////////////////////////////
-  EsbMCTrack_evaluator _eval_cut(a_gv.out(),_style.cut.value(),_dac->event());
-  if(!_eval_cut.is_valid()) {
-    a_gv.insh().warn("EsbRootView::hist_MCTracks : bad script "+inlib::sout(_style.cut.value())+" for cut evaluator.");
-    return 0;
-  }
-
-  std::vector<EsbMCTrack*> cut_tracks;
-  if(_style.cut.value().empty()) {
-    cut_tracks = tracks;
-  } else {
-    bool ok;
-    inlib_vforcit(EsbMCTrack*,tracks,it) {
-      if(!_eval_cut.accept(*(*it),ok)) {cut_tracks.clear();break;}
-      if(ok) cut_tracks.push_back(*it);
-    }
-  }
-
-  EsbMCTrack_evaluator _eval_filling(a_gv.out(),_style.filling.value(),_dac->event());
-  if(!_eval_filling.is_valid()) {
-    a_gv.insh().warn("EsbRootView::hist_MCTracks : bad script "+inlib::sout(_style.filling.value())+" for filling evaluator.");
-    return 0;
-  }
-  double _min_filling,_max_filling;
-  if(!_eval_filling.evaluate_double_min_max(cut_tracks,_min_filling,_max_filling)) {
-    a_gv.insh().warn("EsbRootView::hist_MCTracks : min_max() failed.");
-    return 0;
-  }
-  if(_max_filling<=_min_filling) {
-    a_gv.insh().warn("EsbRootView::hist_MCTracks : max <= min.");
-    return 0;
-  }
-  
-  //////////////////////////////////////
-  //////////////////////////////////////
-  //////////////////////////////////////
-  std::string title = "MCTrack ";
-  if(_style.cut.value().size()) title += _style.cut.value()+" ";
-  title += _style.filling.value();
-
-  inlib::histo::h1d* h = new inlib::histo::h1d(title,100,_min_filling,_max_filling);
-
-  double dvalue;
-  inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
-    if(!_eval_filling.evaluate_double(*(*it),dvalue)) {}
-    h->fill(dvalue);
-  }
-
-  return h;
-}
-
-inline inlib::histo::h1d* hist_DetectorPoints(dac& a_dac,const std::string& a_data,
-                            const inlib::sg::style& a_style,const std::vector<EsbDetectorPoint*>& a_points) {
-  //const std::vector<EsbMCTrack*>& tracks = a_dac.event().mc_tracks();
-
-  if(a_style.filling.value().empty()) {
-    a_dac.gv().insh().warn("EsbRootView::hist_DetectorPoints : no filling script given.");
-    return 0;
-  }
-
-  //////////////////////////////////////
-  /// cut : ////////////////////////////
-  //////////////////////////////////////
-  EsbDetectorPoint_evaluator _eval_cut(a_dac.gv().out(),a_style.cut.value(),a_dac.event());
-  if(!_eval_cut.is_valid()) {
-    a_dac.gv().insh().warn("EsbRootView::hist_DetectorPoints : bad script "+inlib::sout(a_style.cut.value())+" for cut evaluator.");
-    return 0;
-  }
-
-  std::vector<EsbDetectorPoint*> cut_points;
-  if(a_style.cut.value().empty()) {
-    cut_points = a_points;
-  } else {
-    bool ok;
-    inlib_vforcit(EsbDetectorPoint*,a_points,it) {
-      if(!_eval_cut.accept(*(*it),ok)) {cut_points.clear();break;}
-      if(ok) cut_points.push_back(*it);
-    }
-  }
-
-  EsbDetectorPoint_evaluator _eval_filling(a_dac.gv().out(),a_style.filling.value(),a_dac.event());
-  if(!_eval_filling.is_valid()) {
-    a_dac.gv().insh().warn("EsbRootView::hist_DetectorPoints : bad script "+inlib::sout(a_style.filling.value())+" for filling evaluator.");
-    return 0;
-  }
-  double _min_filling,_max_filling;
-  if(!_eval_filling.evaluate_double_min_max(cut_points,_min_filling,_max_filling)) {
-    a_dac.gv().insh().warn("EsbRootView::hist_DetectorPoints : min_max() failed.");
-    return 0;
-  }
-  if(_max_filling<=_min_filling) {
-    a_dac.gv().insh().warn("EsbRootView::hist_DetectorPoints : max <= min.");
-    return 0;
-  }
-  
-  //////////////////////////////////////
-  //////////////////////////////////////
-  //////////////////////////////////////
-  std::string title = a_data+" ";
-  if(a_style.cut.value().size()) title += a_style.cut.value()+" ";
-  title += a_style.filling.value();
-
-  inlib::histo::h1d* h = new inlib::histo::h1d(title,100,_min_filling,_max_filling);
-
-  double dvalue;
-  inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
-    if(!_eval_filling.evaluate_double(*(*it),dvalue)) {}
-    h->fill(dvalue);
-  }
-
-  return h;
-}
-
-inline inlib::histo::h1d* hist_Fgd(dac& a_dac,const std::string& a_data,const std::vector<std::string>& a_args)		     {
-  const std::vector<EsbFgdHit*>& hits = a_dac.event().fgd_hits();
+template <class DATA,class EVALUATOR>
+inline bool hist_data(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args,
+                      const std::vector<DATA*>& a_data,const one_event& a_event,const std::string& a_style,
+                      inlib::histo::h1d*& a_h1d,inlib::histo::h2d*& a_h2d) {
+  a_h1d = 0;a_h2d = 0;
 
   //////////////////////////////////////
   //// get style : /////////////////////
   //////////////////////////////////////
 
   inlib::sg::style _style;
-  inlib::sg::get_style(a_dac.gv().styles(),a_data,a_args,_style);
-  
-  if(_style.filling.value().empty()) {
-    a_dac.gv().insh().warn("EsbRootView::hist_Fgd : no filling script given.");
-    return 0;
+  inlib::sg::get_style(a_gv.styles(),a_style,a_args,_style);
+
+  if(_style.filling.value().empty() && (_style.filling_x.value().empty()||_style.filling_y.value().empty()) ) {
+    a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : no filling script given.");
+    return false;
   }
 
   //////////////////////////////////////
   //////////////////////////////////////
   //////////////////////////////////////
-  EsbFgdHit_evaluator _eval_cut(a_dac.gv().out(),_style.cut.value(),a_dac.event());
+  EVALUATOR _eval_cut(a_gv.out(),_style.cut.value(),a_event);
   if(!_eval_cut.is_valid()) {
-    a_dac.gv().insh().warn("EsbRootView::hist_Fgd : bad script "+inlib::sout(_style.cut.value())+" for cut evaluator.");
-    return 0;
+    a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : bad script "+inlib::sout(_style.cut.value())+" for cut evaluator.");
+    return false;
   }
-  
-  std::vector<EsbFgdHit*> cut_hits;
+
+  std::vector<DATA*> cut_data;
   if(_style.cut.value().empty()) {
-    cut_hits = hits;
+    cut_data = a_data;
   } else {
     bool ok;
-    inlib_vforcit(EsbFgdHit*,hits,it) {
-      if(!_eval_cut.accept(*(*it),ok)) {cut_hits.clear();break;}
-      if(ok) cut_hits.push_back(*it);
+    inlib_typename_vforcit(DATA*,a_data,it) {
+      if(!_eval_cut.accept(*(*it),ok)) {cut_data.clear();break;}
+      if(ok) cut_data.push_back(*it);
     }
   }
-  
-  EsbFgdHit_evaluator _eval_filling(a_dac.gv().out(),_style.filling.value(),a_dac.event());
-  if(!_eval_filling.is_valid()) {
-    a_dac.gv().insh().warn("EsbRootView::hist_Fgd : bad script "+inlib::sout(_style.filling.value())+" for filling evaluator.");
-    return 0;
-  }
-  double _min_filling,_max_filling;
-  if(!_eval_filling.evaluate_double_min_max(cut_hits,_min_filling,_max_filling)) {
-    a_dac.gv().insh().warn("EsbRootView::hist_Fgd : min_max() failed.");
-    return 0;
-  }
-  if(_max_filling<=_min_filling) {
-    a_dac.gv().insh().warn("EsbRootView::hist_Fgd : max <= min.");
-    return 0;
-  }
-  
-  //////////////////////////////////////
-  //////////////////////////////////////
-  //////////////////////////////////////
-  std::string title = a_data+" ";
+
+  std::string title = a_style+" ";
   if(_style.cut.value().size()) title += _style.cut.value()+" ";
-  title += _style.filling.value();
+  
+  if(_style.filling.value().size()) {
+    title += _style.filling.value();
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+    const std::string& x_filling = _style.filling.value();
+    EVALUATOR _eval_x_filling(a_gv.out(),x_filling,a_event);
+    if(!_eval_x_filling.is_valid()) {
+      a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : bad script "+inlib::sout(x_filling)+" for x_filling evaluator.");
+      return false;
+    }
+    double _min_x_filling,_max_x_filling;
+    if(!_eval_x_filling.evaluate_double_min_max(cut_data,_min_x_filling,_max_x_filling)) {
+      a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : min_max() failed.");
+      return false;
+    }
+    if(_max_x_filling<=_min_x_filling) {
+      a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : x_max <= x_min.");
+      return false;
+    }
+    
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+  
+    inlib::histo::h1d* h = new inlib::histo::h1d(title,100,_min_x_filling,_max_x_filling);
+  
+    double dvalue;
+    inlib_typename_vforcit(DATA*,cut_data,it) {
+      if(!_eval_x_filling.evaluate_double(*(*it),dvalue)) {}
+      h->fill(dvalue);
+    }
+  
+    a_h1d = h;
+    return true;
 
-  inlib::histo::h1d* h = new inlib::histo::h1d(title,100,_min_filling,_max_filling);
-
-  double dvalue;
-  inlib_vforcit(EsbFgdHit*,cut_hits,it) {
-    if(!_eval_filling.evaluate_double(*(*it),dvalue)) {}
-    h->fill(dvalue);
+  } else if(_style.filling_x.value().size()&&_style.filling_y.value().size()) {
+    title += _style.filling_y.value()+" vs "+_style.filling_x.value();
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+    const std::string& x_filling = _style.filling_x.value();
+    EVALUATOR _eval_x_filling(a_gv.out(),x_filling,a_event);
+    if(!_eval_x_filling.is_valid()) {
+      a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : bad script "+inlib::sout(x_filling)+" for x_filling evaluator.");
+      return false;
+    }
+    double _min_x_filling,_max_x_filling;
+    if(!_eval_x_filling.evaluate_double_min_max(cut_data,_min_x_filling,_max_x_filling)) {
+      a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : min_max() failed.");
+      return false;
+    }
+    if(_max_x_filling<=_min_x_filling) {
+      a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : x_max <= x_min.");
+      return false;
+    }
+    
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+    const std::string& y_filling = _style.filling_y.value();
+    EVALUATOR _eval_y_filling(a_gv.out(),y_filling,a_event);
+    if(!_eval_y_filling.is_valid()) {
+      a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : bad script "+inlib::sout(y_filling)+" for y_filling evaluator.");
+      return false;
+    }
+    double _min_y_filling,_max_y_filling;
+    if(!_eval_y_filling.evaluate_double_min_max(cut_data,_min_y_filling,_max_y_filling)) {
+      a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : min_max() failed.");
+      return false;
+    }
+    if(_max_y_filling<=_min_y_filling) {
+      a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : y_max <= y_min.");
+      return false;
+    }
+    
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+  
+    inlib::histo::h2d* h = new inlib::histo::h2d(title,100,_min_x_filling,_max_x_filling,100,_min_y_filling,_max_y_filling);
+  
+    double x_value,y_value;
+    inlib_typename_vforcit(DATA*,cut_data,it) {
+      if(!_eval_x_filling.evaluate_double(*(*it),x_value)) {}
+      if(!_eval_y_filling.evaluate_double(*(*it),y_value)) {}
+      h->fill(x_value,y_value);
+    }
+  
+    a_h2d = h;
+    return true;
+  } else {    
+    a_gv.insh().warn("EsbRootView::hist_data("+a_style+") : more than one filling not yet handled.");
+    return false;
   }
 
-  return h;
 }
 
 inline inlib::histo::h2d* hist2D_DetectorPoints(dac& a_dac,bool a_near,double a_radius,double a_length,const std::vector<EsbDetectorPoint*>& a_points) {
@@ -236,10 +175,8 @@ inline inlib::histo::h2d* hist2D_DetectorPoints(dac& a_dac,bool a_near,double a_
                           100, -a_radius-50, a_radius + a_length + 2*a_radius + 50,
                           100, -a_radius*inlib::pi()-50, a_radius*inlib::pi()+300);
 
-  size_t nPhotons = a_points.size();
-
-  for(size_t n = 0; n < nPhotons; n++) {
-    EsbDetectorPoint* photon = a_points[n];
+  inlib_vforcit(EsbDetectorPoint*,a_points,it) {
+    EsbDetectorPoint* photon = *it;
 
     double xP,yP,zP,rP;
     if(a_near) {
@@ -253,20 +190,10 @@ inline inlib::histo::h2d* hist2D_DetectorPoints(dac& a_dac,bool a_near,double a_
       zP =  photon->GetY();
       rP = ::sqrt(xP*xP + yP*yP);
     }
-    
+        
     // Find the location of the photon hit
-    int location = -1;
-    if(::fabs(zP - a_length/2.0) < 1) { // front
-      location = 1;
-    }
-    else if(::fabs(zP + a_length/2) < 1) { // back
-      location = 3;
-    }
-    else if (::fabs(rP - a_radius) < 1) { // side
-      
-      location = 2;
-    } else {
-    
+    int location;
+    if(!photon->get_location(a_near,a_radius,a_length,location)) {
       out << "hist2D_DetectorPoint : hit was not on detector edge :" << std::endl;
       out << "  front epsil " << ::fabs(zP - a_length/2.0) << std::endl;
       out << "  back epsil "  << ::fabs(zP + a_length/2.0) << std::endl;
@@ -448,23 +375,30 @@ inline inlib::sg::plots* find_sg_plots(inlib::sg::gui_viewer& a_gv) {
 
 inline bool MCTrack_plot(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
 //inlib::sg::plots* plots = inlib::sg::get_plots(a_gv);  //if not done, it creates a sg::plots in static_sg().
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_gv.insh().warn("EsbRootView::MCTrack_plot : bad dac cast.");return false;}
   inlib::sg::plots* plots = find_sg_plots(a_gv);
   if(!plots) return false;
   inlib::sg::plotter& sgp = plots->current_plotter();
   sgp.clear();
-  inlib::histo::h1d* h = hist_MCTracks(a_gv,a_args);
-  if(!h) return false;
+  inlib::histo::h1d* h1d;
+  inlib::histo::h2d* h2d;
+  if(!hist_data<EsbMCTrack,EsbMCTrack_evaluator>(a_gv,a_args,_dac->event().mc_tracks(),_dac->event(),"MCTrack",h1d,h2d)) return false;
   setup_plotter(a_gv.out(),sgp);
-  sgp.add_plottable(new inlib::sg::h1d2plot_cp(*h));
-  delete h;
+  if(h1d) {
+    sgp.add_plottable(new inlib::sg::h1d2plot_cp(*h1d));
+    delete h1d;
+  }
+  if(h2d) {
+    sgp.add_plottable(new inlib::sg::h2d2plot_cp(*h2d));
+    delete h2d;
+  }
   return true;
 }
 
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
-INLIB_GLOBAL_STRING_VALUE(modeling_neard,neard)
-INLIB_GLOBAL_STRING_VALUE(modeling_fard,fard)
 
 inline void plot_DetectorPoints(dac& a_dac,const std::string& a_data,const std::vector<std::string>& a_args,
                                 const std::vector<EsbDetectorPoint*>& a_points) {
@@ -489,11 +423,18 @@ inline void plot_DetectorPoints(dac& a_dac,const std::string& a_data,const std::
     sgp.add_plottable(new inlib::sg::h2d2plot_cp(*h));
     delete h;
   } else if(_style.modeling.value().empty()) {
-    inlib::histo::h1d* h = hist_DetectorPoints(a_dac,a_data,_style,a_points);
-    if(!h) return;
+    inlib::histo::h1d* h1d;
+    inlib::histo::h2d* h2d;
+    if(!hist_data<EsbDetectorPoint,EsbDetectorPoint_evaluator>(a_dac.gv(),a_args,a_points,a_dac.event(),a_data,h1d,h2d)) return;
     setup_plotter(a_dac.gv().out(),sgp);
-    sgp.add_plottable(new inlib::sg::h1d2plot_cp(*h));
-    delete h;
+    if(h1d) {
+      sgp.add_plottable(new inlib::sg::h1d2plot_cp(*h1d));
+      delete h1d;
+    }
+    if(h2d) {
+      sgp.add_plottable(new inlib::sg::h2d2plot_cp(*h2d));
+      delete h2d;
+    }
   } else {
     a_dac.gv().insh().warn("EsbRootView::plot_DetectorPoints : unknown modeling style "+_style.modeling.value()+".");
   }
@@ -514,24 +455,27 @@ inline void FgdDetectorPoint_plot(inlib::sg::gui_viewer& a_gv,const std::vector<
 ///////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
 
-inline bool plot_Fgd(dac& a_dac,const std::string& a_data,const std::vector<std::string>& a_args) {
-//inlib::sg::plots* plots = inlib::sg::get_plots(a_dac.gv());  //if not done, it creates a sg::plots in static_sg().
-  inlib::sg::plots* plots = find_sg_plots(a_dac.gv());
-  if(!plots) return false;
-  inlib::sg::plotter& sgp = plots->current_plotter();
-  sgp.clear();
-  inlib::histo::h1d* h = hist_Fgd(a_dac,a_data,a_args);
-  if(!h) return false;
-  setup_plotter(a_dac.gv().out(),sgp);
-  sgp.add_plottable(new inlib::sg::h1d2plot_cp(*h));
-  delete h;
-  return true;
-}
-
 inline bool FgdHit_plot(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
   dac* _dac = cast_dac(a_gv);
   if(!_dac) return false;
-  return plot_Fgd(*_dac,"FgdHit",a_args);
+//inlib::sg::plots* plots = inlib::sg::get_plots(a_gv);  //if not done, it creates a sg::plots in static_sg().
+  inlib::sg::plots* plots = find_sg_plots(a_gv);
+  if(!plots) return false;
+  inlib::sg::plotter& sgp = plots->current_plotter();
+  sgp.clear();
+  inlib::histo::h1d* h1d;
+  inlib::histo::h2d* h2d;
+  if(!hist_data<EsbFgdHit,EsbFgdHit_evaluator>(a_gv,a_args,_dac->event().fgd_hits(),_dac->event(),"FgdHit",h1d,h2d)) return false;
+  setup_plotter(a_gv.out(),sgp);
+  if(h1d) {
+    sgp.add_plottable(new inlib::sg::h1d2plot_cp(*h1d));
+    delete h1d;
+  }
+  if(h2d) {
+    sgp.add_plottable(new inlib::sg::h2d2plot_cp(*h2d));
+    delete h2d;
+  }
+  return true;
 }
 
 ///////////////////////////////////////////////////////////////

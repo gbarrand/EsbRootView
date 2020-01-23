@@ -6,16 +6,21 @@
 
 #include "dac"
 #include "evaluators"
+#include "strings"
 
 #include <exlib/sg/text_freetype_marker>
 #include <exlib/cbk/rbsg>
 
-#include <inlib/sg/insh_anim>
+//#include <inlib/sg/insh_anim>
 #include <inlib/cbk/sg_add>
 #include <inlib/sg/view_evd>
 #include <inlib/sg/view_sg_client>
 #include <inlib/sg/hep_arrow>
 #include <inlib/sg/args2style>
+#include <inlib/sg/cone_anim>
+#include <inlib/sg/hep_cone_anim>
+#include <inlib/sg/xyzt_anim>
+
 #include <inlib/yacc/get_colormap>
 
 #include <inlib/rroot/geo>
@@ -77,8 +82,25 @@ inline inlib::sg::separator* create_sg_pickable(inlib::sg::gui_viewer& a_gv,EVAL
   return sep;
 }  
 
-inline bool place_sep(inlib::sg::view_evd& a_evd,inlib::sg::separator*& a_sep) {
-  if(!inlib::sg::insh_anim_add_node(a_evd.gv().insh(),a_evd.dynamic_sg(),a_sep)) return false;
+inline bool place_sep(inlib::sg::view_evd& a_evd,inlib::sg::separator*& a_sep
+                      /*,const std::string& a_placement_class = std::string(),const std::string& a_placement_object = std::string()*/) {
+/* dangerous :
+ {void* p;
+  if(inlib::to_pointer(a_placement_object,p) && (a_placement_class==inlib::sg::insh_anim::s_class()) ){
+    inlib::sg::insh_anim* _anim = (inlib::sg::insh_anim*)p;
+    inlib::sg::search_action action(a_evd.gv().out());
+    const inlib::sg::path_t& _path = inlib::sg::find_path(action,a_evd.dynamic_sg(),*_anim,false);
+    if(_path.empty()) {
+      a_evd.gv().insh().warn("inlib::sg::insh_anim_add_node : node "+inlib::sout(a_placement_object)+" not found in dynamic scene.");
+      delete a_sep;
+      a_sep = 0;
+      return false;
+    }
+    _anim->add(a_sep);
+    return true;
+  }}
+*/  
+  a_evd.dynamic_sg().add(a_sep);
   inlib::args opts;
   opts.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_dynamic());
   inlib::sg::view_sg_client* wc = inlib::sg::cast_view_sg_client(a_evd.gv());
@@ -166,9 +188,19 @@ inline void MCTrack_print(inlib::sg::gui_viewer& a_gv,const std::vector<std::str
     }
   }
 
-  a_gv.out () << "MCTrack (" << cut_tracks.size() << ") with cut " << inlib::sout(_style.cut.value()) << " : " << std::endl;
-  
-  _eval_cut.dump(a_gv.out(),cut_tracks,names);
+  std::string sheader = "MCTrack (";
+  inlib::size_tas(cut_tracks.size(),sheader);
+  sheader += ") with cut ";
+  sheader += inlib::sout(_style.cut.value())+" : ";
+
+ {std::vector<std::string> vout;
+  if(a_gv.insh().in_backquote()) {
+    _eval_cut.dump(a_gv.out(),cut_tracks,names,sheader,true,vout);
+    a_gv.insh().out_begin();
+    a_gv.insh().out(vout,true);
+  } else {
+    _eval_cut.dump(a_gv.out(),cut_tracks,names,sheader,false,vout);
+  }}
 }
 
 inline void MCTrack_stats(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
@@ -188,6 +220,12 @@ inline void MCTrack_stats(inlib::sg::gui_viewer& a_gv,const std::vector<std::str
   std::vector<std::string> names;
   _args.not_hyphens(names);
 
+  std::string stats_arg;
+  if(_args.is_arg("-sum"))  stats_arg = "sum";
+  if(_args.is_arg("-min"))  stats_arg = "min";
+  if(_args.is_arg("-max"))  stats_arg = "max";
+  if(_args.is_arg("-mean")) stats_arg = "mean";
+  if(_args.is_arg("-rms"))  stats_arg = "rms";
   //////////////////////////////////////
   //////////////////////////////////////
   //////////////////////////////////////
@@ -208,10 +246,18 @@ inline void MCTrack_stats(inlib::sg::gui_viewer& a_gv,const std::vector<std::str
     }
   }
 
-  a_gv.out () << "MCTrack (" << cut_tracks.size() << ") sum/min/max/mean/rms with cut " << inlib::sout(_style.cut.value()) << " : " << std::endl;
-  
-  _eval_cut.stats(a_gv.out(),cut_tracks,names);
+  std::string sheader = "MCTrack (";
+  inlib::size_tas(cut_tracks.size(),sheader);
+  sheader += ") sum/min/max/mean/rms with cut ";
+  sheader += inlib::sout(_style.cut.value())+" : ";
+
+  std::string sout;
+  _eval_cut.stats(a_gv.out(),cut_tracks,names,sheader,stats_arg,sout);
+  if(sout.size()) a_gv.insh().out(sout);
 }
+
+inline const std::string& modeling_cone_neard() {static const std::string s_v("cone_neard");return s_v;}
+inline const std::string& modeling_cone_fard() {static const std::string s_v("cone_fard");return s_v;}
 
 inline void MCTrack_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
   inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
@@ -228,8 +274,16 @@ inline void MCTrack_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::strin
   inlib::args _args(a_args);
   inlib::sg::get_style(a_gv.styles(),"MCTrack",_args,_style);
   
+  bool anim = false;
+  INLIB_GUI_VIEWER_GET_ARG_BOOL(MCTrack_vis,anim,)
+  
+//std::string splacement_object;
+//INLIB_GUI_VIEWER_GET_ARG_STRING(placement_object)
+//std::string splacement_class;
+//INLIB_GUI_VIEWER_GET_ARG_STRING(placement_class)
+    
   //////////////////////////////////////
-  //////////////////////////////////////
+  ///////////////////////1///////////////
   //////////////////////////////////////
   EsbMCTrack_evaluator _eval_cut(a_gv.out(),_style.cut.value(),_dac->event());
   if(!_eval_cut.is_valid()) {
@@ -323,17 +377,17 @@ inline void MCTrack_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::strin
     inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
       EsbMCTrack* track = *it;
     //int pdg = track->GetPdgCode();
-      int mother_id = track->GetMotherId();
+    //int mother_id = track->GetMotherId();
 
-      std::string mother_info("no mother");
-      if((mother_id>=0)&&(mother_id<int(_dac->event().mc_tracks().size()))) {
-        const EsbMCTrack* mother_track = _dac->event().mc_tracks()[mother_id];
-        int mother_pdg = mother_track->GetPdgCode();
-        std::string smother_pdg;
-        inlib::num2s(mother_pdg,smother_pdg);
-        mother_info = mother_track->name()+" ("+smother_pdg+")";
-      }
-      
+      //std::string mother_info("no mother");
+      //if((mother_id>=0)&&(mother_id<int(_dac->event().mc_tracks().size()))) {
+      //  const EsbMCTrack* mother_track = _dac->event().mc_tracks()[mother_id];
+      //  int mother_pdg = mother_track->GetPdgCode();
+      //  std::string smother_pdg;
+      //  inlib::num2s(mother_pdg,smother_pdg);
+      //  mother_info = mother_track->name()+" ("+smother_pdg+")";
+      //}
+
       if(_eval_arrow_length) {
         double darrow_length;
         if(!_eval_arrow_length->evaluate_double(*track,darrow_length)) {}
@@ -350,7 +404,7 @@ inline void MCTrack_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::strin
       const std::string& name = (*it)->name();
 
       inlib::vec3f beg(vtx);
-      if(mother_id==no_mother()) beg = vtx-arrow_length*dir;
+      //if(mother_id==no_mother()) beg = vtx-arrow_length*dir;
 
       if(_cmap) {
         double value;
@@ -371,6 +425,218 @@ inline void MCTrack_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::strin
     }
     
   //////////////////////////////////////
+  /// rep cone : ///////////////////////
+  //////////////////////////////////////
+  } else if( (_style.modeling.value()==inlib::sg::modeling_cone()) ||
+             (_style.modeling.value()==modeling_cone_neard())      ||
+             (_style.modeling.value()==modeling_cone_fard())       ){
+  
+    float cone_length = 1;
+   {const inlib::xml::styles::style_t* sty = a_gv.styles().find_style("MCTrack_cone");
+    if(sty) {
+      inlib_vforcit(inlib::xml::styles::style_item_t,*sty,vit) {
+        if((*vit).first=="length")     {if(!inlib::to<float>((*vit).second,cone_length,1)) {}}
+      }
+    }}
+
+    INLIB_GUI_VIEWER_GET_ARG_FLOAT(MCTrack_vis,cone_length,)
+
+    float time_cone_elapse;
+    INLIB_GUI_VIEWER_GET_ARG_FLOAT(MCTrack_vis,time_cone_elapse,)
+
+    if(cut_tracks.size() && (cone_length>0.0f)) {
+    
+      inlib::vec3f mean_pos;
+      inlib::vec3f mean_p;
+     {inlib::vec3f pos;
+      inlib::vec3f p;
+      inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+        const EsbMCTrack& _track = *(*it);
+        pos.set_value(_track.GetStartX(),_track.GetStartY(),_track.GetStartZ());
+        mean_pos += pos;
+        p.set_value(_track.GetPx(),_track.GetPy(),_track.GetPz());
+        mean_p += p;
+      }
+      mean_pos.divide(float(cut_tracks.size()));
+      mean_p.divide(float(cut_tracks.size()));}
+
+      if(mean_p.length()<=0.0f) {
+        a_gv.out() << "EsbRootView::MCTrack_vis : mean_p.length()<=0." << std::endl;
+      } else {
+
+      float mean_angle = 0;
+      float mean_time = 0;
+      float S_p = 0;
+      //size_t S_angle_num = 0;
+     {inlib::vec3f p;
+      inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+        const EsbMCTrack& _track = *(*it);
+        p.set_value(_track.GetPx(),_track.GetPy(),_track.GetPz());
+        float _p = _track.GetP();
+        float cos_angle;
+        if(!mean_p.cos_angle(p,cos_angle)) {
+          a_gv.out() << "EsbRootView::MCTrack_vis : mean_p.cos_angle(p) failed." << std::endl;
+        } else {
+          float angle = inlib::facos(cos_angle);
+          mean_angle += angle*_p;
+          //S_angle_num++;
+          S_p += _p;
+          mean_time += _track.GetStartT()*_p;
+	}
+      }}
+
+    //if(S_angle_num) {
+      if(S_p) {
+
+    //S_angle /= float(S_angle_num);
+      mean_angle /= float(S_p);
+      mean_time /= float(S_p);
+
+    //::printf("debug : cone : 000 : p %g %g %g, mean angle %g, mean time %g\n",mean_p.x(),mean_p.y(),mean_p.z(),mean_angle,mean_time);
+      
+      if(mean_angle>=inlib::fhalf_pi()) {
+      //a_gv.insh().warn("EsbRootView::MCTrack_vis : angle>pi/2");
+        a_gv.out() << "EsbRootView::MCTrack_vis : angle ("<< mean_angle << ") >pi/2." << std::endl;
+      } else {
+        if(anim) {
+          inlib::sg::rgba* mat = new inlib::sg::rgba();
+          mat->color = _style.color.value();
+          sep->add(mat);
+	  
+          sep->add(new inlib::sg::matrix);  //for move_manip.
+	  
+        //static const double c_light = 29.9792458;  //cm/nsec. Yes, it is const! :-)
+          static const double c_light_water = 22.5;  //cm/nsec.
+	  float time_cone_begin = mean_time;
+
+          if(_style.modeling.value()==modeling_cone_neard()) {
+            float det_diameter = 2*300;
+            float det_length = 1000;
+            float det_max_time = inlib::fsqrt(det_diameter*det_diameter+det_length*det_length)/c_light_water;  //nsecs.
+	    
+            inlib::sg::hep_cone_anim* _anim = new inlib::sg::hep_cone_anim();
+            _anim->position = mean_pos;
+            _anim->direction = mean_p;
+            _anim->angle = mean_angle;
+            _anim->time_cone_begin = time_cone_begin;
+            _anim->time_cone_elapse = det_max_time*10;  //nsecs.
+            _anim->speed = c_light_water;
+
+            inlib::hep::polyhedron_tube cylinder(0,det_diameter*0.5f,det_length*0.5f,48);
+
+            _anim->operand = cylinder;
+            _anim->operation = inlib::sg::solid_intersection;
+
+            sep->add(_anim);
+	    
+          } else if(_style.modeling.value()==modeling_cone_fard()) {
+            float det_diameter = 2*3540;
+            float det_length = 5480;
+            float det_max_time = inlib::fsqrt(det_diameter*det_diameter+det_length*det_length)/c_light_water;  //nsecs.
+	    
+            inlib::sg::hep_cone_anim* _anim = new inlib::sg::hep_cone_anim();
+            _anim->position = mean_pos;
+            _anim->direction = mean_p;
+            _anim->angle = mean_angle;
+            _anim->time_cone_begin = time_cone_begin;
+            _anim->time_cone_elapse = det_max_time*10;
+            _anim->speed = c_light_water;
+
+            inlib::hep::polyhedron_tube cylinder(0,det_diameter*0.5f,det_length*0.5f,48);
+            cylinder.Transform(inlib::rotd(inlib::vec3d(1,0,0),inlib::half_pi()),0,0,0);
+	    
+            _anim->operand = cylinder;
+            _anim->operation = inlib::sg::solid_intersection;
+	    
+            sep->add(_anim);
+	  
+          } else {
+            inlib::sg::cone_anim* _anim = new inlib::sg::cone_anim();
+            _anim->position = mean_pos;
+            _anim->direction = mean_p;
+            _anim->angle = mean_angle;
+            _anim->time_cone_begin = time_cone_begin;
+            _anim->time_cone_elapse = time_cone_elapse;
+            _anim->speed = c_light_water;
+            sep->add(_anim);
+	  }
+	  
+          empty = false;
+
+       } else {
+          inlib::sg::rgba* mat = new inlib::sg::rgba();
+          mat->color = _style.color.value();
+          sep->add(mat);
+
+          if(_style.modeling.value()==modeling_cone_neard()) {
+            float det_diameter = 2*300;
+            float det_length = 1000;
+            float det_max_length = inlib::fsqrt(det_diameter*det_diameter+det_length*det_length);
+	    
+            float height = det_max_length*10;
+            float rmax = inlib::ftan(mean_angle)*height;
+	  
+            inlib::hep::polyhedron_cone cone(0,rmax,0,0,height*0.5f,48);
+            cone.Translate(0,0,-height*0.5f); //applied first.
+            inlib::vec3d to(mean_p.x(),mean_p.y(),mean_p.z());
+            cone.Transform(inlib::rotd(inlib::vec3d(0,0,-1),to),mean_pos.x(),mean_pos.y(),mean_pos.z()); //rotate then translate.
+
+            inlib::hep::polyhedron_tube cylinder(0,det_diameter*0.5f,det_length*0.5f,48);
+
+            inlib::hep::polyhedron op = cone.intersect(cylinder);
+
+            inlib::sg::polyhedron* polyhedron = new inlib::sg::polyhedron;
+            polyhedron->ph = op;
+            sep->add(polyhedron);
+
+         } else if(_style.modeling.value()==modeling_cone_fard()) {
+            float det_diameter = 2*3540;
+            float det_length = 5480;
+            float det_max_length = inlib::fsqrt(det_diameter*det_diameter+det_length*det_length);
+	    
+            float height = det_max_length*10;
+            float rmax = inlib::ftan(mean_angle)*height;
+	  
+            inlib::hep::polyhedron_cone cone(0,rmax,0,0,height*0.5f,48);
+            cone.Translate(0,0,-height*0.5f); //applied first.
+            inlib::vec3d to(mean_p.x(),mean_p.y(),mean_p.z());
+            cone.Transform(inlib::rotd(inlib::vec3d(0,0,-1),to),mean_pos.x(),mean_pos.y(),mean_pos.z()); //rotate then translate.
+
+            inlib::hep::polyhedron_tube cylinder(0,det_diameter*0.5f,det_length*0.5f,48);
+            cylinder.Transform(inlib::rotd(inlib::vec3d(1,0,0),inlib::half_pi()),0,0,0);
+
+            inlib::hep::polyhedron op = cone.intersect(cylinder);
+
+            inlib::sg::polyhedron* polyhedron = new inlib::sg::polyhedron;
+            polyhedron->ph = op;
+            sep->add(polyhedron);
+
+          } else {
+            float height = cone_length;
+            float rmax = inlib::ftan(mean_angle)*height;
+
+            inlib::sg::matrix* mtx = new inlib::sg::matrix;
+            mtx->set_translate(mean_pos);
+            mtx->mul_rotate(inlib::vec3f(0,0,-1),mean_p);
+            mtx->mul_translate(0,0,-height*0.5f); //applied first.
+            sep->add(mtx);
+      
+            inlib::sg::cone_hat* cone = new inlib::sg::cone_hat;
+            cone->height = height;
+            cone->rmin = 0;
+            cone->rmax = rmax;
+            sep->add(cone);
+          }
+
+          empty = false;
+        }
+	
+      } //mean_angle>pi/2
+      } //S_p
+      } //mean_p.length()
+    }
+
+  //////////////////////////////////////
   /// rep point : //////////////////////
   //////////////////////////////////////
   } else if(_style.modeling.value().empty() || (_style.modeling.value()==s_modeling_wc_point()) ) {
@@ -380,7 +646,22 @@ inline void MCTrack_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::strin
     ds->point_size = _style.point_size;
     sep->add(ds);
 
-    if(_cmap) {
+    if(anim) {
+      inlib::sg::rgba* mat = new inlib::sg::rgba();
+      mat->color = _style.color.value();
+      sep->add(mat);
+
+      sep->add(new inlib::sg::matrix);  //for move_manip.
+      
+      std::vector<inlib::vec4f> xyzts;
+     {inlib_vforcit(EsbMCTrack*,cut_tracks,it)
+       xyzts.push_back(inlib::vec4f(float((*it)->GetStartX()),float((*it)->GetStartY()),float((*it)->GetStartZ()),float((*it)->GetStartT())));}
+
+      sep->add(new inlib::sg::xyzt_anim(xyzts));
+
+      empty = false;
+        
+    } else if(_cmap) {
       
       if(_style.pickable) {
         inlib::colorf _color;
@@ -447,7 +728,7 @@ inline void MCTrack_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::strin
 
     } else {
       if(_style.pickable) {
-  
+
         inlib::sg::rgba* mat = new inlib::sg::rgba();
         mat->color = _style.color.value();
         sep->add(mat);
@@ -515,7 +796,7 @@ inline void MCTrack_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::strin
 
   if(empty) {delete sep;return;}
 
-  place_sep(*_evd,sep);
+  place_sep(*_evd,sep/*,splacement_class,splacement_object*/);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -601,9 +882,19 @@ inline void print_DetectorPoints(inlib::sg::gui_viewer& a_gv,
     }
   }
 
-  a_gv.out () << a_style << " (" << cut_points.size() << ") with cut " << inlib::sout(_style.cut.value()) << " : " << std::endl;
+  std::string sheader = a_style+" (";
+  inlib::size_tas(cut_points.size(),sheader);
+  sheader += ") with cut ";
+  sheader += inlib::sout(_style.cut.value())+" : ";  
   
-  _eval_cut.dump(a_gv.out(),cut_points,names);
+ {std::vector<std::string> vout;
+  if(a_gv.insh().in_backquote()) {
+    _eval_cut.dump(a_gv.out(),cut_points,names,sheader,true,vout);
+    a_gv.insh().out_begin();
+    a_gv.insh().out(vout,true);
+  } else {
+    _eval_cut.dump(a_gv.out(),cut_points,names,sheader,false,vout);
+  }}
 }
 
 inline void stats_DetectorPoints(inlib::sg::gui_viewer& a_gv,
@@ -624,6 +915,12 @@ inline void stats_DetectorPoints(inlib::sg::gui_viewer& a_gv,
   std::vector<std::string> names;
   _args.not_hyphens(names);
 
+  std::string stats_arg;
+  if(_args.is_arg("-sum"))  stats_arg = "sum";
+  if(_args.is_arg("-min"))  stats_arg = "min";
+  if(_args.is_arg("-max"))  stats_arg = "max";
+  if(_args.is_arg("-mean")) stats_arg = "mean";
+  if(_args.is_arg("-rms"))  stats_arg = "rms";
   //////////////////////////////////////
   /// cut : ////////////////////////////
   //////////////////////////////////////
@@ -644,9 +941,14 @@ inline void stats_DetectorPoints(inlib::sg::gui_viewer& a_gv,
     }
   }
 
-  a_gv.out () << a_style << " (" << cut_points.size() << ") sum/min/max/mean/rms with cut " << inlib::sout(_style.cut.value()) << " : " << std::endl;
+  std::string sheader = a_style+" (";
+  inlib::size_tas(cut_points.size(),sheader);
+  sheader += ") sum/min/max/mean/rms with cut ";
+  sheader += inlib::sout(_style.cut.value())+" : ";
   
-  _eval_cut.stats(a_gv.out(),cut_points,names);
+  std::string sout;
+  _eval_cut.stats(a_gv.out(),cut_points,names,sheader,stats_arg,sout);
+  if(sout.size()) a_gv.insh().out(sout);
 }
 
 inline void vis_DetectorPoints(inlib::sg::gui_viewer& a_gv,
@@ -664,6 +966,14 @@ inline void vis_DetectorPoints(inlib::sg::gui_viewer& a_gv,
   inlib::args _args(a_args);
   inlib::sg::get_style(a_gv.styles(),a_style,_args,_style);
 
+  bool anim = false;
+  INLIB_GUI_VIEWER_GET_ARG_BOOL(MCTrack_vis,anim,)
+  
+//std::string splacement_object;
+//INLIB_GUI_VIEWER_GET_ARG_STRING(placement_object)
+//std::string splacement_class;
+//INLIB_GUI_VIEWER_GET_ARG_STRING(placement_class)
+    
   //////////////////////////////////////
   /// cut : ////////////////////////////
   //////////////////////////////////////
@@ -703,12 +1013,152 @@ inline void vis_DetectorPoints(inlib::sg::gui_viewer& a_gv,
   inlib::sg::separator* sep = new inlib::sg::separator;
   bool empty = true;
   
+  if( (_style.modeling==s_modeling_neard()) || (_style.modeling==s_modeling_fard()) ) {  // have a hedgehog rep.
+    bool is_neard = true;
+    double det_radius = 300;
+    double det_length = 1000;
+    float rep_length = 100;
+    float dpm = 1;
+    if(_style.modeling==s_modeling_fard()) {
+      is_neard = false;
+      det_radius = 3540;
+      det_length = 2*2740; //5480
+      rep_length = 500;
+      dpm = 10;
+    }
+
+    //inlib::sg::draw_style* ds = new inlib::sg::draw_style;
+    //ds->style = inlib::sg::draw_points;
+    //ds->point_size = _style.point_size;
+    //sep->add(ds);
+
+    inlib::sg::rgba* mat = new inlib::sg::rgba();
+    mat->color = _style.color.value();
+    sep->add(mat);
+
+  //float length_max_front = 0;
+  //float length_max_side = 0;
+  //float length_max_back = 0;
+    float length_max = 0;
+    inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
+      const EsbDetectorPoint* point = *it;
+      int location;
+      if(!point->get_location(is_neard,det_radius,det_length,location)) {
+        a_gv.insh().warn("EsbRootView::vis_DetectorPoints : can't find location for point.");
+        delete sep;
+        return;
+      }
+      /*
+      if(location==1) { //front
+        length_max_front = inlib::mx<float>(length_max_front,point->GetP());
+      } else if(location==2) { //side
+        length_max_side = inlib::mx<float>(length_max_side,point->GetP());
+      } else if(location==3) { //back
+        length_max_back = inlib::mx<float>(length_max_back,point->GetP());
+      }
+      */
+      length_max = inlib::mx<float>(length_max,point->GetP());
+    }    
+    //::printf("debug : 001 : %g %g %g\n",length_max_front,length_max_back,length_max_side);
+    if(length_max<=0) {
+      delete sep;
+      return;
+    }
+    
+    inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
+      const EsbDetectorPoint* point = *it;
+      int location;
+      if(!point->get_location(is_neard,det_radius,det_length,location)) {}
+      double x = point->GetX();
+      double y = point->GetY();
+      double z = point->GetZ();
+      float length = rep_length*float(point->GetP());
+    /*if(location==1) {  //front
+        if(length_max_front<=0) continue;
+        length /= length_max_front;
+      } else if(location==2) { //side
+        if(length_max_side<=0) continue;
+        length /= length_max_side;
+      } else if(location==3) { //back
+        if(length_max_back<=0) continue;
+        length /= length_max_back;
+      }*/
+      //if(length_max<=0) continue;
+      length /= length_max;
+      //length = rep_length; //for debugging.
+	
+      inlib::sg::separator* _sep = new inlib::sg::separator;
+      sep->add(_sep);
+      
+      inlib::sg::matrix* _matrix = new inlib::sg::matrix;
+      _sep->add(_matrix);
+
+      if(true) {
+        inlib::sg::cube* node = new inlib::sg::cube();
+        node->width = dpm;
+        node->height = dpm;
+        node->depth = length;
+        _sep->add(node);
+      } else {
+        inlib::sg::tube* node = new inlib::sg::tube();
+        node->rmin = 0;
+        node->rmax = dpm*0.5f;
+        node->height = length;
+        _sep->add(node);
+      }
+
+      empty = false;
+
+      if(is_neard) {
+      
+        if(location==1) { //front
+          _matrix->set_translate(x,y,z+length*0.5f);
+        } else if(location==2) { //side
+          _matrix->set_translate(x,y,z);
+          _matrix->mul_rotate(inlib::vec3f(1,0,0),inlib::vec3f(x,y,0));
+          _matrix->mul_rotate(0,1,0,inlib::fhalf_pi());  //bring shape along x.
+          _matrix->mul_translate(0,0,length*0.5f); //applied first.
+        } else if(location==3) { //back
+          _matrix->set_translate(x,y,z-length*0.5f);
+        }
+
+      } else { //fard.
+        _matrix->set_translate(x,y,z);
+        if(location==1) { //front
+          _matrix->mul_rotate(1,0,0,-inlib::fhalf_pi());  //bring shape along y.
+        } else if(location==2) { //side
+          _matrix->mul_rotate(inlib::vec3f(1,0,0),inlib::vec3f(x,0,z));
+          _matrix->mul_rotate(0,1,0,inlib::fhalf_pi());  //bring shape along x.
+        } else if(location==3) { //back
+          _matrix->mul_rotate(1,0,0,inlib::fhalf_pi());  //bring shape along -y.
+        }    
+        _matrix->mul_translate(0,0,length*0.5f); //applied first.
+      }
+    }    
+
+  } else { //_style.modeling.
+
   inlib::sg::draw_style* ds = new inlib::sg::draw_style;
   ds->style = inlib::sg::draw_points;
   ds->point_size = _style.point_size;
   sep->add(ds);
 
-  if(_style.pickable) {
+  if(anim) {
+    inlib::sg::rgba* mat = new inlib::sg::rgba();
+    mat->color = _style.color.value();
+    sep->add(mat);
+
+    sep->add(new inlib::sg::matrix);  //for move_manip.
+      
+    std::vector<inlib::vec4f> xyzts;
+   {inlib_vforcit(EsbDetectorPoint*,cut_points,it)
+      xyzts.push_back(inlib::vec4f(float((*it)->GetX()),float((*it)->GetY()),float((*it)->GetZ()),float((*it)->GetTime())));}
+
+    sep->add(new inlib::sg::xyzt_anim(xyzts));
+
+    empty = false;
+        
+  } else if(_style.pickable) {
     inlib::colorf _color;
     double value;
     std::vector<std::string> vinfos;
@@ -796,9 +1246,11 @@ inline void vis_DetectorPoints(inlib::sg::gui_viewer& a_gv,
 
   delete _cmap;
 
+  } //_style.modeling.
+ 
   if(empty) {delete sep;return;}
 
-  place_sep(*_evd,sep);
+  place_sep(*_evd,sep/*,splacement_class,splacement_object*/);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -972,9 +1424,19 @@ inline void FgdHit_print(inlib::sg::gui_viewer& a_gv,const std::vector<std::stri
   ///////////////////////////////////////////
   ///////////////////////////////////////////
   
-  a_gv.out () << "FgdHit (" << cut_hits.size() << ") with cut " << inlib::sout(_style.cut.value()) << " : " << std::endl;
+  std::string sheader = "FgdHit (";
+  inlib::size_tas(cut_hits.size(),sheader);
+  sheader += ") with cut ";
+  sheader += inlib::sout(_style.cut.value())+" : ";
   
-  _eval_cut.dump(a_gv.out(),cut_hits,names);
+ {std::vector<std::string> vout;
+  if(a_gv.insh().in_backquote()) {
+    _eval_cut.dump(a_gv.out(),cut_hits,names,sheader,true,vout);
+    a_gv.insh().out_begin();
+    a_gv.insh().out(vout,true);
+  } else {
+    _eval_cut.dump(a_gv.out(),cut_hits,names,sheader,false,vout);
+  }}
 
   if(unique_to_clear) inlib::raw_clear(unique_hits);
 }
@@ -994,6 +1456,12 @@ inline void FgdHit_stats(inlib::sg::gui_viewer& a_gv,const std::vector<std::stri
   std::vector<std::string> names;
   _args.not_hyphens(names);
 
+  std::string stats_arg;
+  if(_args.is_arg("-sum"))  stats_arg = "sum";
+  if(_args.is_arg("-min"))  stats_arg = "min";
+  if(_args.is_arg("-max"))  stats_arg = "max";
+  if(_args.is_arg("-mean")) stats_arg = "mean";
+  if(_args.is_arg("-rms"))  stats_arg = "rms";
   //////////////////////////////////////
   /// unique : /////////////////////////
   //////////////////////////////////////
@@ -1035,9 +1503,15 @@ inline void FgdHit_stats(inlib::sg::gui_viewer& a_gv,const std::vector<std::stri
   ///////////////////////////////////////////
   ///////////////////////////////////////////
   
-  a_gv.out () << "FgdHit (" << cut_hits.size() << ") sum/min/max/mean/rms with cut " << inlib::sout(_style.cut.value()) << " : " << std::endl;
+  std::string sheader = "FgdHit (";
+  inlib::size_tas(cut_hits.size(),sheader);
+  sheader += ") sum/min/max/mean/rms with cut ";
+  sheader += inlib::sout(_style.cut.value())+" : ";
   
-  _eval_cut.stats(a_gv.out(),cut_hits,names);
+  
+  std::string sout;
+  _eval_cut.stats(a_gv.out(),cut_hits,names,sheader,stats_arg,sout);
+  if(sout.size()) a_gv.insh().out(sout);
 
   if(unique_to_clear) inlib::raw_clear(unique_hits);
 }
@@ -1087,6 +1561,11 @@ inline void FgdHit_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::string
 
   INLIB_GUI_VIEWER_GET_ARG_STRING(cube_size)
 
+//std::string splacement_object;
+//INLIB_GUI_VIEWER_GET_ARG_STRING(placement_object)
+//std::string splacement_class;
+//INLIB_GUI_VIEWER_GET_ARG_STRING(placement_class)
+  
   //////////////////////////////////////
   /// unique : /////////////////////////
   //////////////////////////////////////
@@ -1228,7 +1707,7 @@ inline void FgdHit_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::string
     delete _cmap;
     delete _eval_cube_size;
   
-    place_sep(*_evd,sep);
+    place_sep(*_evd,sep/*,splacement_class,splacement_object*/);
   
   } else if(_style.modeling.value().empty()) {
     //////////////////////////////////////
@@ -1253,7 +1732,7 @@ inline void FgdHit_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::string
   
     inlib_vforcit(EsbFgdHit*,cut_hits,it) vtxs->add(float((*it)->GetX()),float((*it)->GetY()),float((*it)->GetZ()));
 
-    place_sep(*_evd,sep);
+    place_sep(*_evd,sep/*,splacement_class,splacement_object*/);
 
   } else {
     a_gv.insh().warn("EsbRootView::FgdHit_vis : unknown modeling style "+_style.modeling.value()+".");
@@ -1265,7 +1744,7 @@ inline void FgdHit_vis(inlib::sg::gui_viewer& a_gv,const std::vector<std::string
 ///////////////////////////////////////////////////////////////
 /// neard : ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
-inline bool vis_set_neard_camera(inlib::sg::gui_viewer& a_gv) {
+inline void vis_set_neard_camera(inlib::sg::gui_viewer& a_gv) {
   std::vector<std::string> args;
   args.push_back("-type=ortho");
   args.push_back("-height=1500");
@@ -1277,10 +1756,10 @@ inline bool vis_set_neard_camera(inlib::sg::gui_viewer& a_gv) {
   args.push_back("-ds=0.99");
   args.push_back("-position=0 0 1000");
   args.push_back("-orientation=0 1 0 0");
-  return inlib::sg::vis_set_camera(a_gv,args);
+  inlib::sg::vis_set_camera(a_gv,args);
 }
 
-inline bool vis_neard_floor(inlib::sg::gui_viewer& a_gv) {
+inline void vis_neard_floor(inlib::sg::gui_viewer& a_gv) {
   std::vector<std::string> args;
   args.push_back("-color=lightgrey");
   args.push_back("-line_width=1");
@@ -1290,22 +1769,22 @@ inline bool vis_neard_floor(inlib::sg::gui_viewer& a_gv) {
   args.push_back("-nx=10");
   args.push_back("-sy=100");
   args.push_back("-ny=10");
-  return inlib::cbk::vis_xy_grid(a_gv,args);
+  inlib::cbk::scene_add_xy_grid(a_gv,args);
 }
 
-inline bool vis_neard_sarah(inlib::sg::gui_viewer& a_gv) {
+inline void vis_neard_sarah(inlib::sg::gui_viewer& a_gv) {
   std::vector<std::string> args;
   args.push_back("-file=avatar_sarah.bsg");
   args.push_back("-translate=400 -168 510");
   args.push_back("-rotate=0 1 0 -1.570796");
   args.push_back("-scale=0.1");
-  return exlib::cbk::vis_read_bsg(a_gv,args);
+  exlib::cbk::vis_read_bsg(a_gv,args);
 }
 
 ///////////////////////////////////////////////////////////////
 /// fard : ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
-inline bool vis_set_fard_camera(inlib::sg::gui_viewer& a_gv) {
+inline void vis_set_fard_camera(inlib::sg::gui_viewer& a_gv) {
   std::vector<std::string> args;
   args.push_back("-type=ortho");
   args.push_back("-height=10000");
@@ -1317,10 +1796,10 @@ inline bool vis_set_fard_camera(inlib::sg::gui_viewer& a_gv) {
   args.push_back("-ds=0.99");
   args.push_back("-position=0 0 10000");
   args.push_back("-orientation=0 1 0 0");
-  return inlib::sg::vis_set_camera(a_gv,args);
+  inlib::sg::vis_set_camera(a_gv,args);
 }
 
-inline bool vis_fard_floor(inlib::sg::gui_viewer& a_gv) {
+inline void vis_fard_floor(inlib::sg::gui_viewer& a_gv) {
   std::vector<std::string> args;
   args.push_back("-color=lightgrey");
   args.push_back("-line_width=1");
@@ -1330,42 +1809,45 @@ inline bool vis_fard_floor(inlib::sg::gui_viewer& a_gv) {
   args.push_back("-nx=10");
   args.push_back("-sy=1000");
   args.push_back("-ny=10");
-  return inlib::cbk::vis_xy_grid(a_gv,args);
+  inlib::cbk::scene_add_xy_grid(a_gv,args);
 }
 
-inline bool vis_fard_sarah(inlib::sg::gui_viewer& a_gv) {
+inline void vis_fard_sarah(inlib::sg::gui_viewer& a_gv) {
   std::vector<std::string> args;
   args.push_back("-file=avatar_sarah.bsg");
   args.push_back("-translate=4000 -2605 -4000");
   args.push_back("-rotate=0 1 0 -1.570796");
   args.push_back("-scale=0.1");
-  return exlib::cbk::vis_read_bsg(a_gv,args);
+  exlib::cbk::vis_read_bsg(a_gv,args);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// geometry : y//////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-inline bool vis_geometry(inlib::sg::gui_viewer& a_gv,const std::string& a_style,
+inline void vis_geometry(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args,
+                         const std::string& a_style,
                          const std::string& a_volume,unsigned int a_min_depth,unsigned int a_max_depth) {
   inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
-  if(!_evd) {a_gv.insh().warn("EsbRootView::vis_geometry : bad evd cast.");return false;}
+  if(!_evd) {a_gv.insh().warn("EsbRootView::vis_geometry : bad evd cast.");return;}
   dac* _dac = cast_dac(a_gv);
-  if(!_dac) {a_gv.insh().warn("EsbRootView::vis_geometry : bad dac cast.");return false;}
+  if(!_dac) {a_gv.insh().warn("EsbRootView::vis_geometry : bad dac cast.");return;}
 
   //////////////////////////////////////
   //// get style : /////////////////////
   //////////////////////////////////////
   inlib::sg::style _style;
   _style.modeling.value().clear();
-  if(!a_gv.styles().res_sg_style<inlib::sg::style>(a_style,_style)) {
-    a_gv.out() << "vis_geometry : get style " << inlib::sout(a_style) << " failed." << std::endl;
-  }
+  inlib::args _args(a_args);
+  inlib::sg::get_style(a_gv.styles(),a_style,_args,_style);
+
+  std::string splacement;
+  INLIB_GUI_VIEWER_GET_ARG_STRING(placement)
   //////////////////////////////////////
   //////////////////////////////////////
   //////////////////////////////////////
 
   const inlib::rroot::geo_volume* master = _dac->master_volume();
-  if(!master) {a_gv.insh().warn("EsbRootView::vis_geometry : no master volume.");return false;}
+  if(!master) {a_gv.insh().warn("EsbRootView::vis_geometry : no master volume.");return;}
 
   inlib::rroot::geo* geo = new inlib::rroot::geo(*master);
 
@@ -1378,6 +1860,8 @@ inline bool vis_geometry(inlib::sg::gui_viewer& a_gv,const std::string& a_style,
   
   if(_style.modeling==inlib::sg::modeling_solid()) {
     geo->solid_depth = 0;
+  } else if(_style.modeling==inlib::sg::modeling_wire_frame()) {
+    geo->solid_depth = 10;
   } else if(_style.modeling.value().empty()) {
     geo->solid_depth = 10;
   } else {
@@ -1398,102 +1882,60 @@ inline bool vis_geometry(inlib::sg::gui_viewer& a_gv,const std::string& a_style,
     inlib::sg::separator* sep = new inlib::sg::separator;
     sep->add(new inlib::sg::matrix()); //for manip.
     sep->add(geo);
-    
-    _evd->static_sg().add(sep);
-    
+
     inlib::args opts;
-    opts.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_static());
+    if(splacement.empty()||(splacement==inlib::sg::s_placement_static())) {
+      _evd->static_sg().add(sep);
+      opts.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_static());
+    } else if(splacement==inlib::sg::s_placement_dynamic()) {
+      _evd->dynamic_sg().add(sep);
+      opts.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_dynamic());
+    } else if(splacement==inlib::sg::s_placement_static_blend()) {
+      _evd->static_blend_sg().add(sep);
+      opts.add(inlib::sg::s_send_placement(),inlib::sg::s_placement_static_blend());
+    } else {
+      a_gv.insh().warn("EsbRootView::vis_geometry : unknown placement "+inlib::sout(splacement)+".");
+      delete sep;
+      return;
+    }
+    
     inlib::sg::view_sg_client* wc = inlib::sg::cast_view_sg_client(a_gv);
     if(wc && wc->is_connected()) {if(!wc->send_sg(*sep,opts)){}}
   }
-  
-  return true;
 }
 
-inline bool vis_neard_geometry(inlib::sg::gui_viewer& a_gv) {return vis_geometry(a_gv,"neard_geo","wc",0,2);}
-inline bool vis_fard_geometry(inlib::sg::gui_viewer& a_gv) {return vis_geometry(a_gv,"fard_geo","wc",0,2);}
-inline bool vis_fgd_geometry(inlib::sg::gui_viewer& a_gv) {return vis_geometry(a_gv,"fgd_geo","Esb/SuperFGD",0,1);}
+inline void vis_neard_geometry(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {vis_geometry(a_gv,a_args,"neard_geo","wc",0,2);}
+inline void vis_fard_geometry(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {vis_geometry(a_gv,a_args,"fard_geo","wc",0,2);}
+inline void vis_fgd_geometry(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {vis_geometry(a_gv,a_args,"fgd_geo","Esb/SuperFGD",0,1);}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline bool exec_event_insh(inlib::sg::gui_viewer& a_gv) {
+inline bool source_event_insh(inlib::sg::gui_viewer& a_gv) {
   std::vector<std::string> lines;
   lines.push_back(". event.insh");
   a_gv.insh()._exec_lines(lines);
   return true;
 }
 
-inline bool vis_next_event(inlib::sg::gui_viewer& a_gv) {
+inline void vis_next_event(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
   inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
-  if(!_evd) return false;
+  if(!_evd) return;
   dac* _dac = cast_dac(a_gv);
-  if(!_dac) return false;
+  if(!_dac) return;
   inlib::uint64 number = _dac->number_of_events();
   if(!number) {
     a_gv.insh().warn("EsbRootView::vis_next_event : no event.");
-    return false;
+    return;
   }
-  if(_evd->event_index()>=(unsigned int)number) {
-    _evd->event_index() = 0;
+  if(_evd->event_index()>=(unsigned int)number) _evd->event_index() = 0;
+  if(!_dac->read_one_event(_evd->event_index())) return;
+  if(a_args.size()&&(a_args[0]=="-no_exec")) {
+  } else {
+    if(!source_event_insh(a_gv)) return;
   }
-  if(!_dac->read_one_event(_evd->event_index())) return false;
-  if(!exec_event_insh(a_gv)) return false;
   _evd->event_index()++;
-  return true;
-}
-
-inline bool vis_insh_anim(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
-  if(!_evd) return false;
-
-//inlib::sg::style _style;
-  inlib::args _args(a_args);
-//inlib::sg::get_style(a_gv.styles(),"insh_anim",_args,_style);
-
-  double time_min = DBL_MAX;
-  INLIB_GUI_VIEWER_GET_ARG_DOUBLE(vis_insh_anim,time_min,false)
-  double time_max = DBL_MIN;
-  INLIB_GUI_VIEWER_GET_ARG_DOUBLE(vis_insh_anim,time_max,false)
-  double delay = 0;
-  INLIB_GUI_VIEWER_GET_ARG_DOUBLE(vis_insh_anim,delay,false)
-  bool end_begin = false;
-  INLIB_GUI_VIEWER_GET_ARG_BOOL(vis_insh_anim,end_begin,false)
-  bool show_console = true;
-  INLIB_GUI_VIEWER_GET_ARG_BOOL(vis_insh_anim,show_console,false)
-  bool scene_clear_dynamic = true;
-  INLIB_GUI_VIEWER_GET_ARG_BOOL(vis_insh_anim,scene_clear_dynamic,false)
-  bool set_v = false;
-  INLIB_GUI_VIEWER_GET_ARG_BOOL(vis_insh_anim,set_v,false)
-  bool set_x = false;
-  INLIB_GUI_VIEWER_GET_ARG_BOOL(vis_insh_anim,set_x,false)
-
-  std::vector<std::string> lines;
-  lines.push_back(". anim.insh");  //sourced so that set_v, set_x can apply.
-
-  inlib::sg::insh_anim* _anim = new inlib::sg::insh_anim(inlib::atime::now(),a_gv.insh());
-  _anim->time_min = time_min;
-  _anim->time_max = time_max;
-  _anim->delay = delay;
-  _anim->end_begin = end_begin;
-  _anim->show_console = show_console;
-  _anim->set_v = set_v;
-  _anim->set_x = set_x;
-  _anim->script = lines;
-  if(!_anim->is_valid()) {
-    a_gv.insh().warn("EsbRootView::vis_insh_anim : insh_anim not valid.");
-    delete _anim;
-    return false;
-  }
-  
-  if(scene_clear_dynamic) _evd->dynamic_sg().clear();
-  
-  _evd->dynamic_sg().add(_anim);
-
-  a_gv.enable_anim();
-  
-  return true;
 }
 
 #define ESBROOTVIEW_FIELDS_ITEM(a__data,a__evaluator) \
