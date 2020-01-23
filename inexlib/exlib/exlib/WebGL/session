@@ -535,8 +535,9 @@ public:
       _main->opener().open(DOCUMENT,inlib::file::s_format_guessed(),inlib::args(),done);
     }
 
-    _main->exec_dot_insh();
-    _main->exec_startup_insh();
+    _main->source_dot_insh();
+    _main->source_startup_insh();
+    _main->exec_insh_startup();
 
     a_main = _main;
     m_mains[a_mid] = mgr_main_t(_mgr,_main);
