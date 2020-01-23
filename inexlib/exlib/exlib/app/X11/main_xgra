@@ -71,7 +71,6 @@ public:
   }
 public:
   main(std::ostream& a_out
-       ,const std::string& a_app_name
        ,const std::string& a_doc_dir
        ,const std::string& a_res_dir
        ,const std::string& a_out_dir
@@ -88,7 +87,6 @@ public:
   ,m_window(a_window)
   ,m_to_render(false)
   ,m_win_x(0),m_win_y(0)
-  ,m_app_name(a_app_name)
   {
     //parent::m_params.m_image_buttons = false;
     parent::m_params.m_gsto_mode = inlib::sg::s_gsto_memory();
@@ -124,15 +122,12 @@ public:
   }
   void set_position(int a_x,int a_y) {m_win_x = a_x;m_win_y = a_y;}
   void position(int& a_x,int& a_y) const {a_x = m_win_x;a_y = m_win_y;}
-  //void set_app_name(const std::string& a_name) {m_app_name = a_name;}
-  const std::string& app_name() const {return m_app_name;}
 protected:
   Display* m_display;
   Window m_window;
   bool m_to_render;
   int m_win_x;
   int m_win_y;
-  std::string m_app_name;
 };
 
 }

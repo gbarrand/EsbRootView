@@ -132,9 +132,10 @@ inline int exlib_main(const std::string& a_app_name,int argc,char** argv) {
 
   _main.set_meta_zone_had_been_shown();
 
-  _main.exec_dot_insh();
+  _main.source_dot_insh();
 
-//_main.exec_startup_insh();
+//_main.source_startup_insh();
+//_main.exec_insh_startup();
   _main.insh().exec_file_reset_to_stop(orders);
 
   }

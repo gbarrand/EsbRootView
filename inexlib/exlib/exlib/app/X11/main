@@ -62,7 +62,6 @@ public:
   }
 public:
   main(std::ostream& a_out
-       ,const std::string& a_app_name
        ,const std::string& a_doc_dir
        ,const std::string& a_res_dir
        ,const std::string& a_out_dir
@@ -79,7 +78,6 @@ public:
   ,m_window(a_window)
   ,m_ctx(a_ctx)
   ,m_win_x(0),m_win_y(0)
-  ,m_app_name(a_app_name)
   {
     parent::push_home(); //NOTE : it can't call a potential push_home() done on an inheriting class.
   }
@@ -102,15 +100,12 @@ public:
   }
   void set_position(int a_x,int a_y) {m_win_x = a_x;m_win_y = a_y;}
   void position(int& a_x,int& a_y) const {a_x = m_win_x;a_y = m_win_y;}
-  //void set_app_name(const std::string& a_name) {m_app_name = a_name;}
-  const std::string& app_name() const {return m_app_name;}
 protected:
   Display* m_display;
   Window m_window;
   GLXContext m_ctx;
   int m_win_x;
   int m_win_y;
-  std::string m_app_name;
 };
 
 }

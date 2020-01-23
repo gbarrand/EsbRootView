@@ -256,7 +256,7 @@ options are :\n\
 
   APP_CONTEXT app_context(res_dir);
 
- {app_X11::main<APP_MAIN> _main(std::cout,a_app_name,doc_dir,res_dir,out_dir,tmp_dir,verbose,x11.display()
+ {app_X11::main<APP_MAIN> _main(std::cout,doc_dir,res_dir,out_dir,tmp_dir,verbose,x11.display()
 #ifdef EXLIB_NO_GL
                                 ,monitor,win
 #else
@@ -281,8 +281,9 @@ options are :\n\
   //////////////////////////////////////////////////////////////////
   /// insh default scripts : ///////////////////////////////////////
   //////////////////////////////////////////////////////////////////
-  _main.exec_dot_insh();
-  _main.exec_startup_insh();
+  _main.source_dot_insh();
+  _main.source_startup_insh();
+  _main.exec_insh_startup();
 
   //////////////////////////////////////////////////////////////////
   /// document file : //////////////////////////////////////////////

@@ -304,10 +304,24 @@ protected:
       return;
     }
   }
+  static const std::string& _style_load_file_help() {
+    static const std::string s_help("\
+style_load_file: style_load_file [-doc_res,-res,-doc] path\n\
+  Load a XML style file.\n\
+  If no directory is given in path, the -doc_res option permits to search a file first\n\
+  in the document directory declared to the app, and then in the app (internal) resource directory.\n\
+  -res for the resource directory only, -doc for the document directory only.\n\
+  See also : app_dir.\n\
+");
+    return s_help;
+  }
 
-  INLIB_INSH_CLASS_CMD(main,style_load_file,m_holder._style_load_file(a_args),inlib::insh::no_help())
+  INLIB_INSH_CLASS_CMD(main,style_load_file,m_holder._style_load_file(a_args),_style_load_file_help())
+  INLIB_INSH_CLASS_CMD(main,gui_push_list,gui_push_list(m_holder,a_args),"gui_push_list: gui_push_list [label script]\n  Show a list menu.\n  A list of pairs (label,script) must be provided.\n  gui_push_list 'item 1' 'echo item 1' 'item 2' 'echo item 2'\n  gui_show_main_menu\n")
+    
   void insh_add_cmds() {
     INLIB_INSH_ADD_CMD(m_insh,*this,style_load_file)
+    INLIB_INSH_ADD_CMD(m_insh,*this,gui_push_list)
   }    
 protected:
   inlib::ftp::ftps m_ftps;

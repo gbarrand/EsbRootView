@@ -34,13 +34,13 @@ public:
   void _alogi(const char* a_fmt,...) {
     va_list args;
     va_start(args,a_fmt);
-    __android_log_vprint(ANDROID_LOG_INFO,m_app_name.c_str(),a_fmt,args);
+    __android_log_vprint(ANDROID_LOG_INFO,parent::m_app_name.c_str(),a_fmt,args);
     va_end(args);
   }
   void _alogw(const char* a_fmt,...) {
     va_list args;
     va_start(args,a_fmt);
-    __android_log_vprint(ANDROID_LOG_WARN,m_app_name.c_str(),a_fmt,args);
+    __android_log_vprint(ANDROID_LOG_WARN,parent::m_app_name.c_str(),a_fmt,args);
     va_end(args);
   }
 public:
@@ -80,13 +80,13 @@ public:
                           const std::string& a_msg,
                           const std::string& a_path,
                           const std::string& a_mime){
-    return Main_send_mail(m_app_name,parent::m_out,m_app,a_to,a_subject,a_msg,a_path,a_mime);
+    return Main_send_mail(parent::m_app_name,parent::m_out,m_app,a_to,a_subject,a_msg,a_path,a_mime);
   }
   ////////////////////////////////////////
   ////////////////////////////////////////
   ////////////////////////////////////////
 public:
-  main(const std::string& a_app_name,std::ostream& a_out,
+  main(std::ostream& a_out,
        const std::string& a_doc_dir,const std::string& a_res_dir,
        const std::string& a_out_dir,const std::string& a_tmp_dir,
        bool a_verbose)
@@ -94,7 +94,6 @@ public:
   ,parent(a_out,
           parent_pv_holder::m_mgr_gra,parent_pv_holder::m_ttf,parent_pv_holder::m_selection,
           a_doc_dir,a_res_dir,a_out_dir,a_tmp_dir,a_verbose,0)
-  ,m_app_name(a_app_name)
   ,m_app(0)
   ,m_display(EGL_NO_DISPLAY)
   ,m_context(EGL_NO_CONTEXT)
@@ -119,7 +118,6 @@ private:
   ,inlib::sg::alert(a_from)
   ,parent_pv_holder(a_from)
   ,parent(a_from)
-  ,m_app_name(a_from.m_app_name)
   ,m_app(0)
   ,m_display(EGL_NO_DISPLAY)
   ,m_context(EGL_NO_CONTEXT)
@@ -127,7 +125,6 @@ private:
   {}
   main& operator=(const main&){return *this;}
 public:
-  const std::string& app_name() const {return m_app_name;}
   bool initialize_display() {
     if(!m_app->window) return false;
     if(m_display!=EGL_NO_DISPLAY) return false;
@@ -550,7 +547,6 @@ protected:
   };
 
 public:
-  std::string m_app_name;
   struct android_app* m_app;
   EGLDisplay m_display;
   EGLConfig m_config;
@@ -880,7 +876,7 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
   APP_CONTEXT context(res_dir);
 
   bool verbose = false;
-  app_Android::main<APP_MAIN> _main(a_app_name,cout,doc_dir,res_dir,out_dir,tmp_dir,verbose);
+  app_Android::main<APP_MAIN> _main(cout,doc_dir,res_dir,out_dir,tmp_dir,verbose);
 
   _main.m_app = a_app;
   _main.m_display = 0;
@@ -923,8 +919,9 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////
-  _main.exec_dot_insh();
-  _main.exec_startup_insh();
+  _main.source_dot_insh();
+  _main.source_startup_insh();
+  _main.exec_insh_startup();
   //////////////////////////////////////////////////////////////////
   /// steering /////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////

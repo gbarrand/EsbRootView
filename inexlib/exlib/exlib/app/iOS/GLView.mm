@@ -207,8 +207,9 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
     m_sg_serv_timer = 0;
 #endif    
 
-    m_main->exec_dot_insh();
-    m_main->exec_startup_insh();
+    m_main->source_dot_insh();
+    m_main->source_startup_insh();
+    m_main->exec_insh_startup();
     
     //NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     //[center addObserver:self selector:@selector(mem_pb:)
