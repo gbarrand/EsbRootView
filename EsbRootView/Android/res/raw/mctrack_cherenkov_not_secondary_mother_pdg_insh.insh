@@ -1,0 +1,15 @@
+
+cut_second="(pdg==50000050)&&(is_secondary==false)"
+
+ids=`event_print MCTrack -cut=${cut_second} mother_id`
+ids=`unique ${ids}`
+#echo ${ids}
+
+pdgs=
+for id in ${ids} ; do
+  pdg=`event_print MCTrack -cut=index==${id} pdg`
+  pdgs="${pdgs} ${pdg}"
+done
+
+pdgs=`unique ${pdgs}`
+echo ${pdgs}

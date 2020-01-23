@@ -1,0 +1,19 @@
+
+scene_blend_on
+
+cut_first="(pdg==50000050)&&(is_secondary==true)"
+
+red_a=`app_color_value -rgb red`
+red_a="${red_a} 0.5"
+event_vis MCTrack -cut=${cut_first} -color="${red_a}" -modeling=cone_neard -anim=true
+
+#event_vis MCTrack -cut=${cut_first} -color="${red_a}" -modeling=cone -anim=true -time_cone_elapse=100  # without boolean operation on detector.
+
+cut_second="(pdg==50000050)&&(is_secondary==false)"
+
+pink_a=`app_color_value -rgb pink`
+pink_a="${pink_a} 0.5"
+event_vis MCTrack -cut=${cut_second} -color="${pink_a}" -modeling=cone_neard -anim=true
+
+#event_vis MCTrack -cut=${cut_second} -color="${pink_a}" -modeling=cone -anim=true -time_cone_elapse=100  # without boolean operation on detector.
+
