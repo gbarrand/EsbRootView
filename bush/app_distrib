@@ -12,17 +12,58 @@ if [ ${build_offscreen} = "yes" ] ; then
   target=offscreen
 elif [ ${build_webgl} = "yes" ] ; then
   target=WebGL
-elif [ ${build_wasm} = "yes" ] ; then
-  target=wasm
 elif [ ${build_tntnet} = "yes" ] ; then
   target=tntnet
 elif [ ${build_wx} = "yes" ] ; then
   target=wx
+elif [ ${build_sdl2} = "yes" ] ; then
+  target=SDL2
 
 elif [ ${build_visual} = "yes" ] ; then
   target=Windows
 elif [ ${build_x11} = "yes" ] ; then
   target=X11
+
+elif [ ${build_wasm} = "yes" ] ; then
+
+  if [ ${build_verbose} = yes ] ; then
+    echo "bush/app_distrib : for wasm ..."
+  fi
+
+  if [ ! -f "${build_path}/renderer.js" ] ; then
+    echo "bush/app_distrib : wasm : not built."
+  else
+
+    head_app=${build_path}/distrib/${build_app_distrib_dir}
+    head=${head_app}/${version}
+    
+    /bin/mkdir -p ${head}
+
+    find ${build_path} -maxdepth 1 -name '*' -type f -exec /bin/cp {} ${head}/. \;
+     
+    #/bin/cp ${bush_home}/wasm_run  ${head}/.
+    
+    #///////////////////////////////////////////////////
+    #/// zip : /////////////////////////////////////////
+    #///////////////////////////////////////////////////
+    save_dir=`pwd`
+        
+    platform=wasm
+    
+    ${bush_home}/check_app zip 'zip not found, we use tar.'
+    use_status=$?;
+    if [ ${use_status} != 0 ] ; then
+      cd ${build_path}/distrib
+      tar cf ${build_app_distrib_dir}-${version}-${platform}.tar ./${build_app_distrib_dir}
+      cd ${save_dir}
+    else
+      cd ${build_path}/distrib
+      zip -qr ${build_app_distrib_dir}-${version}-${platform}.zip ./${build_app_distrib_dir}
+      cd ${save_dir}
+    fi
+  
+  fi
+
 
 elif [ ${build_sdk_android} = "yes" ] ; then
 
@@ -417,11 +458,7 @@ if [ "${target}" != "" ] ; then
     
     . ${bush_home}/sys_app
       
-    if [ "${target}" = "wasm" ] ; then
-      platform=wasm
-    else
-      platform=`${bush_home}/platform "${cpp_compiler}"`
-    fi
+    platform=`${bush_home}/platform "${cpp_compiler}"`
     
     if [ "${platform}" = "" ] ; then
       echo "bush/app_distrib : can't guess platform for ${cpp_compiler}."

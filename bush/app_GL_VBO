@@ -17,6 +17,9 @@ elif [ "${build_ios}" = "yes" -o "${build_ios_gnu}" = "yes" -o "${build_iossim}"
 elif [ "${build_android}" = "yes" ] ; then
   cppflags="${cppflags} -DEXLIB_HAS_GL_VBO"
 
+elif [ "${build_wasm}" = "yes" ] ; then
+  cppflags="${cppflags} -DEXLIB_HAS_GL_VBO"
+
 elif [ "${build_no_gl}" = "yes" ] ; then
   echo dummy > /dev/null
 

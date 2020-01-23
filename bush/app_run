@@ -10,6 +10,8 @@ run_gdb=no
 run_args=
 build_args=
 run_offscreen=no
+run_wasm_py=no
+run_wasm_http=no
 
 while test $# -ge 1 ; do
   case $1 in
@@ -18,7 +20,10 @@ while test $# -ge 1 ; do
     -intel)       build_args="${build_args} $1";;
     -clang)       build_args="${build_args} $1";;
     -visual)      build_args="${build_args} $1";;
-    -emcc)        build_args="${build_args} $1";;
+    
+    -wasm)        build_args="${build_args} $1";;
+    -wasm_py)     build_args="${build_args} -wasm";run_wasm_py=yes;;
+    -wasm_http)   build_args="${build_args} -wasm";run_wasm_http=yes;;
 
     -no_screen)   build_args="${build_args} $1";;
     -cocoa)       build_args="${build_args} $1";;
@@ -95,6 +100,17 @@ elif [ ${build_visual} = yes -a "${SSH_CLIENT}" != "" ] ; then
   cmd="${HOME}/PsExec.exe -s -i '${path}' ${run_args}"
   eval ${cmd}
 
+elif [ ${build_wasm} = "yes" ] ; then
+
+  cd ${build_path}/distrib/${build_app_distrib_dir}/${version}
+  if [ ${run_wasm_py} = "yes" ] ; then
+    python -m SimpleHTTPServer 8080
+  elif [ ${run_wasm_http} = "yes" ] ; then
+    http-server . -p 8080
+  else    
+    emrun --no_browser --hostname 0.0.0.0 --port 8080 .
+  fi
+    
 else
   ${build_path}/distrib/${build_app_distrib_dir}/${version}/bin/${app_exe} ${run_args}
 fi

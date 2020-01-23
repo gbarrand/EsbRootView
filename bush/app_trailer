@@ -29,17 +29,27 @@ if [ "${app_src}" = "" ] ; then
     /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../WebGL/main.cpp > tmp_0;/bin/mv tmp_0 ../WebGL/main.cpp
     app_src=../WebGL/main.cpp
 
-  elif [ ${build_wasm} = "yes" ] ; then
-    if [ ! -d ../WebGL ] ; then /bin/mkdir -p ../WebGL ;fi
-    /bin/cp ${exlib_home}/exlib/app/WebGL/check_app_main.cpp ../WebGL/main.cpp
-    /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../WebGL/main.cpp > tmp_0;/bin/mv tmp_0 ../WebGL/main.cpp
-    app_src=../WebGL/main.cpp
-
   elif [ ${build_tntnet} = "yes" ] ; then
     if [ ! -d ../tntnet ] ; then /bin/mkdir -p ../tntnet ;fi
     /bin/cp ${exlib_home}/exlib/app/tntnet/check_app_main.cpp ../tntnet/main.cpp
     /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../tntnet/main.cpp > tmp_0;/bin/mv tmp_0 ../tntnet/main.cpp
     app_src=../tntnet/main.cpp
+
+  elif [ ${build_sdl2} = "yes" ] ; then
+    if [ ! -d ../SDL2 ] ; then /bin/mkdir -p ../SDL2 ;fi
+    /bin/cp ${exlib_home}/exlib/app/SDL2/check_app_main.cpp ../SDL2/main.cpp
+    /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../SDL2/main.cpp > tmp_0;/bin/mv tmp_0 ../SDL2/main.cpp
+    app_src=../SDL2/main.cpp
+
+  elif [ ${build_wasm} = "yes" ] ; then
+    if [ ! -d ../wasm ] ; then /bin/mkdir -p ../wasm ;fi
+    /bin/cp ${exlib_home}/exlib/app/wasm/check_app_main.cpp ../wasm/main.cpp
+    /bin/cp ${exlib_home}/exlib/app/wasm/index.html  ../wasm/.
+    find ${exlib_home}/exlib/app/wasm -name '*.js' -exec /bin/cp {} ../wasm/. \;
+    /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../wasm/main.cpp   > tmp_0;/bin/mv tmp_0 ../wasm/main.cpp
+    /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../wasm/index.html > tmp_0;/bin/mv tmp_0 ../wasm/index.html
+    /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../wasm/main.js    > tmp_0;/bin/mv tmp_0 ../wasm/main.js
+    app_src=../wasm/main.cpp
 
   elif [ ${build_wx} = "yes" ] ; then
     if [ ! -d ../wx ] ; then /bin/mkdir -p ../wx ;fi
