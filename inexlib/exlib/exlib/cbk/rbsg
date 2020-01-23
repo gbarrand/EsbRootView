@@ -83,6 +83,23 @@ inline bool vis_read_bsg(inlib::sg::gui_viewer& a_gv,const std::vector<std::stri
   return true;
 }
 
+inline const std::string& scene_read_bsg_help() {
+  static const std::string s_help("\
+scene_read_bsg: scene_read_bsg [-file,-scale,-translate,-rotate]\n\
+  Read a bsg file and add its contents in the static scene graph.\n\
+  -file=string file at the bsg (binary scene graph) format. The file is searched first\n\
+  in the document directory of the application, then in its resource directory.\n\
+  -scale=real overall scale (default 1).\n\
+  -rotate='real real real real' overall rotation (default '0 0 1 0'). First\n\
+  three numbers specify the axis, the last one the angle in radians.\n\
+  -transtale='real real real' overall translation (default '0 0 0').\n\
+  Scale, rotation, translation are applied in this order.\n\
+  Example:\n\
+    scene_read_bsg -file=avatar_plant.bsg -translate='460 -300 430' -rotate='0 1 0 -1.570796' -scale=0.03\n\
+");
+  return s_help;
+}
+
 //inline inlib::sg::return_action action_read_bsg(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
 //  vis_read_bsg(a_gv,a_args);
 //  a_gv.hide_main_menu();
