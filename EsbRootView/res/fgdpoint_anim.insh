@@ -1,0 +1,3 @@
+
+event_vis FgdDetectorPoint -color=skyblue -anim=true
+

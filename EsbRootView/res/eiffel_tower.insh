@@ -1,0 +1,8 @@
+
+# EsbRoot is in cm.
+avatar_scale=`calc 100*324/2.66372`
+avatar_neard_translate='0 0 0'
+avatar_neard_rotate='1 0 0 -1.570796'
+scene_read_bsg -file=eiffel_tower.bsg -translate="${avatar_neard_translate}" -rotate="${avatar_neard_rotate}" -scale=${avatar_scale}
+
+
