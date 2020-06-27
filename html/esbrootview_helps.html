@@ -131,6 +131,20 @@
   Example:
     suffix /a/b/c.d  # return d
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">sys_os: sys_os
+  Return OS type. It is defined in inlib/platform/os().
+  It could be:
+    iOS,Android,emscripten,Windows_NT,Darwin,Linux,CYGWIN,OSF1.
+  Example:
+    sys_os
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">system: system command
+  Pass command to the C ::system() function.
+  Note that a command with arguments must be passed as one string.
+  Example:
+    system ls
+    system 'ls -al'
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">time: time command
   Execute command and print the real time spent executing it.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
@@ -151,7 +165,7 @@
 <pre class="fragment">unset: unset variable
   Remove the corresponding variable.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">app_color_value: app_color_value [-r,-g,-b,-a,-rgba] colorname.
+<pre class="fragment">app_color_value: app_color_value [-r,-g,-b,-a,-rgba] colorname
   Print the rgba of a color given its name.
   -r to print only the red value (in [0,1]).
   -g to print only the green value (in [0,1]).
@@ -163,7 +177,7 @@
     app_color_value -r red
     app_color_value -rgb red
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">app_dir: app_dir [-res,-doc,-out,-tmp,-start].
+<pre class="fragment">app_dir: app_dir [-res,-doc,-out,-tmp,-start]
   Print the application [resource,document,output,startup,temporary] directory.
   If no option given, print all of them in this order.
   Example:
@@ -317,7 +331,7 @@
     camera_zoom 0.99  # is a zoom in.
     camera_zoom 1.01  # is a zoom out.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">event_count: event_count item [cut].
+<pre class="fragment">event_count: event_count item [cut]
   Count event model item instances.
   Someone can give a cut in option.
   Without any argument, the event model items are printed.
@@ -326,16 +340,57 @@
     event_count MCTrack
     event_count MCTrack -cut=pdg==50000050
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">event_exec_insh: event_exec_insh
-  Source the event.insh script.
-  Deprecated, use event_source_insh.
-</pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">event_fields: event_fields item.
+<pre class="fragment">event_fields: event_fields item
   Print event model item fields.
   Without any argument, the event model items are printed.
   Example :
     event_fields
     event_fields MCTrack
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">event_hfill: event_hfill item [-name,-cut,-xfill,-yfill]
+  Fill a managed histogram with the fields of event model item instances.
+  Someone can give a cut in option.
+  -name=string name of the managed histogram (mendatory).
+  -cut=string cut in the event model item instances.
+  -xfill=string expression to fill a 1D histo or the x of a 2D.
+  -yfill=string expression to fill the y of a 2D histogram.
+  Without any argument, the event model items are printed.
+  Example :
+    event_hfill
+    histo_create -xbins=100 -xmin=0 -xmax=1e-7 h_MCTrack
+    event_hfill MCTrack -name=h_MCTrack -xfill=p
+    histo_create -xbins=100 -xmin=0 -xmax=1e-7 h_MCTrack_cut
+    event_hfill MCTrack -name=h_MCTrack_cut -cut=pdg==50000050 -xfill=t
+    histo_create -class=h2d -xbins=100 -xmin=0 -xmax=1e-7 -ybins=100 -ymin=0 -ymax=100 h2_MCTrack
+    event_hfill MCTrack -name=h2_MCTrack -xfill=p -yfill=t
+    histo_ls
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">event_histo: event_histo item [-name,-cut,-[x,y][fill,bins,min,max]]
+  Histogram fields of event model item instances.
+  If -xfill given only, a 1D histogram is created and filled.
+  If -xfill and -yfill given, a 2D histogram is created and filled.
+  Someone can give a cut in option.
+  -name=string name of the managed histogram (mendatory).
+  -cut=string cut in the event model item instances.
+  -xfill=string expression to fill a 1D histo or the x of a 2D.
+  -yfill=string expression to fill the y of a 2D histogram.
+  -xbins=uint number of x bins (default is 100).
+  -xmin=real if given, xmin of the 1D histo.
+   If not given, it is guessed from -xfill applied on data.
+  -xmax=real if given, xmax of the 1D histo.
+   If not given, it is guessed from -xfill applied on data.
+  -ybins=uint number of y bins (default is 100).
+  -ymin=real if given, ymin of the 2D histo.
+   If not given, it is guessed from -yfill applied on data.
+  -ymax=real if given, ymax of the 2D histo.
+   If not given, it is guessed from -yfill applied on data.
+  Without any argument, the event model items are printed.
+  Example :
+    event_histo
+    event_histo MCTrack -name=h_MCTrack -xfill=p
+    event_histo MCTrack -name=h_MCTrack_cut -cut=pdg==50000050 -xfill=t
+    event_histo MCTrack -name=h2_MCTrack -xfill=p -yfill=t
+    histo_ls
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">event_index: event_index
   Print the event index.
@@ -345,7 +400,7 @@
   -items prints event model items only.
   If a class is given, print the fields of this class.
   Fields permit, for example, to pass cut in event_vis,
-  event_count, event_stats, event_print, event_plot commands.
+  event_count, event_stats, event_print, event_histo, event_plot commands.
   Examples:
     event_model
     event_model -items
@@ -353,23 +408,47 @@
   Related examples:
     event_vis  MCTrack -cut=(pdg==50000050) -color=red
     event_vis MCTrack -cut=name=="'opticalphoton'" -color=blue
-    event_plot MCTrack -cut=(pdg!=50000050) -filling=p
+    event_histo MCTrack -name=h_MCTrack -cut=(pdg!=50000050) -xfill=p
+    event_plot MCTrack -cut=(pdg!=50000050) -xfill=p
     event_print WCDetectorPoint -cut=index&lt;10 x y z p
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">event_next: event_next
+<pre class="fragment">event_next: event_next [-number]
   Get next event in file and source the event.insh script.
   -no_exec to not source event.insh.
+  -number=uint do it number times (default is 1).
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">event_plot: event_plot item [cut] field.
+<pre class="fragment">event_number: event_number
+  Print the number of events.
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">event_plot: event_plot item [-cut,-[x,y][fill,bins,min,max]]
   Plot field of event model item instances.
+  If -xfill given only, a 1D histogram is created, filled and plotted.
+  If -xfill and -yfill given, a 2D histogram is created, filled and plotted.
   Someone can give a cut in option.
+  -cut=string cut in the event model item instances.
+  -histo_name=string if given, the transient histogram is managed,
+   else it is deleted when plotting is finished.
+  -xfill=string expression to fill a 1D histo or the x of a 2D.
+  -yfill=string expression to fill the y of a 2D histogram.
+  -filling=string deprecated. Same as -xfill.
+  -xbins=uint number of x bins (default is 100).
+  -xmin=real if given, xmin of the 1D histo.
+   If not given, it is guessed from -xfill applied on data.
+  -xmax=real if given, xmax of the 1D histo.
+   If not given, it is guessed from -xfill applied on data.
+  -ybins=uint number of y bins (default is 100).
+  -ymin=real if given, ymin of the 2D histo.
+   If not given, it is guessed from -yfill applied on data.
+  -ymax=real if given, ymax of the 2D histo.
+   If not given, it is guessed from -yfill applied on data.
   Without any argument, the event model items are printed.
   Example :
     event_plot
-    event_plot MCTrack -filling=p
-    event_plot MCTrack -cut=pdg==50000050 -filling=t
+    event_plot MCTrack -xfill=p
+    event_plot MCTrack -cut=pdg==50000050 -xfill=t
+    event_plot MCTrack -cut=pdg==50000050 -xfill=p -yfill=t
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">event_print: event_print item [cut] [fields].
+<pre class="fragment">event_print: event_print item [cut] [fields]
   Print event model item fields.
   Someone can give a cut in option and a list of fields.
   If no field is given, all are considered.
@@ -382,7 +461,7 @@
 <pre class="fragment">event_source_insh: event_source_insh
   Source the event.insh script.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">event_stats: event_stats item [-cut,-sum,-min,-max,-mean,-rms] [fields].
+<pre class="fragment">event_stats: event_stats item [-cut,-sum,-min,-max,-mean,-rms] [fields]
   Print event model item fields sum/min/max/mean/rms.
   Someone can give a cut in option and a list of fields.
   If only one field and one of [-sum,-min,-max,-mean,-rms] are specifed, then
@@ -408,7 +487,7 @@
   Print event min time taking the min of all
   MCTrack.t, WCDetectorPoint.time and FgdDetectorPoint.time
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">event_vis: event_vis item [cut].
+<pre class="fragment">event_vis: event_vis item [cut]
   Visualize event model item instances.
   Someone can give a cut in option.
   Without any argument, the event model items are printed.
@@ -417,24 +496,42 @@
     event_vis MCTrack
     event_vis MCTrack -cut=pdg==50000050
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">fard_set_camera: fard_set_camera
-  Set camera for the fard.
+<pre class="fragment">func_plot: func_plot [-infos_name,-xmin,-xmax,-steps,-script] name
+  Plot named function.
+  -infos_name=string string to be put in the 'Name' entry of the infos box.
+  -xmin=real plotter x axis min value (default is -1).
+  -xmax=real plotter x axis max value (default is 1).
+  -steps=uint number of steps when evaluating the function (default is 100).
+  -script=string.
+  You can use the completion to get the known function names.
+  If using -script, a function will be created that will use a
+  simple C instruction interpreter.
+  Example:
+    func_plot cos
+    func_plot -script='exp(cos(10*x))' my_func
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">fard_vis_floor: fard_vis_floor
-  Add a grid floor in the fard setup.
+<pre class="fragment">geo_field: geo_field volume field
+  Get field value of a volume.
+  Example:
+    geo_field wc rmax
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">fard_vis_geometry: fard_vis_geometry [-modeling,-placement]
-  Add the fard geometry in the static scene graph.
-  -modeling=[solid,wire_frame] to represent volumes in solid/wire_frame (default wire_frame).
-  -placement=[static,dynamic,static_blend] to add to static_sg, dynamic_sg or static_blend_sg.
+<pre class="fragment">geo_print: geo_print [name]
+  Without arguments, print the geo_volume names with their shape.
+  Else, print a named geo_volume informations.
+  Example:
+    geo_print
+    geo_print wc
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">fard_vis_sarah: fard_vis_sarah
-  Add the sarah avatar in the fard setup.
+<pre class="fragment">geo_tree: geo_tree
+  Print the geoemtry tree infos.
+  Example:
+    geo_tree
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">fgd_vis_geometry: fgd_vis_geometry [-modeling,-placement]
-  Add the fgd geometry in the static scene graph.
-  -modeling=[solid,wire_frame] to represent volumes in solid/wire_frame (default wire_frame).
-  -placement=[static,dynamic,static_blend] to add to static_sg, dynamic_sg or static_blend_sg.
+<pre class="fragment">gui_disable_anim: gui_disable_anim
+  Disable animations.
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">gui_enable_anim: gui_enable_anim
+  Enable animations.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">gui_exec_main_menu_item: gui_exec_main_menu_item menu_item_label
   Given its label, find a menu item in the
@@ -471,7 +568,7 @@
   gui_scroll_text line_1 line_2 line_3 line_4 line_5 line_6
   gui_show_main_menu
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">gui_set_console_layout: gui_set_console_layout [width] [height] [scale].
+<pre class="fragment">gui_set_console_layout: gui_set_console_layout [width] [height] [scale]
   Set the console width and/or height. -scale can set an extra scaling factor.
   Width and height are in normal window coordinates (in [0,1]).
   Example:
@@ -505,25 +602,185 @@
   gui_text line_1 line_2 line_3
   gui_show_main_menu
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">histo_create: histo_create [-classes,-class,-no_warn,-title,-[x,y,z]bins,-[x,y,z]min,-[x,y,z]max] [name]
+  Create a named and managed histogram.
+  The name must have the syntax of a C variable.
+  If an object with same name already exist it is deleted.
+  According to the wanted class, various booking arguments can be passed.
+  -classes print the available classes.
+  -no_warn to not warn in case of overwriting an existing object.
+  -title=string title of the histogram (default is '').
+  -class=string class of the object to createa (default is h1d).
+  -[x,y,z]bins=uint number of [x,y,z] bins (default is 100).
+  -[x,y,z]min=real [x,y,z] min (default is 0).
+  -[x,y,z]max=real [x,y,z] max (default is 1).
+  Example:
+    histo_create -classes
+    histo_create my_histo
+    histo_create -class=h1d -title='my histo' -xbins=10 -xmin=-5 -xmax=5 h_1
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">histo_fill: histo_fill [-source,] [name]
+  Fill histogram from various sources.
+  According to the source, various arguments can be passed.
+  -weight=real weighty of the fill.
+  If -source=rgaussd (random gauss):
+  -mean=real mean value (default is 0).
+  -std_dev=real standard deviation (default is 1).
+  If -source=rbwd (random breit-wigner):
+  -mean=real mean value (default is 0).
+  -gamma=real gamma (default is 1).
+  If -source=rbinomial:
+  -n=uint (default is 1).
+  -p=real (default is 0.5).
+  If -source=rexpd:
+  -rate=real (default is 1).
+  If -source=rpoissd (random poisson):
+  -mean=real (default is 1).
+  -sources print the available source.
+  Example:
+    histo_fill -sources
+    histo_create -xbins=20 -xmin=-5 -xmax=5 h_1
+    histo_fill -source=rgaussd -mean=0 -std_dev=1 -entries=10000 h_1
+    histo_print h_1
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">histo_ls: histo_ls
+  List managed histograms.
+  Example:
+    histo_ls
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">histo_plot: histo_plot [-infos_name] name
+  Plot named managed histogram.
+  -infos_name=string string to be put in the 'Name' entry of the infos box.
+  Example:
+    histo_create -xbins=20 -xmin=-5 -xmax=5 h_1
+    histo_fill -from=rgaussd -mean=0 -std_dev=1 -entries=10000 h_1
+    histo_plot h_1
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">histo_plot_offscreen: histo_plot_offscreen [-file,-format] [name]
+  Plot offscreen histograms in one or more files.
+  If no name is given, plot all of them (if they are plottable).
+  -file=string output file (default is out.ps).
+  -format=string file format (default is ps).
+  If -format is given but -file is not given, output file is out.(format extension).
+  In case of 'no name', a file is created per grid of 'cols*rows' plots; in such
+  a case file names are of the form 'file'_(index).(format extension).
+  -cols=uint number of grid columns in case of 'no name' (default is 1).
+  -rows=uint number of grid rows in case of 'no name' (default is 1).
+  If available when building the app, -format could be png or jpeg.
+  -formats print the available formats.
+  -no_warn to not warn in case of a not plottable object.
+  Example:
+    histo_plot_offscreen -formats
+    histo_create -xbins=20 -xmin=-5 -xmax=5 h_1
+    histo_fill -source=rgaussd -mean=0 -std_dev=1 -entries=10000 h_1
+    histo_create -xbins=20 -xmin=-5 -xmax=5 h_2
+    histo_fill -source=rbwd -gamma=1 -std_dev=1 -entries=10000 h_2
+    
+    histo_plot_offscreen h_1  # write in out.ps.
+    histo_plot_offscreen -file=my.ps h_1
+    histo_plot_offscreen -format=png h_1  #write out.png
+    histo_plot_offscreen -format=jpeg -file=my.jpeg h_1
+    
+    histo_plot_offscreen -cols=2 -rows=2
+    ls
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">histo_print: histo_print [-header,-hprint] [name]
+  Print histogram at the csv format given its name.
+  If no argument given, print all names.
+  -header to print the csv header only.
+  -hprint print summary as hbook hprint did.
+  Example:
+    histo_create
+    histo_ls
+    histo_print my_histo
+    histo_print -header my_histo
+    histo_print -hprint my_histo
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">histo_remove: histo_remove name
+  Remove managed histogram.
+  -all remove all objects.
+  Example:
+    histo_ls
+    histo_create h_1
+    histo_ls
+    histo_remove h_1
+    histo_ls
+    histo_remove -all
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">histo_write: histo_write [-file,-format] [name]
+  Write histogram in a file.
+  If no name is given, then all histograms are written.
+  -file=string output file (default is out.csv).
+  -format=string file format (default is csv).
+  If -format is given but -file is not given, output file is out.(format extension).
+  -formats print the available formats.
+  Example:
+    histo_write -formats
+    histo_create -xbins=20 -xmin=-5 -xmax=5 h_1
+    histo_fill -source=rgaussd -mean=0 -std_dev=1 -entries=10000 h_1
+    histo_write      # write in out.csv.
+    histo_write h_1  # write in out.csv.
+    histo_write -file=my.csv h_1
+    histo_write -format=root # write in out.root
+    histo_write -format=root -file=my.root h_1
+    ls
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">ls: ls [option] directory
   list directory contents.
   If no directory is given, the current directory is listed.
   By default the dotted files are not listed, use -a to list all files.
   Use -l to list with a long format.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">neard_set_camera: neard_set_camera
-  Set camera for the neard.
+<pre class="fragment">node_create: node_create [-classes,-no_warn,-class,] [name]
+  Create a named and managed inlib::sg::node.
+  The name must have the syntax of a C variable.
+  Note that the node is not put under a viewer scene graph.
+  It is deposited under the 'object manager' which is intended to
+  keep track of various objects not necessarily visualisable by themsleves
+  as random generators or histograms.
+  If an object with same name already exist it is deleted.
+  -no_warn to not warn in case of overwriting an existing object.
+  -class=string class of the node to createa (default is inlib::sg::cube).
+  -classes print the available classes.
+  Example:
+    node_create -classes
+    node_create  my_cube # create a cube named my_cube.
+    node_create -class=sphere my_cube
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">neard_vis_floor: neard_vis_floor
-  Add a grid floor in the neard setup.
+<pre class="fragment">node_get_field: node_get_field [-field,-fields] name
+  Get value of a field of a named managed node.
+  -field=string field to get.
+  Example:
+    node_create -class=cube my_cube
+    node_get_field -field=inlib::sg::cube.width my_cube
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">neard_vis_geometry: neard_vis_geometry [-modeling,-placement]
-  Add the neard geometry in the static scene graph.
-  -modeling=[solid,wire_frame] to represent volumes in solid/wire_frame (default wire_frame).
-  -placement=[static,dynamic,static_blend] to add to static_sg, dynamic_sg or static_blend_sg.
+<pre class="fragment">node_ls: node_ls
+  List managed nodes.
+  Example:
+    node_ls
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">neard_vis_sarah: neard_vis_sarah
-  Add the sarah avatar in the neard setup.
+<pre class="fragment">node_remove: node_remove [-all] name
+  Remove managed node.
+  -all remove all managed nodes.
+  Example:
+    node_ls
+    node_create -class=cube my_cube
+    node_create -class=sphere my_sphere
+    node_ls
+    node_remove my_cube
+    node_ls
+    node_remove -all
+    node_ls
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">node_set_field: node_set_field [-fields,-field,-value] name
+  Set value of a field of a named managed node.
+  -fields to print description of node fields.
+  -field=string field to set.
+  -value=[string,number] value to set.
+  Example:
+    node_create -class=cube my_cube
+    node_set_field -fields my_cube
+    node_set_field -field=inlib::sg::cube.width -value=100 my_cube
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">particle_print: particle_print [-cut] fields
   If no fields are given, list all them.
@@ -532,6 +789,11 @@
     particle_print
     particle_print -cut=code==11 name mass charge  # print name, mass and charge of electron.
     particle_print -cut=name=="'~mu_L+'" code mass charge  # print pid, mass and charge of ~mu_L+.
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">paw_set_camera: paw_set_camera
+  Set an ortho camera to have a similar plot viewing as PAW.
+  Example:
+    paw_set_camera
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">pdg: pdg [-version, -names, -pids, -ls, -pids_ls] [pids] [names]
   If no argument given, list all pdg (particle data group) table.
@@ -549,14 +811,30 @@
 <pre class="fragment">plots_clear: plots_clear
   Clear all plotters.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">plots_create: plots_create
+  If not done, create a inlib::sg::plots in the static scene graph.
+  Example:
+    plots_create
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">plots_current_to_one: plots_current_to_one
   Have the current plotter in a 1x1 grid.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">plots_full_window: plots_full_window
   Set scene ready for full window plotting.
+  Example:
+    plots_full_window
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">plots_hide: plots_hide
   Hide the scene plotting area.
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">plots_next: plots_next
+  Set the current plotter to be the next one in the grid.
+  If at end (bottom right plotter) current plotter is set to be the upper left one.
+  Example:
+    plots_set_grid 2 2  # then four plotters. Current plotter is the top left one.
+    plots_next  # set current to top right.
+    plots_set_current_plotter 3  # set current to bottom right.
+    plots_next  # set to top left.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">plots_set_current_plotter: plots_set_current_plotter index
   Set the current plotter given its index in the grid of the first sg::plots node found in the scene.
@@ -564,9 +842,6 @@
   Example:
     plots_set_grid 2 2           # then four plotters.
     plots_set_current_plotter 3  # then the bottom right plotter will be the current one.
-</pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">plots_set_current_region: plots_set_current_region
-  Deprecated, use plots_set_current_plotter
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">plots_set_grid: plots_set_grid cols rows [transfer]
   Set the grid of inlib::sg::plotters in the first inlib::sg::plots node found in the scene.
@@ -583,11 +858,11 @@
     plots_set_layout_factors 0.3   0.35 0.3 0.2  # up right.
     plots_set_layout_factors 0.28 -0.28 0.4 0.4  # defaults. down right.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
-<pre class="fragment">plots_set_regions: plots_set_regions
-  Deprecated, use plots_set_grid
-</pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">plots_show: plots_show
   Show the scene plotting area.
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">plots_show_hide: plots_show_hide
+  Show/hide the scene plotting area.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">plotter_clear: plotter_clear
   Clear the current plotter.
@@ -628,8 +903,35 @@
     plotter_set_style hippodraw
   See also: plotter_list_styles, style_load_file
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">random_create: random_create [-classes,-class,-no_warn,] [name]
+  Create a named and managed random generator object.
+  The name must have the syntax of a C variable.
+  If an object with same name already exist it is deleted.
+  -no_warn to not warn in case of overwriting an existing object.
+  -class=string class of the object to createa (default is rgaussd).
+  -classes print the available classes.
+  According to the wanted class, various arguments can be passed.
+  If -class=rgaussd (random gauss):
+  -mean=real mean value (default is 0).
+  -std_dev=real standard deviation (default is 1).
+  If -class=rbwd (random breit-wigner):
+  -mean=real mean value (default is 0).
+  -gamma=real gamma (default is 1).
+  If -class=rbinomial:
+  -n=uint (default is 1).
+  -p=real (default is 0.5).
+  If -class=rexpd:
+  -rate=real (default is 1).
+  If -class=rpoissd (random poisson):
+  -mean=real (default is 1).
+  Example:
+    random_create -classes
+    random_create r_gaussd # create a rgaussd named r_gaussd.
+    random_create -class=rgaussd -mean=0 -std_dev=1 r_1
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">scene_add_axes: scene_add_axes [options]
   Add x,y,z axes in the static scene graph.
+  -dynamic to add in the dynamic scene graph.
   -color=string color of the axes (default lightgrey).
   -[x,y,z]_title=string title of the [x,y,z] axis (default "[x,y,z]").
   -[x,y,z]_width=real width of the [x,y,z] axis (default 1).
@@ -644,18 +946,81 @@
     scene_add_axes -color=lightgrey -translate='-300 -300 0' -rotate='1 0 0 1.570796' -scale=1 -x_width=600 -x_min=0 -x_max=600 -y_width=600 -y_min=0 -y_max=600 -z_width=600 -z_min=0 -z_max=600 
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">scene_add_cone: scene_add_cone [options]
-  Add a cone in the dynamic scene graph.
+  Add a cone in the static scene graph.
+  -dynamic to add in the dynamic scene graph.
   -color=string color of the cone (default lightgrey).
   -height=real height of the cone (default 1).
   -angle=real angle of the cone (default pi/4).
   Example:
     scene_add_cone -angle=0.5235 -height=10  # angle pi/6
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">scene_add_cube: scene_add_cube [options]
+  Add a cube in the static scene graph.
+  -dynamic to add in the dynamic scene graph.
+  -color=string color of the cube (default lightgrey).
+  -width=real width of the cube (default 1).
+  -height=real height of the cube (default 1).
+  -depth=real depth of the cube (default 1).
+  Example:
+    scene_add_cube
+    scene_add_cube -width=2
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">scene_add_facet: scene_add_facet [options]
+  Add a facet (square) in the static scene graph.
+  -dynamic to add in the dynamic scene graph.
+  -color=string color of the facet (square) (default lightgrey).
+  -width=real width of the facet (square) (default 1).
+  -height=real height of the facet (square) (default 1).
+  -depth=real depth of the facet (square) (default 1).
+  Example:
+    scene_add_facet
+    scene_add_facet -width=2
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">scene_add_geo_volume: scene_add_geo_volume [-geo_manager,-min_depth,-max_depth,-style,-modeling] volnam
+  Add a rroot geo_volume representation in the static scene graph.
+  By default the inlib::rroot::geo_volume is searched in the
+  inlib::rroot::geo_manager named 'geo_manager' declared
+  in the gui_viewer object manager.
+  -geo_manager=string name of another geo_manager.
+  -min_depth=uint min depth to search in the geometry tree (default is 0).
+  -max_depth=uint max depth to search in the geometry tree (default is 0).
+  -modeling=string [solid,wire_frame] (default is wire_frame).
+  -style=string a style name to use to customise.
+  -dynamic to add in the dynamic scene graph.
+  Example:
+    # used in the EsbRootView event display:
+    scene_add_geo_volume -style=neard_geo -min_depth=0 -max_depth=2 wc
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">scene_add_insh_anim: scene_add_insh_anim [-file,-dynamic]
+  Add an insh_anim node in the static scene graph.
+  -file=string insh file sourced during the animation.
+  -dynamic to add in the dynamic scene graph.
+  WARNING, IMPORTANT, ACHTUNG, ATTENZIONE:
+   You must NOT do a scene_clear_[static,dynamic] in an anim script because
+  the insh_anim node is deposited in the [static,dynamic] scene graph.
+  The variables insh_anim_[time_min,time_max,delay,time_begin,time_end] are defined at
+  each time slice execution of the script.
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">scene_add_markers: scene_add_markers [options] [x y z]
+  Add markers in the static scene graph.
+  Without argument, it prints the available styles.
+  -dynamic to add in the dynamic scene graph.
+  -placement=[static,dynamic,static_blend] the scene graph to add into (default dynamic).
+  -style=string (default cross).
+  -color=string color of the markers (default lightgrey).
+  -size=real size (default 10) of markers.
+  Example:
+    scene_add_markers
+    # add markers on corners of a triangle:
+    scene_add_markers -style=star -size=20 -color=blue -1 0 0 1 0 0 0 1 0
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">scene_add_show_time_anim: scene_add_show_time_anim
-  Add a show_time_anim node in the dynamic scene graph.
+  Add a show_time_anim node in the static scene graph.
+  -dynamic to add in the dynamic scene graph.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">scene_add_vertices: scene_add_vertices [options] [x y z]
-  Add a primitive in a scene graph.
+  Add a primitive in the static scene graph.
+  -dynamic to add in the dynamic scene graph.
   -placement=[static,dynamic,static_blend] the scene graph to add into (default dynamic).
   -mode=[points,lines,line_loop,line_strip,triangles,triangle_strip,triangle_fan] (default points).
   Note that lines is for segments, and line_strip is for a polyline.
@@ -664,11 +1029,12 @@
   -point_size=real point size (default 1) if relevant.
   Example: add a wire-frame square :
     scene_add_vertices -mode=line_strip -color=blue 0 0 0 1 0 0 1 1 0 0 1 0 0 0 0
-  Example: add a trianle :
+  Example: add a triangle :
     scene_add_vertices -mode=triangles -color=blue -1 0 0 1 0 0 0 1 0
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">scene_add_xy_grid: scene_add_xy_grid [options]
   Add a wire-frame grid in the static scene graph.
+  -dynamic to add in the dynamic scene graph.
   -color=string color of the grid (default lightgrey).
   -line_width=real line width (default 1).
   -sx=real x size of each cell (default 0.1).
@@ -729,6 +1095,14 @@
   Example:
     scene_remove_nodes -class=inlib::sg::cube
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">scene_send_dynamic: scene_send_dynamic
+  Send dynamic scene graph to a viewer.
+  A connection must be first established between the app and a viewer.
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">scene_send_static: scene_send_static
+  Send static scene graph to a viewer.
+  A connection must be first established between the app and a viewer.
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">scene_set_clear_color: scene_set_clear_color [color name] [colormap/color name] [#rrggbb] [r g b] [r g b a]
   Set the color of the background of the scene.
   It can be given by a common color name in the default colormap,
@@ -740,6 +1114,12 @@
     scene_set_clear_color ROOT/kMagenta+3
     scene_set_clear_color '#FFFF00'
     scene_set_clear_color 0.2 0.1 0.2
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">scene_smooth_off: scene_smooth_off
+  Switch the overall shade model to flat.
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">scene_smooth_on: scene_smooth_on
+  Switch the overall shade model to smooth.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">scene_start_anim: scene_start_anim [-tim_min,-time_max,-delay,-end_begin]
   Start scene animation. It operates on all nodes in the scene inheriting sg::slice_anim
@@ -825,6 +1205,13 @@
   Example:
     tput cols
     tput lines
+</pre> <dl class="section user"><dt></dt><dd></dd></dl>
+<pre class="fragment">web_get_file: web_get_file [-out] url
+  Get url and put the content in the doc dir.
+  -out=string to give an output file name.
+  If no -out is given, it is assumed that url finishes with
+  the name of a file, which is then taken as output file name.
+  WARNING : on wasm, the request is asynchronous.
 </pre> <dl class="section user"><dt></dt><dd></dd></dl>
 <pre class="fragment">window_render: window_render
   Enforce an immediate rendering of the window.
