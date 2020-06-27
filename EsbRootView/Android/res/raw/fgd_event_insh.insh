@@ -1,4 +1,0 @@
-
-. neard_event.insh
-
-event_vis FgdDetectorPoint -pickable=true -color=skyblue

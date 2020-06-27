@@ -1,1 +1,0 @@
- EsbRootView is a smartphone/tablet oriented event display for the LHC/LHCb experiment. The first version is more a proof of concept that an application ready to do physics. Anyway it can give to someone novice in high energy physics (HEP) a glance at what a HEP detector looks like.
