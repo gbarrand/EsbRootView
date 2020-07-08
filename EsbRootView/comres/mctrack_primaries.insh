@@ -1,0 +1,7 @@
+#!insh
+
+. colors.insh
+
+event_vis MCTrack -cut=(mother_id==-1) -color=${primary_color} -point_size=6 -modeling=arrow -arrow_text_scale=6
+#-arrow_radius=10
+

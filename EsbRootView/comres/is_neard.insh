@@ -1,0 +1,11 @@
+#!insh
+
+wc_rmax=`geo_field wc rmax`
+iwc_rmax=`calc toint(${wc_rmax})`
+
+geo_is_neard=yes
+if [ ${iwc_rmax} -ge 500 ] ; then
+  geo_is_neard=no
+fi
+
+#echo ${geo_is_neard}

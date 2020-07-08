@@ -1,0 +1,7 @@
+
+# mu
+event_vis MCTrack -cut=pdg==13&&mother_id==-1 -color=yellow -point_size=10
+
+# e
+#event_print MCTrack -cut=pdg==11&&is_secondary==true time 
+event_vis MCTrack -cut=pdg==11&&is_secondary==true -color=magenta -point_size=10

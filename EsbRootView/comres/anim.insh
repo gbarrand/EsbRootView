@@ -1,0 +1,16 @@
+#!insh
+
+scene_add_show_time_anim -dynamic
+ 
+#gui_hide_main_menu
+#window_render
+#system 'sleep 2'  # used when recording to have time to hide the gui before anim starts.
+
+. mctrack_wcpoint_anim.insh
+
+. smoke_ring_anim.insh
+
+#. mu_nu_e_nu_mu_anim.insh
+#. mctrack_mu_prim_e_secon_points.insh
+
+#. cone_anim.insh  # since there is some transparency, it must come at end.

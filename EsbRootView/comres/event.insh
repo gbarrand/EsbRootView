@@ -1,0 +1,8 @@
+#!insh
+
+gui_push_home
+
+. mctrack_wcpoint.insh
+
+event_plot WCDetectorPoint -modeling=detector  # example of a comment at end of line.
+

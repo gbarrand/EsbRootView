@@ -1,0 +1,16 @@
+#!insh
+
+primary_color=yellow
+
+#first is for : cut_first="(pdg==50000050)&&(is_secondary==true)"
+#second is for : cut_second="(pdg==50000050)&&(is_secondary==false)"
+
+mc_ophoton_first_color=cornflowerblue  # 0.39  0.582 0.925
+mc_ophoton_second_color=lightblue      # 0.675 0.843 0.898
+
+wc_ophoton_first_color=green           # 0 1 0
+wc_ophoton_second_color=palegreen      # 0.593 0.98 0.593
+
+wc_hedgehog_color=springgreen          # 0 0.996 0.496
+
+mu_to_nu_mu_color=gold                 # 0.996 0.839 0

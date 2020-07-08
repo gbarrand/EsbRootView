@@ -1,0 +1,8 @@
+#!insh
+
+wc_dz=`geo_field wc dz`
+
+# rotation applied first :
+scene_add_xy_grid -color=lightgrey -line_width=1 -translate="0 -${wc_dz} 0" -rotate='1 0 0 1.570796' -sx=1000 -nx=10 -sy=1000 -ny=10
+
+

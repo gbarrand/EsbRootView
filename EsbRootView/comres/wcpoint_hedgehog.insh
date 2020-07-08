@@ -1,0 +1,7 @@
+#!insh
+
+. colors.insh
+
+# hedgehog rep :
+event_vis WCDetectorPoint -modeling=detector  -color=${wc_hedgehog_color} -line_width=5
+

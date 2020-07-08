@@ -1,0 +1,10 @@
+#!insh
+
+wc_rmax=`geo_field wc rmax`
+wc_dz=`geo_field wc dz`
+
+wc_length=`calc 2*${wc_dz}`
+
+gui_text "wc cylinder radius ${wc_rmax} m" "wc cylinder length ${wc_length} m"
+
+gui_show_main_menu

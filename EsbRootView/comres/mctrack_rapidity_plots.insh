@@ -1,0 +1,32 @@
+#!insh
+
+. cuts.insh
+
+plots_full_window
+
+plots_set_grid 2 2
+
+#event_plot MCTrack -cut=${cut_first} -xfill=rapidity
+#plots_next
+
+event_plot MCTrack -cut="${cut_first}&&(det_point==true)" -xfill=rapidity -xmi=0 -xmax=1.4 -histo_name='first_det_rapidity'
+#event_plot MCTrack -cut="${cut_first}&&(det_point==true)" -xfill=p -xmin=0 -xmax=1e-7
+#-xmi=0 -xmax=1.4
+plots_next
+
+event_plot MCTrack -cut="${cut_first}&&(det_point==false)" -xfill=rapidity -xmi=0 -xmax=1.4 -histo_name='first_no_det_rapidity'
+#event_plot MCTrack -cut="${cut_first}&&(det_point==false)" -xfill=p -xmin=0 -xmax=1e-7
+#rapidity -xmi=0 -xmax=1.4
+plots_next
+
+#event_plot MCTrack -cut=${cut_second}  -xfill=rapidity
+#plots_next
+
+event_plot MCTrack -cut="${cut_second}&&(det_point==true)" -xfill=rapidity -xmi=0 -xmin=0 -xmax=3 -histo_name='second_det_rapidity'
+plots_next
+
+event_plot MCTrack -cut="${cut_second}&&(det_point==false)" -xfill=rapidity -xmi=0 -xmin=0 -xmax=3 -histo_name='second_no_det_rapidity'
+plots_next
+
+doc_dir=`app_dir -doc`
+histo_write -format=root -file=${doc_dir}/out.root

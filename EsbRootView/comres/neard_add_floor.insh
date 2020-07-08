@@ -1,0 +1,7 @@
+#!insh
+
+wc_rmax=`geo_field wc rmax`
+
+# rotation applied first :
+scene_add_xy_grid -color=lightgrey -line_width=1 -translate="0 -${wc_rmax} 0" -rotate='1 0 0 1.570796' -sx=100 -nx=10 -sy=100 -ny=10
+

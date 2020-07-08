@@ -1,0 +1,27 @@
+#!insh
+
+. colors.insh
+. cuts.insh
+
+#pickable='-pickable=true'
+pickable=
+
+event_vis MCTrack -cut=${cut_first} -color=${mc_ophoton_first_color} ${pickable}
+
+event_vis MCTrack -cut=${cut_second} -color=${mc_ophoton_second_color} ${pickable}
+
+event_vis MCTrack -cut=pdg!=50000050 -color=orange ${pickable}
+
+scene_blend_on
+cone_length=100
+
+color_a=`app_color_value -rgb ${mc_ophoton_first_color}`
+color_a="${color_a} 0.5"
+event_vis MCTrack -cut=${cut_first} -color="${color_a}" -modeling=cone_detector
+
+color_a=`app_color_value -rgb ${mc_ophoton_second_color}`
+color_a="${color_a} 0.5"
+event_vis MCTrack -cut=${cut_second} -color="${color_a}" -modeling=cone_detector
+
+
+

@@ -1,0 +1,12 @@
+
+scene_clear_static
+scene_clear_dynamic
+
+gui_hide_main_menu
+gui_hide_meta_zone
+
+scene_add_facet -color=white
+
+camera_view_all
+camera_rotate -at_focal -y -deg -angle=85
+

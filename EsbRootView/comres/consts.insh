@@ -1,0 +1,8 @@
+#!insh
+
+c_light_vacuum=29.9792458  # cm/nsec. Yes, it is const! :-)
+
+c_light_water=22.5  # cm/nsec.
+
+absorption_length_water=1000
+

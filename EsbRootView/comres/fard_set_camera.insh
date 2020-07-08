@@ -1,0 +1,12 @@
+#!insh
+
+camera_set_ortho 10000
+camera_set_znear 1
+camera_set_zfar 1000000
+camera_set_focal 10000
+camera_set_dx 10
+camera_set_da 0.0174
+camera_set_ds 0.99
+camera_set_position 0 0 10000
+camera_set_orientation 0 1 0 0
+

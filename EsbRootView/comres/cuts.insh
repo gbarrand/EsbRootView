@@ -1,0 +1,5 @@
+#!insh
+
+cut_first="(pdg==50000050)&&(is_secondary==true)"
+cut_second="(pdg==50000050)&&(is_secondary==false)"
+

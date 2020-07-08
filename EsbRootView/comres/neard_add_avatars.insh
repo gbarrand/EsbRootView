@@ -1,0 +1,30 @@
+#!insh
+
+# sarah in the bsg file :
+# sarah bbox :
+# center : 0 -500 0
+# dx,dy,dz : 507.6 1645.24 286.74
+# feet at : -500-1645.24/2 = -1322.62
+# sarah is looking toward +z.
+
+# note that bsg is for "binary scene graph" and is a softinex file format for inlib scene graphs.
+# The original format is .vrml. It had been converted to .bsg by using a softinex program able
+# to read this format by using the Coin3D library.
+
+wc_rmax=`geo_field wc rmax`
+
+sarah_feet=-132.262  # scaled by 0.1
+tx=400
+ty=`calc -${sarah_feet}-${wc_rmax}`
+tz=510
+
+#angle=-1.570796
+angle=`calc atan2(${tx},${tz})+3.1416`  # have sarah looking at detector center.
+
+# order of transformations : first scale, then rotate and then translate.
+
+scene_read_bsg -file=avatar_sarah.bsg -translate="${tx} ${ty} ${tz}" -rotate="0 1 0 ${angle}" -scale=0.1
+
+# have a green plant for sarah :
+scene_read_bsg -file=avatar_plant.bsg -translate='460 -300 430' -rotate='0 1 0 -1.570796' -scale=0.03
+
