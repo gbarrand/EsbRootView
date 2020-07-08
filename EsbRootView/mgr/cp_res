@@ -2,111 +2,91 @@
 
 bush_home=`pwd`/../../bush
 
-save_dir=`pwd`
+#save_dir=`pwd`
 
 #/////////////////////////////////////////////////////////////
-#/// cleanup comres //////////////////////////////////////////
+#/// std comres : ////////////////////////////////////////////
 #/////////////////////////////////////////////////////////////
 ${bush_home}/find_rm ../comres '*.*'
-#/////////////////////////////////////////////////////////////
-#/// get some files from ioda and put them in comres /////////
-#/////////////////////////////////////////////////////////////
 
-cd ..
-
-from=../ioda/res
-if [ ! -d ${from} ] ; then
-  echo "directory ${from} not found"
-  exit
-fi
-
-files=""
-files="${files} arialbd.ttf helveticabd.ttf courbd.ttf lucidagrandebd.ttf" #gui fonts.
-files="${files} helvetica.ttf stixgeneral.otf"
-
-# cam panel :
-files="${files} move2red.jpg crazyeye_run.jpg flip_flop.jpg"
-files="${files} close.jpg edit.jpg edit_undo.jpg"
-
-# main gui :
-files="${files} go_home_large.jpg turn_around.jpg"
-files="${files} movie_camera.jpg system_config_boot.jpg"
-
-# rwc items :
-files="${files} sidebar_photos.jpg stop_diaporama.jpg"
-files="${files} cursor.jpg"
-
-# main menu :
-files="${files} files.jpg location_ftp.jpg"
-files="${files} application_exit.jpg"
-files="${files} connect_to_wall.jpg"
-files="${files} edit_clear.jpg edit_undo.jpg"
-files="${files} move2red.jpg flip_flop.jpg"
-files="${files} object_rotate_left.jpg stop_object_rotate_left.jpg"
-files="${files} document_export.jpg"
-files="${files} routing_step.jpg console.jpg tools.jpg"
-files="${files} set_current_region.jpg edit_plot.jpg"
-
-files="${files} white.jpg"
+. ../../ioda/mgr/cp_std
 
 for file in ${files} ; do
-  /bin/cp ${from}/${file} ./comres/.
+  /bin/cp ../../ioda/res/${file} ../comres/.
 done
 
-#/bin/cp ${from}/ioda.style ./comres/EsbRootView.style
-git checkout ./comres/EsbRootView.style
-
-cd ${save_dir}
-
 #/////////////////////////////////////////////////////////////
-#/// copy app specific res files into comres /////////////////
+#/// app comres : ////////////////////////////////////////////
 #/////////////////////////////////////////////////////////////
+
 files="EsbRootView.ftp"
-files="${files} event.jpg clear_event.jpg stop_events.jpg vis_events.jpg"
 files="${files} icon.jpg favicon.ico"
-files="${files} iu_stop_clock.jpg"
+files="${files} EsbRootView.style"
 
 #/////////////////////////////////////////////////////////////
 #/// insh : //////////////////////////////////////////////////
 #/////////////////////////////////////////////////////////////
-files="${files} neard_startup.insh neard_event.insh neard_anim.insh"
-files="${files} fard_startup.insh fard_event.insh fard_anim.insh"
+files="${files} is_neard.insh"
+files="${files} geo_infos.insh"
+
+files="${files} neard_set_camera.insh"
+files="${files} neard_add_floor.insh"
+files="${files} neard_add_avatars.insh"
+files="${files} neard_add_axes.insh"
+files="${files} neard_add_geometry.insh"
+files="${files} neard_startup.insh"
+
+files="${files} fard_set_camera.insh"
+files="${files} fard_add_floor.insh"
+files="${files} fard_add_avatars.insh"
+files="${files} fard_add_axes.insh"
+files="${files} fard_add_geometry.insh"
+files="${files} fard_startup.insh"
+
+files="${files} fgd_add_geometry.insh"
 files="${files} fgd_startup.insh fgd_event.insh fgd_anim.insh"
 files="${files} fgd_hit_startup.insh fgd_hit_event.insh fgd_hit_anim.insh"
-
-files="${files} mctrack_cone.insh mctrack_arrow.insh"
-files="${files} mctrack_wcpoint.insh"
-files="${files} mctrack_wcpoint_anim.insh neard_cone_anim.insh fard_cone_anim.insh fgdpoint_anim.insh"
+files="${files} fgdpoint_anim.insh"
 files="${files} fgdhit_duplicate.insh fgdhit_wire_frame.insh"
+
+files="${files} smoke_ring_anim.insh"
+
+#/////////////////////////////////////////////////////////////
+#/////////////////////////////////////////////////////////////
+files="${files} colors.insh cuts.insh consts.insh"
+files="${files} event.insh anim.insh"
+files="${files} mctrack_primaries.insh mctrack_cone.insh mctrack_cone_detector.insh"
+files="${files} mctrack_arrow.insh"
+files="${files} mctrack_wcpoint.insh"
+files="${files} mctrack_wcpoint_anim.insh cone_anim.insh mu_nu_e_nu_mu_anim.insh"
+files="${files} mctrack_mu_prim_e_secon_points.insh"
 
 files="${files} mctrack_secondary_plots.insh"
 files="${files} mctrack_not_secondary_plots.insh"
 files="${files} mctrack_wcpoint_plots.insh"
+files="${files} mctrack_rapidity_plots.insh"
+files="${files} wcpoint_plots.insh"
+
 files="${files} mctrack_mu_to_nu_mu.insh"
 files="${files} mctrack_cherenkov_not_secondary_mother_pdg.insh"
-files="${files} neard_wcpoint_hedgehog.insh"
-files="${files} fard_wcpoint_hedgehog.insh"
+files="${files} wcpoint_hedgehog.insh"
 
-files="${files} wcpoint_plots.insh"
+files="${files} mctrack_histo.insh"
+
 files="${files} gui_event_model.insh"
 
-files="${files} test.insh eiffel_tower.insh"
-
-#/////////////////////////////////////////////////////////////
-#/////////////////////////////////////////////////////////////
-#/////////////////////////////////////////////////////////////
-#files="${files} neard_geo_full.root neard_evetest.root"
-#files="${files} fard_geo_full.root fard_evetest.root"
-#files="${files} fgd_geo_full.root fgd_evetest.root fgd_dig.root"
-git checkout '../comres/*.root'
-
-find ../res -name '*.bsg' -exec /bin/cp {} ../comres/. \;
+files="${files} eiffel_tower.insh"
+files="${files} debug.insh"
 
 for file in ${files} ; do
   /bin/cp ../res/${file} ../comres/.
 done
 
-cd ${save_dir}
+#/////////////////////////////////////////////////////////////
+#/////////////////////////////////////////////////////////////
+#/////////////////////////////////////////////////////////////
+find ../res -name '*.root' -exec /bin/cp {} ../comres/. \;
+find ../res -name '*.bsg' -exec /bin/cp {} ../comres/. \;
 
 #/////////////////////////////////////////////////////////////
 #/////////////////////////////////////////////////////////////
