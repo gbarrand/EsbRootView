@@ -1,3 +1,28 @@
+3.0.0 :
+ - have [fard,neard]_add_geometry.insh.
+ - have [fard,neard]_add_axes.insh.
+ - cmd : rm compiled [fard,neard]_vis_sarah. Have [fard,neard]_add_avatars.insh.
+ - cmd : rm compiled [fard,neard]_vis_floor. Have [fard,neard]_add_floor.insh.
+ - cmd : rm compiled [fard,neard]_set_camera. Have [fard,neard]_set_camera.insh.
+ - mu_nu_e_nu_mu_anim.insh : anim for the neutrinos.
+ - firework anims for the optical photons.
+ - Madrid request : put a marker at end of muon track.
+ - revisit coloring : have optical in blue.
+ - modeling_[neard,fard] => modeling_detector : neard/fard guessed from geo file.
+ - camera panel : 2D/3D (plane/exam viewer) button now in the right side.
+ - setups : copy [fard,neard,fgd]_[evetest,geo_full].root in doc/[evetest,geo_full].root
+   and use these (in doc dir) in startup.insh.
+ - have sarah looking at the center of the detector.
+ - dac, vis, histo, vis_plot : get_wc_size(). Use m_wc_[radius,length] taken from the geom root file.
+ - wasm : index.html : insh text area.
+ - wasm : index.html : 'Upload and read event file' button.
+ - wasm : index.html : 'Download an app/doc file'.
+ - wasm : fard_startup.insh : do not load fard_event.root which is not coming as a resource (too big).
+ - wasm : on WebGL only (no more SDL2 and GL api around). Nice.
+ - cmd : event_histo, event_hfill.
+ - gui : plot items : handle histo_name.
+ - cmds : histo_[create,remove,ls,print,fill,plot,plot_offscreen].  
+
 2.1.0 :
  - wasm : drag and drop event file.
  - wasm : first version.
