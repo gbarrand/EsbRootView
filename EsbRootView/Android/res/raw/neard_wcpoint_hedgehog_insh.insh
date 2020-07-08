@@ -1,4 +1,0 @@
-
-#event_vis WCDetectorPoint -modeling=neard  -color=red #hedgehog rep. 
-
-event_vis WCDetectorPoint -cut=(pdg==50000050) -modeling=neard  -color=red #hedgehog rep. 

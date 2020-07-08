@@ -1,6 +1,0 @@
-
-. mctrack_wcpoint.insh
-
-event_plot WCDetectorPoint -modeling=fard
-
-
