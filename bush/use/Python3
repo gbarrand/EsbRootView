@@ -19,13 +19,13 @@ if [ "${use_sys_Python3}" = "yes" ] ; then
     cppflags="${cppflags} -I${Python3_home}/include"
     libs="${libs} ${Python3_home}/libs/python36.lib"
     py_exe="${Python3_home}/python.exe"
-  
+
   elif [ `uname` = Darwin ] ; then
 
     # from ~/anaconda3.
    #Python3_home=/Users/barrand/anaconda3
     Python3_home=/opt/local/Library/Frameworks/Python.framework/Versions/3.6
-  
+
     if [ ! -d "${Python3_home}" ] ; then
       echo "bush/use/Python3 : WARNING : not found under ${Python3_home}"
       exit
@@ -79,16 +79,16 @@ if [ "${use_sys_Python3}" = "yes" ] ; then
       Python3_lib="-L${Python3_home}/lib -lpython3.6m"
       py_exe="${Python3_home}/bin/python3.6"
 
-    else      
+    else
       echo "bush/use/Python3 : Python3.x not found."
       exit
     fi
-    
+
     if [ ! -d "${Python3_home}" ] ; then
       echo "bush/use/Python3 : WARNING : not found under ${Python3_home}"
       exit
     fi
-    
+
     ccflags="${ccflags}   -I${Python3_home}/include/${Python3_version}"
     cppflags="${cppflags} -I${Python3_home}/include/${Python3_version}"
     libs="${libs} ${Python3_lib}"

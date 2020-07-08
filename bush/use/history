@@ -6,7 +6,7 @@ if [ "${use_history}" = "yes" ] ; then
     echo 'bush/use/history : not found.'
     exit
   fi
-  
+
   inc_dirs="/usr/include /opt/local/include"
   inc_to_find=readline/history.h
   . ${bush_home}/find_inc

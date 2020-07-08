@@ -39,9 +39,9 @@
  heterogeneous environments, and that it is a high priority for us, we stay with this approach for the moment).
 
 @section bush_android Android
- 
+
   bush scripts are not yet ready to build for any Android SDK/NDK and device architectures, then we still promote the Android SDK
- build/make system to build apps for this platform. See the "Build for Android" section under the softinex portal for more. 
+ build/make system to build apps for this platform. See the "Build for Android" section under the softinex portal for more.
 
 */
 

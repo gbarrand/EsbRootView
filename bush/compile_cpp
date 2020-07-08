@@ -21,7 +21,7 @@ if [ ${build_parallel} = yes -a "${parallel_exe}" != "" ] ; then
   if [ ${build_verbose} = yes ] ; then
     echo 'bush/compile_cpp : use parallel.'
   fi
-  
+
 cat <<END > ./tmp_compile_one_cpp
 #!/bin/sh -f
 file=\$1
@@ -39,7 +39,7 @@ cppflags="${cppflags}"
 END
 
   chmod a+x ./tmp_compile_one_cpp
-  
+
   ${bush_home}/find_rm ${build_path} '*.o.parallel'
 
   ${parallel_exe} -a cpp_tmp './tmp_compile_one_cpp {}'

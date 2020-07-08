@@ -42,7 +42,7 @@ elif [ ${build_intel} = "yes" ] ; then
 
 elif [ ${build_clang} = "yes" ] ; then
   config_name=clang
-  
+
   found=no
   items="clang clang-3.9 clang-3.5 clang-3.4 clang-3.3"
   for item in ${items} ; do
@@ -66,14 +66,14 @@ elif [ ${build_clang} = "yes" ] ; then
 
 elif [ ${build_emcc} = "yes" ] ; then
   config_name=emcc
-  
+
   ${bush_home}/check_app emcc 'bush/use_cc : emcc not found.'
   use_status=$?;
   if [ ${use_status} != 0 ] ; then exit; fi
 
   cc_compiler=emcc
   cc_linker=emcc
-  
+
 elif [ ${build_sdk_mac} = "yes" -o ${build_sdk_mac_gnu} = "yes" ] ; then
 
   # options taken from the output of :
@@ -123,19 +123,19 @@ elif [ ${build_cling_clang} = "yes" ] ; then
   config_name=cling_clang
 
   . ${bush_home}/use_cling
-  
+
   if [ "${cling_home}" = "" ] ; then
     echo "bush/use_cc : cling_home not defined."
     exit
   fi
-  
+
   if [ ${build_verbose} = yes ] ; then
     echo "bush/use_cc : cling_home is ${cling_home}."
   fi
 
   cc_compiler=${cling_home}/bin/clang
   cc_linker=${cpp_compiler}
-  
+
 elif [ ${build_sdk_ios} = "yes" -o ${build_sdk_ios_gnu} = "yes" ] ; then
 
   # options taken from the output of :
@@ -175,7 +175,7 @@ elif [ ${build_sdk_ios} = "yes" -o ${build_sdk_ios_gnu} = "yes" ] ; then
   # the below is to stay consistent with use_cpp :
   ccflags="${ccflags} -fvisibility=hidden"
 
- #ccflags="${ccflags} -gdwarf-2 -mno-thumb" 
+ #ccflags="${ccflags} -gdwarf-2 -mno-thumb"
  #ccflags="${ccflags} -Os"
 
   mflags="${mflags} -fobjc-abi-version=2 -fobjc-legacy-dispatch"
@@ -244,7 +244,7 @@ if [ ${build_visual} = "yes" ] ; then
   if [ ${build_debug} = "yes" ] ; then
     ccflags="${ccflags} -g"
     cc_linker_flags="${cc_linker_flags} -g"
-  else    
+  else
     ccflags="${ccflags} -DNDEBUG"
   fi
 

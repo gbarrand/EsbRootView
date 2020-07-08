@@ -5,14 +5,14 @@ if [ "${use_Qt}" = "yes" ] ; then
 
   Qt_ld_library_path=
   moc_exe=
-  
+
   lcg_area=
   if [ "`uname -n | grep lxplus`" != "" ] ; then
     lcg_area=/cvmfs/lhcb.cern.ch/lib/lcg/releases
   fi
-   
+
   if [ "`uname | grep CYGWIN`" != "" ] ; then
-  
+
     if [ ${build_visual} = "yes" ] ; then
       Qt_home="${c_drive}/Qt/5.12.3/msvc2017_64"
       if [ ! -d ${Qt_home} ] ; then
@@ -37,16 +37,16 @@ if [ "${use_Qt}" = "yes" ] ; then
       libs="${libs} ${Qt_lib}/Qt5Widgets.lib"
       libs="${libs} ${Qt_lib}/Qt5Gui.lib"
       libs="${libs} ${Qt_lib}/Qt5Core.lib"
-      
+
       Qt_ld_library_path="${Qt_lib}"
 
       moc_exe="${Qt_home}/bin/moc.exe"
 
     elif [ -d /usr/include/qt5/QtCore ] ; then
       # the cygwin Qt5 had been built with cygwin/g++ and with cygwin/X11.
-      
+
       Qt_home=/usr
-      
+
       Qt_inc="${Qt_home}/include/qt5"
 
       cppflags="${cppflags} -I${Qt_inc}"
@@ -58,19 +58,19 @@ if [ "${use_Qt}" = "yes" ] ; then
       Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtOpenGL"
       Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtPrintSupport"
 
-      Qt_lib="${c_drive}/cygwin64/lib"	    
+      Qt_lib="${c_drive}/cygwin64/lib"	
 
       libs="${libs} ${Qt_lib}/libQt5OpenGL.dll.a"
       libs="${libs} ${Qt_lib}/libQt5Widgets.dll.a"
       libs="${libs} ${Qt_lib}/libQt5Gui.dll.a"
       libs="${libs} ${Qt_lib}/libQt5Core.dll.a"
-      
+
       Qt_ld_library_path="${Qt_lib}"
 
       moc_exe="${Qt_home}/lib/qt5/bin/moc.exe"
 
     fi
-    
+
   elif [ `uname` = Darwin ] ; then
 
     if [ -d /opt/local/libexec/qt5/include/QtUiTools ] ; then
@@ -91,7 +91,7 @@ if [ "${use_Qt}" = "yes" ] ; then
       libs="${libs} -F${Qt_frameworks} -framework QtOpenGL"
       libs="${libs} -framework QtGui -framework QtCore"
       libs="${libs} -framework QtWidgets"
-      
+
       moc_exe="${Qt_home}/bin/moc"
 
     fi
@@ -116,7 +116,7 @@ if [ "${use_Qt}" = "yes" ] ; then
     fi
 
     Qt_inc="${Qt_home}/include"
-    
+
     cppflags="${cppflags} -I${Qt_inc}"
 
     # if including as : #include <qobject.h>  # used in ourex/g4vis.
@@ -125,13 +125,13 @@ if [ "${use_Qt}" = "yes" ] ; then
     Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtWidgets"
     Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtOpenGL"
     Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtPrintSupport"
-    
+
     libs="${libs} -L${Qt_home}/lib -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Core"
-    
+
     Qt_ld_library_path="${Qt_home}/lib"
 
     moc_exe="${Qt_home}/bin/moc"
-    
+
   elif [ -d /usr/include/qt5 ] ; then  #ostackc
     Qt_home=/usr
 
@@ -145,13 +145,13 @@ if [ "${use_Qt}" = "yes" ] ; then
     Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtWidgets"
     Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtOpenGL"
     Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtPrintSupport"
-    
+
     libs="${libs} -L${Qt_home}/lib64 -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Core"
-    
+
     Qt_ld_library_path="${Qt_home}/lib64"
 
     moc_exe="${Qt_home}/lib64/qt5/bin/moc"
-    
+
     # run time : may have to :
     #   UNIX> setenv QT_XKB_CONFIG_ROOT /usr/lib/kbd/keymaps/xkb
 
@@ -159,7 +159,7 @@ if [ "${use_Qt}" = "yes" ] ; then
     Qt_home=/usr
 
     Qt_inc="${Qt_home}/include/x86_64-linux-gnu/qt5"
-    
+
     cppflags="${cppflags} -I${Qt_inc}"
 
     # if including as : #include <qobject.h>  # used in ourex/g4vis.
@@ -168,9 +168,9 @@ if [ "${use_Qt}" = "yes" ] ; then
     Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtWidgets"
     Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtOpenGL"
     Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_inc}/QtPrintSupport"
-    
+
     libs="${libs} -L${Qt_home}/lib/x86_64-linux-gnu -lQt5OpenGL -lQt5Widgets -lQt5Gui -lQt5Core"
-    
+
     Qt_ld_library_path="${Qt_home}/lib/x86_64-linux-gnu"
 
     moc_exe="${Qt_home}/lib/x86_64-linux-gnu/qt5/bin/moc"

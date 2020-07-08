@@ -20,7 +20,7 @@ if [ "${use_our_g4vis}" = "yes" ] ; then
   fi
 
   cppflags="${cppflags} -I${g4vis_home}/include/Geant4"
-  
+
   if [ ${build_visual} = "yes" ] ; then
     cppflags="${cppflags} -DWIN32"  # for G4Threading.h
   fi

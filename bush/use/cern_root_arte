@@ -17,7 +17,7 @@ if [ "${use_our_cern_root_arte}" = "yes" ] ; then
       exit
     fi
   fi
-    
+
   if [ ${build_gnu} = "yes" ] ; then
     version="`g++ -dumpversion`"
     . ${bush_home}/vertoks

@@ -71,7 +71,7 @@ elif [ ${build_clang} = "yes" ] ; then
       break
     fi
   done
-  
+
   if [ ${found} = no ] ; then
     echo "bush/use_cpp : ${items} not found."
     exit
@@ -79,16 +79,16 @@ elif [ ${build_clang} = "yes" ] ; then
 
  #cppflags="${cppflags} -std=c++98"
  #cppflags="${cppflags} -ansi"
-  
+
   if [ ${build_cxx11} = "yes" ] ; then
     cppflags="${cppflags} -std=c++11"
    #cppflags="${cppflags} -stdlib=libc++"
-   
+
     if [ "`uname -n | grep iridium`" != "" ] ; then
       cppflags="${cppflags} -I/usr/include/c++/v1"
       cpp_linker_flags="${cpp_linker_flags} /usr/lib64/libc++.so"
     fi
-    
+
   elif [ ${build_cxx14} = "yes" ] ; then
     cppflags="${cppflags} -std=c++14"
    #cppflags="${cppflags} -stdlib=libc++"
@@ -103,7 +103,7 @@ elif [ ${build_emcc} = "yes" ] ; then
 
   cpp_compiler=em++
   cpp_linker=em++
-  
+
   if [ ${build_cxx11} = "yes" ] ; then
     cppflags="${cppflags} -std=c++11"
   elif [ ${build_cxx14} = "yes" ] ; then
@@ -114,19 +114,19 @@ elif [ ${build_cling_clang} = "yes" ] ; then
   config_name=cling_clang
 
   . ${bush_home}/use_cling
-  
+
   if [ "${cling_home}" = "" ] ; then
     echo "bush/use_cpp : cling_home not defined."
     exit
   fi
-  
+
   if [ ${build_verbose} = yes ] ; then
     echo "bush/use_cpp : cling_home is ${cling_home}."
   fi
-  
+
   cpp_compiler=${cling_home}/bin/clang++
   cpp_linker=${cpp_compiler}
-  
+
   if [ ${build_cxx11} = "yes" ] ; then
     cppflags="${cppflags} -std=c++11"
    #cppflags="${cppflags} -stdlib=libc++"
@@ -160,35 +160,6 @@ elif [ ${build_sdk_mac} = "yes" -o ${build_sdk_mac_gnu} = "yes" ] ; then
     fi
     #Darwin : NOTE : we need a g++ knowing also objective-c++. /opt/local/bin/g++-mp-4.8 does not work.
   fi
- 
-  # 10.5  : Leopard
-  # 10.6  : Snow Leopard
-  # 10.7  : Lion
-  # 10.8  : Mountain Lion
-  # 10.9  : Mavericks
-  # 10.10 : Yosemite
-  # 10.11 : ElCapitan
-  # 10.12 : Sierra
-
-  # see also use_cc :
-  #sdk_dirs="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs /Developer/SDKs"
-  #sdk_verss="10.12 10.11 10.9 10.8 10.6 10.5"
-  #found=no
-  #for sdk_dir in ${sdk_dirs} ; do
-  #  for sdk_vers in ${sdk_verss} ; do
-  #    if [ ${found} = no ] ; then
-  #      macosx_sdk="${sdk_dir}/MacOSX${sdk_vers}.sdk"
-  #      macosx_vers=${sdk_vers}
-  #      if [ -d "${macosx_sdk}" ] ; then found=yes;fi
-  #    fi
-  #  done
-  #done
-  #if [ ${found} = no ] ; then
-  #  echo "bush/use_cpp : MacOSX sdk not found."
-  #  exit
-  #fi
-  #echo "${macosx_sdk}"
-  #echo "${macosx_vers}"
 
   osx_vers="`sw_vers -productVersion`"
   if [ "`echo ${osx_vers} | sed -e 's:10.6::g'`" != "${osx_vers}" ] ; then # old screenwall macs.
@@ -207,9 +178,9 @@ elif [ ${build_sdk_mac} = "yes" -o ${build_sdk_mac_gnu} = "yes" ] ; then
     #  clang: warning: libstdc++ is deprecated; move to libc++ with a minimum deployment target of OS X 10.9
     macosx_target=10.9
     # Xcode-8 : end.
-  else 
+  else
     if [ "`echo ${osx_vers} | sed -e 's:10.6::g'`" != "${osx_vers}" ] ; then # old screenwall macs.
-     #macosx_target=10.6  
+     #macosx_target=10.6
       macosx_target=10.5
     else
       # Xcode-8 : to avoid warning :
@@ -223,7 +194,7 @@ elif [ ${build_sdk_mac} = "yes" -o ${build_sdk_mac_gnu} = "yes" ] ; then
   if [ "${build_macosx_target}" != "" ] ; then
     macosx_target=${build_macosx_target}  # used in MEMPHYS/mgr/build_app_vis.
   fi
-  
+
   cppflags="${cppflags} -isysroot ${macosx_sdk}"
   cppflags="${cppflags} -mmacosx-version-min=${macosx_target}"
 
@@ -250,7 +221,7 @@ elif [ ${build_sdk_ios} = "yes" -o ${build_sdk_ios_gnu} = "yes" ] ; then
     cpp_compiler=clang++
     cpp_linker=clang++
     # for ioda, to avoid the "out of range problem" :
-    cppflags="${cppflags} -mno-thumb" 
+    cppflags="${cppflags} -mno-thumb"
     if [ ${build_cxx11} = "yes" ] ; then
       cppflags="${cppflags} -std=c++11 -stdlib=libc++"
     elif [ ${build_cxx14} = "yes" ] ; then
@@ -295,7 +266,7 @@ elif [ ${build_sdk_ios} = "yes" -o ${build_sdk_ios_gnu} = "yes" ] ; then
   #   This was likely caused by different translation units being compiled with different visibility settings.
   cppflags="${cppflags} -fvisibility=hidden"
 
- #cppflags="${cppflags} -gdwarf-2 -mno-thumb" 
+ #cppflags="${cppflags} -gdwarf-2 -mno-thumb"
  #cppflags="${cppflags} -Os"
 
  #cppflags="${cppflags} -D__IPHONE_OS_VERSION_MIN_REQUIRED=30200"
@@ -357,7 +328,7 @@ elif [ ${build_visual} = "yes" ] ; then
     fi
     cppflags="${cppflags} -std=c++14"
   fi
-  
+
   if [ "${build_set_x}" = "yes" ] ; then cppflags="${cppflags} -verbose"; fi
 
   cpp_linker=${bush_home}/vc++
@@ -368,14 +339,14 @@ elif [ ${build_sdk_android} = "yes" ] ; then
   config_name=sdk_android
 
   . ${bush_home}/use_android
-  
+
   cpp_compiler=${ndk_cpp_compiler}
 
   if [ ${build_cxx11} = "yes" ] ; then
     cppflags="${cppflags} -std=c++11"
   elif [ ${build_cxx14} = "yes" ] ; then
     cppflags="${cppflags} -std=c++14"
-  else    
+  else
     if [ ${build_ndk_vers} = r17 ] ; then
       cppflags="${cppflags} -std=c++11"
     fi
@@ -463,7 +434,7 @@ else
     G4_cppflags="-W -Wall -ansi -pedantic -Wno-non-virtual-dtor -Wno-long-long -Wwrite-strings -Wpointer-arith -Woverloaded-virtual"
     G4_cppflags="${G4_cppflags} -Wshadow"
   fi
-  
+
 fi
 
 if [ ${build_g4flags} = "yes" ] ; then

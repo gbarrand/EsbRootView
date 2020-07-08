@@ -12,7 +12,7 @@ if [ `uname` = Darwin ] ; then
   done
   nums="`wc -l ./tmp_1 | awk '{print $1}'`"
   echo "number of bin_dir ${nums}"
-  awk '{ sum += $1 } END { print sum }' ./tmp_1  
+  awk '{ sum += $1 } END { print sum }' ./tmp_1
   /bin/rm -f ./tmp_0 ./tmp_1
 else
   du_opts='-s'

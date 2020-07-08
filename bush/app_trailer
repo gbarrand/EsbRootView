@@ -43,12 +43,21 @@ if [ "${app_src}" = "" ] ; then
 
   elif [ ${build_wasm} = "yes" ] ; then
     if [ ! -d ../wasm ] ; then /bin/mkdir -p ../wasm ;fi
+    ${bush_home}/find_rm ../wasm '*.js'
+    ${bush_home}/find_rm ../wasm '*.js.map'
+    ${bush_home}/find_rm ../wasm '*.css'
+    ${bush_home}/find_rm ../wasm '*.html'
+    ${bush_home}/find_rm ../wasm '*.cpp'
+
+    /bin/cp ${exlib_home}/exlib/wasm/glMatrix-0.9.5.min.js  ../wasm/.
+    /bin/cp ${exlib_home}/exlib/wasm/webgl.js ../wasm/.
+    /bin/cp ${exlib_home}/exlib/wasm/index.html  ../wasm/index.html
     /bin/cp ${exlib_home}/exlib/app/wasm/check_app_main.cpp ../wasm/main.cpp
-    /bin/cp ${exlib_home}/exlib/app/wasm/index.html  ../wasm/.
-    find ${exlib_home}/exlib/app/wasm -name '*.js' -exec /bin/cp {} ../wasm/. \;
-    /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../wasm/main.cpp   > tmp_0;/bin/mv tmp_0 ../wasm/main.cpp
+    find ${exlib_home}/exlib/wasm -name '*.js'     -exec /bin/cp {} ../wasm/. \;
+    find ${exlib_home}/exlib/wasm -name '*.js.map' -exec /bin/cp {} ../wasm/. \;
+    find ${exlib_home}/exlib/wasm -name '*.css'    -exec /bin/cp {} ../wasm/. \;
     /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../wasm/index.html > tmp_0;/bin/mv tmp_0 ../wasm/index.html
-    /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../wasm/main.js    > tmp_0;/bin/mv tmp_0 ../wasm/main.js
+    /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ../wasm/main.cpp   > tmp_0;/bin/mv tmp_0 ../wasm/main.cpp
     app_src=../wasm/main.cpp
 
   elif [ ${build_wx} = "yes" ] ; then
@@ -88,7 +97,7 @@ if [ "${app_src}" = "" ] ; then
     /bin/rm -f tmp_0;sed -e "s:EXLIB_APP:${app}:g" ./Main.java > tmp_0;/bin/mv tmp_0 ../Android/src/fr/in2p3/lal/${app}/Main.java
 
     cppfiles="${cppfiles} ../Android/main.cpp"
-    app_src=../Android/src/fr/in2p3/lal/${app}/Main.java 
+    app_src=../Android/src/fr/in2p3/lal/${app}/Main.java
 
     to_rm="${to_rm} ./main.cpp ./Main.java"
 

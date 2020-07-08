@@ -7,7 +7,7 @@ if ( "`uname | grep CYGWIN`" != "" ) then
   else
     echo 'wxWidgets not found.'
   endif
-  
+
   if ( "${wxWidgets_home}" != "" ) then
     if ( -x ${wxWidgets_home}/bin/wx-config-3.0 ) then
       setenv PATH "${wxWidgets_home}/bin:${PATH}"

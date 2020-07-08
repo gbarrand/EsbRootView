@@ -61,7 +61,7 @@ elif [ "`uname -n | grep lal.in2p3.fr | grep lx`" != "" ] ; then
   ${bush_home}/check_app g77 'g77 not found.'
   use_status=$?;if [ ${use_status} != 0 ] ; then exit ${use_status};fi
   f77libs="-l:libg2c.so.0.0.0"
-  
+
 elif [ "`uname -n | grep lal.in2p3.fr | grep nemo`" != "" ] ; then
   f77_compiler=g77
   f77_linker=g77

@@ -42,7 +42,7 @@ if [ "${build_app}" = "no" ] ; then
   else
     file_exe=${build_path}/${app_exe}
   fi
-  
+
 elif [ "${build_wasm}" = "yes" ] ; then
 
 . ${bush_home}/app_wasm
@@ -148,7 +148,7 @@ elif [ "${suffix}" = "java" ] ; then
   if [ ${build_plugin} = "yes" ] ; then . ${bush_home}/plugin; fi
 
   # build of the .apk done in app_distrib.
-  
+
   link_it=no
 
 elif [ "${suffix}" = "ecpp" ] ; then
@@ -156,7 +156,7 @@ elif [ "${suffix}" = "ecpp" ] ; then
 . ${bush_home}/build_ecpp
 
 else
-  echo "bush/application : suffix ${suffix} not treated"        
+  echo "bush/application : suffix ${suffix} not treated"
   exit
 fi
 
@@ -182,9 +182,9 @@ else
   fi
   eval ${app_linker} ${linker_flags} -o ${file_exe} ${objs} ${libs}
   use_status=$?;if [ ${use_status} != 0 ] ; then exit ${use_status};fi
-    
+
   #/bin/rm -f ${objs}
-    
+
   if [ `uname` = Darwin ] ; then
     if [ ${build_debug} = "yes" ] ; then
       if [ ! -f ${file_exe} ] ; then
@@ -197,9 +197,9 @@ else
         dsymutil --out=${file_exe}.dSYM ${file_exe}
       fi
     fi
-  fi 
-    
-fi # sdk_android    
+  fi
+
+fi # sdk_android
 fi # link_it
 fi # build_app
 

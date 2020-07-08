@@ -25,7 +25,7 @@ for file in $(cat m_tmp) ; do
       fi
     fi
     if [ `uname` != Darwin ] ; then
-      echo "bush/compile_m : objective-c : not available on this platform. Can't compile ${file}." 
+      echo "bush/compile_m : objective-c : not available on this platform. Can't compile ${file}."
       exit
     fi
     eval ${cpp_compiler} -x objective-c -c ${cppflags} ${mflags} -o ${obj} ${file}

@@ -16,7 +16,7 @@
  this library. For example :
    DOS> dumpbin /out:tmp /symbols MyLib.arc
    DOS> .\windef.exe MyLib tmp > MyLib.def
- Note that windef is a standalone program that 
+ Note that windef is a standalone program that
  can be easily reconstructed with :
    DOS> cl /Fowindef.exe windef.c
 */
@@ -40,7 +40,7 @@ int main (int aArgn,char** aArgs) {
     printf("windef : two arguments expected.\n");
     return EXIT_FAILURE;
   }
-  
+
   file = fopen(aArgs[2],"rb");
   if(!file) {
     printf("windef : can't open \"%s\".\n",aArgs[2]);
@@ -65,7 +65,7 @@ EXPORTS\n",aArgs[1]);
       }
     }
 
-    {    
+    {
       char** words;
       int    wordn;
       words  = GetWords (buffer," ",&wordn);
@@ -144,13 +144,13 @@ char** GetWords(char* a_string,const char* a_limiter,int* a_number) {
   iline = 0;
 
   token = string;
-  while(1) { 
+  while(1) {
     char* pos;
     pos = strstr (token,a_limiter);
     if(pos!=NULL) {
       *pos = '\0';
       if(*token!='\0') {
-	if(iline>=nline) { 
+	if(iline>=nline) {
 	  nline    +=16;
 	  list      = (char**)realloc(list,nline*sizeof(char*));
 	  if(list==NULL) return NULL;
@@ -158,7 +158,7 @@ char** GetWords(char* a_string,const char* a_limiter,int* a_number) {
 	list[iline]      = token;
 	iline++;
       }
-      token = pos + strlen(a_limiter);          
+      token = pos + strlen(a_limiter);
     } else { /*last word*/
       if(*token!='\0') {
 	if(iline>=nline) {
@@ -172,7 +172,7 @@ char** GetWords(char* a_string,const char* a_limiter,int* a_number) {
       break;
     }
   }
-  
+
   for(count=0;count<iline;count++) list[count] = STRDUP(list[count]);
   STRDEL(string);
 

@@ -150,7 +150,7 @@ if [ "${compile}" = "yes" ] ; then
    #cl_exe_cmd="${cl_exe_cmd} /std:c++17"
    #cl_exe_cmd="${cl_exe_cmd} /std:c++14"
   else
-    cl_exe_cmd="${cl_exe_cmd} /nologo /O2 /W3" 
+    cl_exe_cmd="${cl_exe_cmd} /nologo /O2 /W3"
   fi
 
   # rm painfull warnings about API strcpy, etc... deprecated :
@@ -159,7 +159,7 @@ if [ "${compile}" = "yes" ] ; then
   # enforce error on "size_t on unsigned int" :
   #cl_exe_cmd="${cl_exe_cmd} /wd4267"
 
-  cl_exe_cmd="${cl_exe_cmd} /c" 
+  cl_exe_cmd="${cl_exe_cmd} /c"
 
   if [ ${on_wsl} = yes ] ; then
     if [ "${INCLUDE}" = "" ] ; then
@@ -178,16 +178,16 @@ if [ "${compile}" = "yes" ] ; then
     #  WSL : if files checked out with the git of WSL, cl.exe can't find #include "exlib/Windows/plotter" when
     #        compiling examples/cpp/plotter_Windows.cpp, the below permits to pass :
     #cl_exe_cmd="${cl_exe_cmd} /d1scalableinclude-"
-    
+
     file_cpp="`${path_u2w} ${file_cpp}`"
   fi
 
   #  CYGWIN : apps : ../Windows/main.cpp not found. The below permits to pass.
-  #           See also bin_visual in app_header.  
+  #           See also bin_visual in app_header.
   if [ "`uname -n`" != "PC-PANO" ] ; then # the below option does not exist on my (old) XP with Visual-2009.
     cl_exe_cmd="${cl_exe_cmd} /d1scalableinclude-"
   fi
-  
+
   if [ "${Is}" != "" ] ; then cl_exe_cmd="${cl_exe_cmd} ${Is}"; fi
   if [ "${Ds}" != "" ] ; then cl_exe_cmd="${cl_exe_cmd} ${Ds}"; fi
 
@@ -203,7 +203,7 @@ if [ "${compile}" = "yes" ] ; then
   fi
 
   #echo "${cl_exe_cmd}" > debug_compile.log
-  
+
   if [ ${verbose} = yes ] ; then echo "${cl_exe_cmd}";fi
 
   /bin/rm -f ./cl_exe_tmp
@@ -224,17 +224,17 @@ else
 #/////////////////////////////////////////////////////
 
   bush_home=`dirname $0`
-  . ${bush_home}/find_link_exe    
+  . ${bush_home}/find_link_exe
   link_exe_cmd="${visual_link_exe} ${visual_link_flags}"
 
-  link_exe_cmd="${link_exe_cmd} /nologo" 
+  link_exe_cmd="${link_exe_cmd} /nologo"
 
   if [ ${debug} = yes ] ; then
-   #link_exe_cmd="${link_exe_cmd} /DEBUG:FULL" 
-    link_exe_cmd="${link_exe_cmd} /DEBUG" 
+   #link_exe_cmd="${link_exe_cmd} /DEBUG:FULL"
+    link_exe_cmd="${link_exe_cmd} /DEBUG"
   fi
 
-  #link_exe_cmd="${link_exe_cmd} /NODEFAULTLIB:LIBCMT.lib /DEFAULTLIB:MSVCRT.lib" 
+  #link_exe_cmd="${link_exe_cmd} /NODEFAULTLIB:LIBCMT.lib /DEFAULTLIB:MSVCRT.lib"
 
   if [ "${Ls}" != "" ] ; then link_exe_cmd="${link_exe_cmd} ${Ls}"; fi
 
@@ -242,7 +242,7 @@ else
     link_exe_cmd="${link_exe_cmd} /dll"
     file_o="`echo ${file_o} | sed 's:.dll::g'`"
     file_o="${file_o}.dll"
-  else      
+  else
     file_o="`echo ${file_o} | sed 's:.exe::g'`"
     file_o="${file_o}.exe"
   fi

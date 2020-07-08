@@ -16,7 +16,7 @@
  this library. For example :
    DOS> dumpbin /out:tmp /symbols MyLib.arc
    DOS> windef.exe MyLib < tmp > MyLib.def
- Note that windef is a standalone program that 
+ Note that windef is a standalone program that
  can be easily reconstructed with :
    DOS> cl /Fowindef.exe windef.c
 */
@@ -40,7 +40,7 @@ EXPORTS\n",aArgs[1]);
   while(1){
     if(fgets(buffer,MAX_STRING,stdin)==NULL) return EXIT_FAILURE;
     /*
-      On some system (NT) editors when saving binary files 
+      On some system (NT) editors when saving binary files
       put \r\n at place of \n ; we then look for \r\n.
     */
     length = strlen(buffer);
@@ -63,7 +63,7 @@ EXPORTS\n",aArgs[1]);
       }
     }
 
-    {    
+    {
       char** words;
       int    wordn;
       words  = GetWords (buffer," ",&wordn);
@@ -141,13 +141,13 @@ char** GetWords(char* a_string,const char* a_limiter,int* a_number) {
   iline = 0;
 
   token = string;
-  while(1) { 
+  while(1) {
     char* pos;
     pos = strstr (token,a_limiter);
     if(pos!=NULL) {
       *pos = '\0';
       if(*token!='\0') {
-	if(iline>=nline) { 
+	if(iline>=nline) {
 	  nline    +=16;
 	  list      = (char**)realloc(list,nline*sizeof(char*));
 	  if(list==NULL) return NULL;
@@ -155,7 +155,7 @@ char** GetWords(char* a_string,const char* a_limiter,int* a_number) {
 	list[iline]      = token;
 	iline++;
       }
-      token = pos + strlen(a_limiter);          
+      token = pos + strlen(a_limiter);
     } else { /*last word*/
       if(*token!='\0') {
 	if(iline>=nline) {
@@ -169,7 +169,7 @@ char** GetWords(char* a_string,const char* a_limiter,int* a_number) {
       break;
     }
   }
-  
+
   for(count=0;count<iline;count++) list[count] = STRDUP(list[count]);
   STRDEL(string);
 

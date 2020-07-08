@@ -62,7 +62,7 @@ if [ "${use_sys_Python}" = "yes" ] ; then
       libs="${libs} /usr/lib/libpython2.7.dll.a"
       py_exe="/usr/bin/python"
 
-    else      
+    else
       echo "bush/use/Python : WARNING : Python not found."
       exit
     fi
@@ -82,12 +82,12 @@ if [ "${use_sys_Python}" = "yes" ] ; then
     #fi
 
     #Python_home=/System/Library/Frameworks/Python.framework/Versions/2.7
-    
+
     # if working with boost/python from MacPorts, you have to use :
     Python_home=/opt/local/Library/Frameworks/Python.framework/Versions/2.7
 
     #Python_home=/usr/local/Python/2.7.8
-  
+
     if [ ! -d "${Python_home}" ] ; then
       echo "bush/use/Python : WARNING : not found under ${Python_home}"
       exit
@@ -125,7 +125,7 @@ if [ "${use_sys_Python}" = "yes" ] ; then
     fi
 
     # NOTE : at run time python-config needs a correct LD_LIBRARY_PATH
-    #        to attach libpython<version>.so. It complicates. 
+    #        to attach libpython<version>.so. It complicates.
     #        Moreover the --cflags option returns options that
     #        induces pedantic warnings. Then we prefer to set
     #        ccflags, cppflags, libs ourself.
@@ -151,7 +151,7 @@ if [ "${use_sys_Python}" = "yes" ] ; then
       Python_vers=2.7
       Python_home=/usr/local
       Python_lib="${Python_home}/lib"
-      
+
     elif [ -f /usr/include/python2.7/Python.h ] ; then
       Python_vers=2.7
       Python_home=/usr
@@ -179,7 +179,7 @@ if [ "${use_sys_Python}" = "yes" ] ; then
         echo "bush/use/Python : use_archive requested but ${Python_lib}/libpython${Python_vers}.a not found, try with -lpython${Python_vers}."
         libs="${libs} -L${Python_lib} -lpython${Python_vers}"
       fi
-    else     
+    else
       libs="${libs} -L${Python_lib} -lpython${Python_vers}"
     fi
 

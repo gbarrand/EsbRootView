@@ -53,9 +53,13 @@ build_no_distrib=no
 
 build_shlib=yes
 build_use_shlib=no
-build_inlib_gl=no
 build_keep_symbs=no
 build_skip_done=no
+
+build_inlib_gl=no
+build_enforce_glx=no
+build_enforce_agl=no
+build_enforce_wgl=no
 
 build_use_not_our=
 build_D=
@@ -100,7 +104,7 @@ for arg in ${build_args} ; do
     -g++11)        build_gnu11=yes;;
     -ansi)         build_ansi=yes;;
     -pedantic)     build_pedantic=yes;;
-    
+
     -g)            build_debug=yes;;
     -debug)        build_debug=yes;;
     -x)            build_set_x=yes;;
@@ -138,7 +142,12 @@ for arg in ${build_args} ; do
     -g4flags)      build_g4flags=yes;;
     -use_shlib)    build_use_shlib=yes;;
     -inlib_stl)    build_use_our_stl=yes;;
+
     -inlib_gl)     build_inlib_gl=yes;;
+    -glx)          build_enforce_glx=yes;;
+    -agl)          build_enforce_agl=yes;;
+    -wgl)          build_enforce_wgl=yes;;
+
     -keep_symbs)   build_keep_symbs=yes;;
     -skip_done)    build_skip_done=yes;;
 
@@ -156,7 +165,7 @@ for arg in ${build_args} ; do
 done
 
 if [ ${build_verbose} = yes ] ; then
-  echo "bush/header : args : \"${build_all_args}\"."   
+  echo "bush/header : args : \"${build_all_args}\"."
 fi
 
 if [ ${build_set_x} = "yes" ] ; then set -x; fi
@@ -234,7 +243,7 @@ if [ "${build_root_path}" != "" ] ; then
   if [ ! -d "${build_root_path}" ] ; then
     echo 'bush/header : directory of env BUSH_BUILD_ROOT_PATH not found.'
     echo "bush/header : BUSH_BUILD_ROOT_PATH value is \"${build_root_path}\""
-    exit  
+    exit
   fi
   build_path="${build_root_path}/${build_dir}"
 else

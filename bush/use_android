@@ -34,11 +34,11 @@ elif [ ${build_ndk_vers} = r17 ] ; then
   ndk_cc_compiler=${ndk_bin}/clang
   ndk_cpp_compiler=${ndk_bin}/clang++
   ndk_distrib_platform=arm64-v8a
-    
+
 else
   echo "bush/use_android : ndk version ${build_ndk_vers} not yet supported."
   exit
-fi    
+fi
 
 #/////////////////////////////////////////////////////////////////////////////////
 #/// ccflags : ///////////////////////////////////////////////////////////////////
@@ -84,9 +84,9 @@ else
   elif [ ${build_ndk_vers} = r10e ] ; then
     ndk_ccflags="${ndk_ccflags} -no-canonical-prefixes -Wformat -Werror=format-security"
   fi
-  
+
 fi
-  
+
 #/////////////////////////////////////////////////////////////////////////////////
 #/// cppflags : //////////////////////////////////////////////////////////////////
 #/////////////////////////////////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ if [ ${build_ndk_vers} = r17 ] ; then
  #ndk_cppflags="${ndk_cppflags} -target x86_64-none-linux-android"
  #ndk_cppflags="${ndk_cppflags} -fPIC"
  #ndk_cppflags="${ndk_cppflags} -isystem ${ndk_home}/sysroot/usr/include/x86_64-linux-android"
- 
+
   ndk_cppflags="${ndk_cppflags} -ffunction-sections -funwind-tables -fstack-protector-strong"
   ndk_cppflags="${ndk_cppflags} -Wno-invalid-command-line-argument -Wno-unused-command-line-argument"
   ndk_cppflags="${ndk_cppflags} -no-canonical-prefixes"
@@ -158,16 +158,16 @@ elif [ ${build_ndk_vers} = r10e ] ; then
 
   ndk_libs="${ndk_libs} ${ndk_home}/sources/cxx-stl/gnu-libstdc++/4.8/libs/armeabi/libgnustl_static.a"
   ndk_libs="${ndk_libs} ${ndk_home}/toolchains/arm-linux-androideabi-4.8/prebuilt/darwin-x86_64/lib/gcc/arm-linux-androideabi/4.8/libgcc.a"
-  
+
 elif [ ${build_ndk_vers} = r17 ] ; then
 
   ndk_pgflags="${ndk_pgflags} -gcc-toolchain ${ndk_home}/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64"
   ndk_pgflags="${ndk_pgflags} -target aarch64-none-linux-android"
   ndk_pgflags="${ndk_pgflags} -no-canonical-prefixes  -u ANativeActivity_onCreate"
-  
+
  #ndk_pgflags="${ndk_pgflags} -gcc-toolchain ${ndk_home}/toolchains/x86_64-4.9/prebuilt/darwin-x86_64"
  #ndk_pgflags="${ndk_pgflags} -target x86_64-none-linux-android -no-canonical-prefixes"
- 
+
   ndk_pgflags="${ndk_pgflags} -lgcc -Wl,--exclude-libs,libgcc.a -latomic -Wl,--exclude-libs,libatomic.a"
   ndk_pgflags="${ndk_pgflags} -Wl,--build-id -nostdlib++"
   ndk_pgflags="${ndk_pgflags} -Wl,-z,relro -Wl,-z,now"
@@ -175,12 +175,12 @@ elif [ ${build_ndk_vers} = r17 ] ; then
 
   ndk_libs="${ndk_libs} ${ndk_home}/sources/cxx-stl/llvm-libc++/libs/arm64-v8a/libc++_static.a"
   ndk_libs="${ndk_libs} ${ndk_home}/sources/cxx-stl/llvm-libc++abi/../llvm-libc++/libs/arm64-v8a/libc++abi.a"
-  
+
  #ndk_libs="${ndk_libs} ${ndk_home}/sources/cxx-stl/llvm-libc++/libs/x86_64/libc++_static.a"
  #ndk_libs="${ndk_libs} ${ndk_home}/sources/cxx-stl/llvm-libc++abi/../llvm-libc++/libs/x86_64/libc++abi.a"
- 
+
 fi
-      
+
 ndk_libs="${ndk_libs} -L${ndk_platform}/usr/lib"
 ndk_libs="${ndk_libs} -lGLESv1_CM"
 ndk_libs="${ndk_libs} -ldl -llog -lz -lc -lm"

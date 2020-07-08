@@ -21,7 +21,7 @@ if [ "${use_sys_png}" = "yes" ] ; then
     else
       if [ -e /opt/local/include/png.h ] ; then
         cppflags="${cppflags} -I/opt/local/include"
-        libs="${libs} -L/opt/local/lib -lpng"
+        libs="${libs} /opt/local/lib/libpng.dylib"
       else
         echo "bush/use/png : /opt/local/include/png.h not found. Use our png."
         use_our_png=yes

@@ -27,7 +27,9 @@ if [ -d ./src ] ; then
   find ./src -maxdepth 1 -name '*.cpp' -print >> cpp_tmp
   find ./src -maxdepth 1 -name '*.cxx' -print >> cpp_tmp
   find ./src -maxdepth 1 -name '*.f' -print >> f_tmp
-  find ./src -maxdepth 1 -name '*.mm' -print >> mm_tmp
+  if [ `uname` = Darwin ] ; then
+    find ./src -maxdepth 1 -name '*.mm' -print >> mm_tmp
+  fi
 fi
 
 gen_flags=

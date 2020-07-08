@@ -3,30 +3,22 @@
 
 if [ "${use_GLX}" = "yes" ] ; then
   if [ ${build_visual} = "yes" ] ; then
-    echo "bush/use/X11 : cl.exe : GLX not supported."
+    echo 'bush/use/GLX : not available with visual.'
     exit
-  fi
+  fi    
 
   if [ `uname` = Darwin ] ; then
-    use_dirs="/opt/local /usr /usr/X11"
+    # sudo /opt/local/bin/port install mesa (or glxinfo).
+    cppflags="${cppflags} -I/opt/local/include"
+    ccflags="${ccflags} -I/opt/local/include"
+    libs="${libs} /opt/local/lib/libGL.dylib"
   else
-    use_dirs="/usr"
-  fi
-  if [ `uname` = Darwin ] ; then
-    inc_dirs="/opt/local/include /usr/include /usr/X11/include"
-  else
-    inc_dirs="/usr/X11R6/include /usr/include"
-  fi
-  inc_to_find=GL/glx.h
-  . ${bush_home}/find_inc
+    inc_dirs="/usr/include"
+    inc_to_find=GL/glx.h
+    . ${bush_home}/find_inc
 
-  if [ `uname` = Darwin ] ; then
-    lib_dirs="/opt/local/${lib} /usr/${lib} /usr/X11/${lib}"
-    # glX functions are in the GL lib !
+    lib_dirs="/usr/${lib} /usr/lib/x86_64-linux-gnu"
     lib_to_find=GL
     . ${bush_home}/find_lib
-  else
-    echo dummy > /dev/null
-    # glX functions are in the GL lib !
   fi
 fi

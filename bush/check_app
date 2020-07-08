@@ -24,7 +24,7 @@ for item in $PATH ; do
   #echo Look ${item}
   if [ -f "${item}/$1" ] ; then
     #echo Found in ${item}
-    IFS="${old_IFS}"    
+    IFS="${old_IFS}"
     unset old_IFS
     exit 0
   fi

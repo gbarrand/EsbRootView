@@ -15,9 +15,9 @@ if [ "${use_sys_zlib}" = "yes" ] ; then
   if [ -e /usr/include/zlib.h ] ; then
     libs="${libs} -lz"
   elif [ -e /opt/local/include/zlib.h ] ; then
-    ccflags="${ccflags} -I/opt/local"  
+    ccflags="${ccflags} -I/opt/local"
     cppflags="${cppflags} -I/opt/local"
-    libs="${libs} -L/opt/local/lib -lz"
+    libs="${libs} /opt/local/lib/libz.dylib"
   else
     echo "bush/use/zlib : zlib.h not found."
     exit

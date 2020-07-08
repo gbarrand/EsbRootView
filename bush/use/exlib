@@ -9,6 +9,6 @@ if [ "${use_exlib}" = "yes" ] ; then
   ccflags="${ccflags} -I${exlib_home}"
 
   cppflags="${cppflags} -I${exlib_home}"
-  
+
 fi
 

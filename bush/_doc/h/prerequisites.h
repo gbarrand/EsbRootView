@@ -61,9 +61,8 @@
  Then you need:
 @verbatim
  - Visual Studio. We use the 2015 one.
- - cygwin with at least zip (bash is here by default). We have also installed tcsh
-   (because we prefer it as a prompt), git (to get code) and openssh (to log in
-   and out to remote machines), and... it must be all.
+ - cygwin with at least zip (bash is here by default). We installed git (to get code)
+   and openssh (to log in and out to remote machines), and... it must be all.
 @endverbatim
  If having to tweak bush/use_cc, use_cpp follow ${build_visual}. Note that the access
  to cl.exe to compile and link.exe to link is concentrated in the script bush/vc++.

@@ -12,8 +12,10 @@ elif [ ${build_visual} = "yes" ] ; then
   if [ ${build_no_gl} = "yes" ] ; then
     use_DirectX=yes
   fi
+  use_WGL=yes
 elif [ ${build_cocoa} = "yes" -o ${build_cocoa_gnu} = "yes" ] ; then
   use_Cocoa=yes
+  use_AGL=yes
 elif [ ${build_ios} = "yes" -o ${build_ios_gnu} = "yes" -o ${build_iossim} = "yes" ] ; then
   use_iOS=yes
 elif [ ${build_x11} = "yes" ] ; then
@@ -21,6 +23,7 @@ elif [ ${build_x11} = "yes" ] ; then
   if [ ${build_no_gl} = "no" ] ; then
     use_GLX=yes
   fi
+  use_GLX=yes
 elif [ ${build_android} = "yes" ] ; then
   use_Android=yes
 fi
@@ -28,9 +31,11 @@ fi
 . ${bush_home}/use/GLX
 . ${bush_home}/use/X11
 
+. ${bush_home}/use/WGL
 . ${bush_home}/use/Windows
 . ${bush_home}/use/DirectX
 
+. ${bush_home}/use/AGL
 . ${bush_home}/use/Cocoa
 . ${bush_home}/use/iOS
 . ${bush_home}/use/Android
@@ -38,5 +43,5 @@ fi
 . ${bush_home}/use/SDL2
 
 . ${bush_home}/use/GLU
-. ${bush_home}/use/GL
+#. ${bush_home}/use/GL
 

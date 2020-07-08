@@ -21,11 +21,11 @@ else
   else
     echo 'wxWidgets not found.'
   endif
-  
+
   if ( "${wxWidgets_home}" != "" ) then
   if ( -x ${wxWidgets_home}/bin/wx-config ) then
     setenv PATH "${wxWidgets_home}/bin:${PATH}"
-  
+
     if ( `uname` == "Linux" ) then
       set lib_path="${wxWidgets_home}/lib"
       set lib_curr=`printenv LD_LIBRARY_PATH`

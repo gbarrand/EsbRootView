@@ -3,13 +3,12 @@
 
 if [ "${auto_use_pack}" = "" ] ; then
   echo 'bush/auto_use : variable auto_use_pack not defined.'
-  exit  
+  exit
 fi
 
 #//////////////////////////////////////////////////////////////////////////
 #/// look for an //${auto_use_pack}_build_use in ${auto_use_file} file ////
 #//////////////////////////////////////////////////////////////////////////
-
 app_uses="`grep ${auto_use_pack}_build_use ${auto_use_file}`"
 if [ "${app_uses}" != "" ] ; then
   app_uses=`echo ${app_uses} | sed -e "s:${auto_use_pack}_build_use::g"`
@@ -19,6 +18,24 @@ if [ "${app_uses}" != "" ] ; then
       echo dummy > /dev/null
     else
       use_var="use_${item}"
+      eval ${use_var}=yes
+    fi
+  done
+fi
+
+#//////////////////////////////////////////////////////////////////////////
+#//////////////////////////////////////////////////////////////////////////
+#//////////////////////////////////////////////////////////////////////////
+#<pack>_build_take_not_our and NOT <pack>_build_use_not_our to avoid clashes with the upper logic.
+app_uses="`grep ${auto_use_pack}_build_take_not_our ${auto_use_file}`"
+if [ "${app_uses}" != "" ] ; then
+  app_uses=`echo ${app_uses} | sed -e "s:${auto_use_pack}_build_take_not_our::g"`
+  for item in ${app_uses} ; do
+    #echo "set build_take_not_our_${item}"
+    if [ ${item} = "//" -o ${item} = '/*' -o ${item} = '*/' -o ${item} = '#' ] ; then
+      echo dummy > /dev/null
+    else
+      use_var="build_use_not_our_${item}"
       eval ${use_var}=yes
     fi
   done
@@ -196,6 +213,13 @@ if [ "${use_skip}" = "yes" ] ; then
   exit
 fi
 
+
+app_bigobj="`grep ${auto_use_pack}_build_bigobj ${auto_use_file}`"
+if [ "${app_bigobj}" != "" ] ; then
+  if [ ${build_visual} = yes ] ; then
+    cppflags="${cppflags} -bigobj"
+  fi
+fi
 
 #if [ "${use_not_visual}" = "yes" ] ; then
 #  if [ ${build_visual} = yes ] ; then

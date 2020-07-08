@@ -17,7 +17,7 @@ for file in $(cat ./f_tmp) ; do
     diro=`basename ${dname}`
     /bin/mkdir -p "${build_path}/${diro}"
     obj="${build_path}/${diro}/${oname}.o"
-  else 
+  else
     obj="${build_path}/${oname}.o"
   fi
 

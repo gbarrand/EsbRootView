@@ -194,7 +194,7 @@ if [ "`uname | grep CYGWIN`" != "" ] ; then
     if [ ${build_webgl} = "yes" ] ; then
       cppflags="${cppflags} -I${inlib_home}/inlib/WebGL"  # to bypass "wrap_main_js" not found in inlib/WebGL/render.
     fi
-  else  
+  else
     cppflags="${cppflags} -Wa,-mbig-obj"
   fi
 fi

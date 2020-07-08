@@ -23,7 +23,7 @@ if [ "${use_Qt}" = "yes" ] ; then
 
   Qt_ld_library_path=
   moc_exe=
-   
+
   if [ `uname` = Darwin ] ; then
 
     if [ -d /Library/Frameworks/QtCore.framework ] ; then
@@ -34,7 +34,7 @@ if [ "${use_Qt}" = "yes" ] ; then
       libs="${libs} -framework QtGui -framework QtCore"
 
       moc_exe=/usr/bin/moc
-   
+
     elif [ -d /usr/local/Qt/5.0.1 ] ; then
 
       Qt_home=/usr/local/Qt/5.0.1/5.0.1/clang_64
@@ -60,7 +60,9 @@ if [ "${use_Qt}" = "yes" ] ; then
       Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_home}/Library/Frameworks/QtGui.framework/Headers"
       Qt_incs_no_guard="${Qt_incs_no_guard} -I${Qt_home}/Library/Frameworks/QtOpenGL.framework/Headers"
 
-      libs="${libs} -L${Qt_home}/lib -lQtOpenGL -lQtGUI -lQtCore"
+      libs="${libs} ${Qt_home}/lib/libQtOpenGL.dylib"
+      libs="${libs} ${Qt_home}/lib/libQtGui.dylib"
+      libs="${libs} ${Qt_home}/lib/libQtCore.dylib"
 
       moc_exe="${Qt_home}/bin/moc"
 

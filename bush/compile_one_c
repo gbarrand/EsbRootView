@@ -24,7 +24,7 @@ if [ ${build_do_compile} = "yes" ] ; then
   if [ ${build_skip_done} = yes -a -f ${obj} ] ; then
     if [ ${build_verbose} = yes ] ; then
       echo "bush/compile_one_c : ${obj} already exists. Do not compile again."
-    fi      
+    fi
   else
     if [ ${build_verbose} = yes ] ; then
       echo "bush/compile_one_c : do ${file} ..."
@@ -34,7 +34,7 @@ if [ ${build_do_compile} = "yes" ] ; then
     fi
     eval ${cc_compiler} -c ${ccflags} -o ${obj} ${file}
     use_status=$?;if [ ${use_status} != 0 ] ; then exit ${use_status};fi
-  fi    
+  fi
 fi
 
 objs="${objs} ${obj}"

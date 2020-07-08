@@ -16,6 +16,6 @@ fi
 if [ "`echo $1 | sed -e 's#/mnt/c##g'`" != "$1" ] ; then
   path_1="`echo $1 | sed -e 's#/mnt/c#C:#g'`"
   echo "${path_1}"
-else    
+else
   echo "$1"
-fi    
+fi

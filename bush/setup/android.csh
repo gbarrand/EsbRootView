@@ -15,5 +15,7 @@ setenv PATH "${ndk_home}:${PATH}"
 
 setenv PATH "${PATH}:/opt/local/bin"   # for ant.
 
+setenv ANDROID_SDK_HOME ${sdk_home}
+
 unset sdk_home
 unset ndk_home
