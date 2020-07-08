@@ -286,7 +286,8 @@ fi
 /bin/mkdir -p ${to}/inexlib/exlib/inlib/wall
 #/bin/cp ${inlib_home}/inlib/wall/args ${to}/inexlib/inlib/inlib/wall/.
 
-/bin/cp -R ../Cocoa   ${to}/${app}/.
+/bin/cp -R ../icons  ${to}/${app}/.
+/bin/cp -R ../Cocoa  ${to}/${app}/.
 /bin/cp -R ../iOS    ${to}/${app}/.
 
 if [ -f ../${app}.license ] ; then
