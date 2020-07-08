@@ -13,8 +13,8 @@ namespace sg {
 class xy_grid : public vertices {
   INLIB_NODE(xy_grid,inlib::sg::xy_grid,vertices)
 public:
-  sf<float> sx; 
-  sf<float> sy; 
+  sf<float> sx;
+  sf<float> sy;
   sf<unsigned int> nx;
   sf<unsigned int> ny;
 public:

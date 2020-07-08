@@ -56,7 +56,7 @@ public:
       for(size_t index=0;index<number;index++) dv += stdv[index];
       a_return.set(dv);
       return true;
-    } 
+    }
     return false;
   }
   virtual ival_func* copy() const { return new val_func_vsum(*this);}
@@ -89,6 +89,24 @@ protected:
   val_func_pow(const val_func_pow& a_from)
   :ival_func(a_from),val_func(a_from){}
   val_func_pow& operator=(const val_func_pow& a_from){
+    val_func::operator=(a_from);return *this;
+  }
+};
+
+class val_func_atan2 : public val_func {
+public:
+  virtual bool eval(const args& a_args,value& a_return,std::string& a_error) {
+    if(a_args.size()!=m_num_args) return false;
+    return val_func::eval1(a_args[0],a_return,a_error,a_args[1],::atan2);
+  }
+  virtual ival_func* copy() const { return new val_func_atan2(*this);}
+public:
+  val_func_atan2():val_func(s_atan2(),2){}
+  virtual ~val_func_atan2(){}
+protected:
+  val_func_atan2(const val_func_atan2& a_from)
+  :ival_func(a_from),val_func(a_from){}
+  val_func_atan2& operator=(const val_func_atan2& a_from){
     val_func::operator=(a_from);return *this;
   }
 };
@@ -156,15 +174,15 @@ public:
     if(a_args.size()!=m_num_args) return false;
     if(a_args[0].type()==value::ARRAY_DOUBLE) {
     } else {
-  
+
       double x;
       if(!TO_D(a_args[0],x,a_return,a_error)) return false;
-  
+
       double d_1;
       if(!TO_D(a_args[1],d_1,a_return,a_error)) return false;
       double d_2;
       if(!TO_D(a_args[2],d_2,a_return,a_error)) return false;
-  
+
       int n = (int)x;
       std::vector<unsigned int> orders(1);
       orders[0] = n;
@@ -176,7 +194,7 @@ public:
       }
       a_return.set(v.orders(),v.vector());
       return true;
-  
+
     }
     return false;
   }
@@ -204,19 +222,19 @@ public:
     if(a_args.size()!=m_num_args) return false;
     if(a_args[0].type()==value::ARRAY_DOUBLE) {
     } else {
-  
+
       double x;
       if(!TO_D(a_args[0],x,a_return,a_error)) return false;
-  
+
       double d_1;
       if(!TO_D(a_args[1],d_1,a_return,a_error)) return false;
       double d_2;
       if(!TO_D(a_args[2],d_2,a_return,a_error)) return false;
-  
+
       func::expo func(d_1,d_2);
       a_return.set(func.value(x));
       return true;
-  
+
     }
     return false;
   }
@@ -242,21 +260,21 @@ public:
     if(a_args.size()!=m_num_args) return false;
     if(a_args[0].type()==value::ARRAY_DOUBLE) {
     } else {
-  
+
       double x;
       if(!TO_D(a_args[0],x,a_return,a_error)) return false;
-  
+
       double d_1;
       if(!TO_D(a_args[1],d_1,a_return,a_error)) return false;
       double d_2;
       if(!TO_D(a_args[2],d_2,a_return,a_error)) return false;
       double d_3;
       if(!TO_D(a_args[3],d_3,a_return,a_error)) return false;
-  
+
       func::gaussian func(d_1,d_2,d_3);
       a_return.set(func.value(x));
       return true;
-  
+
     }
     return false;
   }
@@ -343,21 +361,21 @@ public:
     if(a_args.size()!=m_num_args) return false;
     if(a_args[0].type()==value::ARRAY_DOUBLE) {
     } else {
-  
+
       double x;
       if(!TO_D(a_args[0],x,a_return,a_error)) return false;
-  
+
       double d_1;
       if(!TO_D(a_args[1],d_1,a_return,a_error)) return false;
       double d_2;
       if(!TO_D(a_args[2],d_2,a_return,a_error)) return false;
       double d_3;
       if(!TO_D(a_args[3],d_3,a_return,a_error)) return false;
-  
+
       func::cauchy func(d_1,d_2,d_3);
       a_return.set(func.value(x));
       return true;
-  
+
     }
     return false;
   }
@@ -383,22 +401,22 @@ public:
     if(a_args.size()!=m_num_args) return false;
     if(a_args[0].type()==value::ARRAY_DOUBLE) {
     } else {
-  
+
       double x;
       if(!TO_D(a_args[0],x,a_return,a_error)) return false;
-  
+
       double d_1;
       if(!TO_D(a_args[1],d_1,a_return,a_error)) return false;
       double d_2;
       if(!TO_D(a_args[2],d_2,a_return,a_error)) return false;
-  
+
       std::vector<double> params(2);
       params[0] = d_1;
       params[1] = d_2;
       func::polynomial func(params);
       a_return.set(func.value(x));
       return true;
-  
+
     }
     return false;
   }
@@ -420,17 +438,17 @@ public:
     if(a_args.size()!=m_num_args) return false;
     if(a_args[0].type()==value::ARRAY_DOUBLE) {
     } else {
-  
+
       double x;
       if(!TO_D(a_args[0],x,a_return,a_error)) return false;
-  
+
       double d_1;
       if(!TO_D(a_args[1],d_1,a_return,a_error)) return false;
       double d_2;
       if(!TO_D(a_args[2],d_2,a_return,a_error)) return false;
       double d_3;
       if(!TO_D(a_args[3],d_3,a_return,a_error)) return false;
-  
+
       std::vector<double> params(3);
       params[0] = d_1;
       params[1] = d_2;
@@ -438,7 +456,7 @@ public:
       func::polynomial func(params);
       a_return.set(func.value(x));
       return true;
-  
+
     }
     return false;
   }
@@ -460,10 +478,10 @@ public:
     if(a_args.size()!=m_num_args) return false;
     if(a_args[0].type()==value::ARRAY_DOUBLE) {
     } else {
-  
+
       double x;
       if(!TO_D(a_args[0],x,a_return,a_error)) return false;
-  
+
       double d_1;
       if(!TO_D(a_args[1],d_1,a_return,a_error)) return false;
       double d_2;
@@ -472,7 +490,7 @@ public:
       if(!TO_D(a_args[3],d_3,a_return,a_error)) return false;
       double d_4;
       if(!TO_D(a_args[4],d_4,a_return,a_error)) return false;
-  
+
       std::vector<double> params(4);
       params[0] = d_1;
       params[1] = d_2;
@@ -481,7 +499,7 @@ public:
       func::polynomial func(params);
       a_return.set(func.value(x));
       return true;
-  
+
     }
     return false;
   }
@@ -503,10 +521,10 @@ public:
     if(a_args.size()!=m_num_args) return false;
     if(a_args[0].type()==value::ARRAY_DOUBLE) {
     } else {
-  
+
       double x;
       if(!TO_D(a_args[0],x,a_return,a_error)) return false;
-  
+
       double d_1;
       if(!TO_D(a_args[1],d_1,a_return,a_error)) return false;
       double d_2;
@@ -517,7 +535,7 @@ public:
       if(!TO_D(a_args[4],d_4,a_return,a_error)) return false;
       double d_5;
       if(!TO_D(a_args[5],d_5,a_return,a_error)) return false;
-  
+
       std::vector<double> params(5);
       params[0] = d_1;
       params[1] = d_2;
@@ -527,7 +545,7 @@ public:
       func::polynomial func(params);
       a_return.set(func.value(x));
       return true;
-  
+
     }
     return false;
   }
@@ -575,16 +593,17 @@ inline val_funcs::val_funcs() {
   m_funcs.push_back(new cfunc_t("heaviside",::inlib_heaviside,in_domain_all));
 
   m_funcs.push_back(new cfunc_t("todouble",::inlib_todouble,in_domain_all));  //permit to convert [unsigned]short,int,int64 to double.
-  
+
   m_funcs.push_back(new val_func_rndm(m_random_flat));
 
   //for OpenPAW/c_pawex20.kumac
-  m_funcs.push_back(new cfunc_t("int",::inlib_toint,in_domain_all)); 
+  m_funcs.push_back(new cfunc_t("int",::inlib_toint,in_domain_all));
 
   m_funcs.push_back(new val_func_nco());
   m_funcs.push_back(new val_func_vsum());
 
   m_funcs.push_back(new val_func_pow());
+  m_funcs.push_back(new val_func_atan2());
   m_funcs.push_back(new val_func_mod());
 
   m_funcs.push_back(new val_func_array());

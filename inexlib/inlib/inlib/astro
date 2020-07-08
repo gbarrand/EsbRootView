@@ -78,6 +78,7 @@ inline bool hour_sex_to_deg_10(const std::string& a_s,double& a_deg_10) {
 
 #include <cmath>
 #include "num2s"
+#include "sto"
 
 namespace inlib {
 
@@ -115,6 +116,45 @@ inline bool deg_10_to_hour_sex(double a_deg,std::string& a_s) {
   if(!numas<double>(s,a_s)) {a_s.clear();return false;}
 
   return true;
+}
+
+inline bool string_to_dec_10(const std::string& a_s,double& a_value) {
+ {std::string end;
+  if(a_s.size()>=4) end = a_s.substr(a_s.size()-4,4);
+  if((end==" hms")||(end=="_hms")) {
+    std::string begin = a_s.substr(0,a_s.size()-4);
+    return hour_sex_to_deg_10(begin,a_value);
+  }}
+ {std::string end;
+  if(a_s.size()>=6) end = a_s.substr(a_s.size()-6,6);
+  if((end==" damas")||(end=="_damas")) {
+    std::string begin = a_s.substr(0,a_s.size()-6);
+    return deg_sex_to_deg_10(begin,a_value);
+  }}
+  return to<double>(a_s,a_value);
+}
+
+inline std::string get_galaxy_script(const std::string& a_title,
+                                     const std::string& a_ra,const std::string& a_dec,double a_w = 0.25,double a_h = 0.25) {
+  std::string script;
+  script += "ra="+a_ra;
+  script += "\n";
+  script += "dec="+a_dec;
+  script += "\n";
+  script += "w=";numas(a_w,script);  
+  script += "\n";
+  script += "h=";numas(a_h,script);  
+  script += "\n";
+  script += "url=`stsci_request -ra=${ra} -dec=${dec} -w=${w} -h=${h}`";
+  script += "\n";
+  if(a_title.size()) {
+  script += "script=\"scene_add_fits -title="+a_title+" -flat=false -auto_radec=false -ra=${ra} -dec=${dec} out.fits\"";
+  } else {
+  script += "script=\"scene_add_fits -flat=false -auto_radec=false -ra=${ra} -dec=${dec} out.fits\"";
+  }
+  script += "\n";
+  script += "web_get_file -no_warn -out=out.fits -insh=\"${script}\" ${url}";
+  return script;
 }
 
 }

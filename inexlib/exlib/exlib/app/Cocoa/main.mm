@@ -21,7 +21,7 @@
 #endif
 
 #include "sg_serv.hm"
-  
+
 #if MAC_OS_X_VERSION_MAX_ALLOWED <= 1050
 @interface app_delegate : NSObject {
 #else
@@ -107,11 +107,11 @@
   if(m_sg_serv_file_handle) {
     [self remove_fh:m_sg_serv_file_handle];
     m_sg_serv_file_handle = 0;
-  }    
+  }
   if(m_sg_client_file_handle) {
     [self remove_fh:m_sg_client_file_handle];
     m_sg_client_file_handle = 0;
-  }    
+  }
   [super dealloc];
 }
 - (void)windowWillClose:(NSNotification*)a_not {
@@ -150,7 +150,7 @@
   }
 
   //exlib::post_event(m_window,EXLIB_NSEVENT_FILE_HANDLE); //Hmmm, it is needed in wall/Cocoa/master.mm.
-  
+
   [fh waitForDataInBackgroundAndNotify];
 }
 - (void)sg_serv_fh_callback:(NSNotification*)a_not {
@@ -168,7 +168,7 @@
   }
 
   //exlib::post_event(m_window,EXLIB_NSEVENT_FILE_HANDLE); //Hmmm, it is needed in wall/Cocoa/master.mm.
-  
+
   [fh waitForDataInBackgroundAndNotify];
 }
 - (void)remove_sg_serv_file_handle {
@@ -176,7 +176,7 @@
     [self remove_fh:m_sg_serv_file_handle];
     m_sg_serv_file_handle = 0;
   }
-}  
+}
 - (void)set_sg_client_file_handle:(NSFileHandle*)a_sg_client_file_handle {
   m_sg_client_file_handle = a_sg_client_file_handle;
 }
@@ -188,7 +188,7 @@
   NSEvent* event = [a_app nextEventMatchingMask:NSAnyEventMask
 #else
   NSEvent* event = [a_app nextEventMatchingMask:NSEventMaskAny
-#endif			     
+#endif
                                       untilDate:a_blocking ? [NSDate distantFuture] : [NSDate distantPast]
                                          inMode:NSDefaultRunLoopMode
                                         dequeue:YES];
@@ -199,7 +199,7 @@
     if([event type]==NSApplicationDefined) {
 #else
     if([event type]==NSEventTypeApplicationDefined) {
-#endif      
+#endif
       if([event subtype]==EXLIB_NSEVENT_CONNECT) {
         if(m_sg_serv) {
 	  if(m_sg_serv_file_handle) {
@@ -220,7 +220,7 @@
 	}
       }
     } else {
-      [a_app sendEvent:event]; 
+      [a_app sendEvent:event];
       [a_app updateWindows];
     }
   }
@@ -239,7 +239,7 @@
 #endif
 
 #include <inlib/sg/view_sg_client>
-template <class APP_MAIN>			  
+template <class APP_MAIN>
 inline void sg_client_start_func(void* a_win_delegate,void* a_main){
   win_delegate* _win_delegate = (win_delegate*)a_win_delegate;
   app_Cocoa::main<APP_MAIN>* _main = (app_Cocoa::main<APP_MAIN>*)a_main;
@@ -258,7 +258,7 @@ inline void sg_client_start_func(void* a_win_delegate,void* a_main){
   }
   if(_main->verbose()) _main->out() << "sg_client_start_func : end." << std::endl;
 }
-template <class APP_MAIN>			  
+template <class APP_MAIN>
 inline void sg_client_stop_func(void* a_win_delegate,void* a_main){
   // called from main => view_sg_client dstors.
   win_delegate* _win_delegate = (win_delegate*)a_win_delegate;
@@ -313,26 +313,26 @@ inline void at_exit() {
 #ifdef EXLIB_APP_HAS_TERM
 #include <iostream>
 #endif
-			  
+
 #include <cstdlib>
-			  
+
 template <class APP_CONTEXT,class APP_MAIN>
 inline int exlib_main(const std::string& a_app_name,int argc, char** argv) {
   bool verbose = false;
 
   //NSLog(@"debug : exlib_main : 006");
-  
+
 #ifdef EXLIB_APP_HAS_TERM
   std::ostream& nsout = std::cout;
-#else  
+#else
   NSLog_streambuf nsbuf;
   std::ostream nsout(&nsbuf);
 #endif
-  
+
 #ifdef INLIB_MEM
   #ifdef INLIB_MEM_ATEXIT
   ::atexit(at_exit);
-  #endif  
+  #endif
   inlib::mem::set_check_by_class(true);{
 #endif
 
@@ -400,7 +400,7 @@ options are :\n\
   //////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////
-  
+
   verbose = args.is_arg("-verbose");
 
   unsigned int ww,wh;
@@ -452,7 +452,7 @@ options are :\n\
     unsigned int mask = NSBorderlessWindowMask;
 #else
     unsigned int mask = NSWindowStyleMaskBorderless;
-#endif    
+#endif
     window = [[FSWindow alloc] initWithContentRect:rect
                                styleMask:mask
                                backing:NSBackingStoreBuffered
@@ -471,7 +471,7 @@ options are :\n\
     mask |= NSWindowStyleMaskResizable;
     mask |= NSWindowStyleMaskClosable;
     mask |= NSWindowStyleMaskMiniaturizable;
-#endif    
+#endif
     if(args.is_arg("-no_decos")) mask = 0;
     window = [[NSWindow alloc] initWithContentRect:rect
                                styleMask:mask
@@ -549,7 +549,7 @@ options are :\n\
   //////////////////////////////////////////////////////////////////
  {std::string DOCUMENT;
   args.files_at_end(); //take care of the upper -land.
-  if(!args.file(DOCUMENT)) args.find("-document",DOCUMENT);  
+  if(!args.file(DOCUMENT)) args.find("-document",DOCUMENT);
   if(verbose) {
     NSLog(@"exlib_main : document is %s.",DOCUMENT.c_str());
   }
@@ -598,31 +598,31 @@ options are :\n\
   }
 
   delete _term_timer;
-  
+
   if(_view_sg_serv) _view_sg_serv->set_params(0,0,0,0,0,0);
   if(_view_sg_client) _view_sg_client->set_params(0,0,0,0); //for main and view_sg_client dstors.
 
   [[NSNotificationCenter defaultCenter] removeObserver:_win_delegate];
-  
+
   [main_pool release];
-  
+
 #ifdef INLIB_MEM
   }
   #ifndef INLIB_MEM_ATEXIT
   inlib::mem::balance(nsout);
   #endif
   NSLog(@"%s_Cocoa : exit(mem) ...",a_app_name.c_str());
-#else  
+#else
   if(verbose) NSLog(@"%s_Cocoa : exit ...",a_app_name.c_str());
 #endif
-  
+
   return EXIT_SUCCESS;
 }
 
 #ifdef USE_NSAPP_RUN
 #undef USE_NSAPP_RUN
 #endif
-  
+
 // skip because of app_main_t.
 //exlib_build_use skip
-  
+

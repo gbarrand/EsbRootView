@@ -30,7 +30,7 @@ public:
 
   ,m_yn(a_from.m_yn),m_ymn(a_from.m_ymn),m_ymx(a_from.m_ymx)
   ,m_h_ymn(a_from.m_h_ymn),m_h_ymx(a_from.m_h_ymx)
-  
+
   ,m_zn(a_from.m_zn),m_zmn(a_from.m_zmn),m_zmx(a_from.m_zmx)
   ,m_h_zmn(a_from.m_h_zmn),m_h_zmx(a_from.m_h_zmx)
   {}

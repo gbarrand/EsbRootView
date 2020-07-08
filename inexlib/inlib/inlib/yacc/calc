@@ -15,14 +15,14 @@
 namespace inlib {
 
 inline bool calc(std::ostream& a_out,const std::string& a_formula,const std::vector<double>& a_vals,double& a_value){
-  inlib::yacc::cexpr_eval proc(a_out,a_formula);
+  yacc::cexpr_eval proc(a_out,a_formula);
   std::vector<std::string> vars;
   if(!proc.find_variables(vars)) {
-    a_out << "inlib::calc : can't find variables in " << inlib::sout(a_formula) << "." << std::endl;
+    a_out << "inlib::calc : can't find variables in " << sout(a_formula) << "." << std::endl;
     return false;
   }
   if(!proc.compile(vars)) {
-    a_out << "inlib::calc : can't compile " << inlib::sout(a_formula) << "." << std::endl;
+    a_out << "inlib::calc : can't compile " << sout(a_formula) << "." << std::endl;
     return false;
   }
   size_t number = vars.size();
@@ -30,32 +30,32 @@ inline bool calc(std::ostream& a_out,const std::string& a_formula,const std::vec
     a_out << "inlib::calc : bad number of values. " << number << " required." << std::endl;
     return false;
   }
-  std::vector<inlib::value> vals;
-  vals.resize(number,inlib::value(0.));
+  std::vector<value> vals;
+  vals.resize(number,value(0.));
 
  {std::vector<double>::const_iterator it1 = a_vals.begin();
-  std::vector<inlib::value>::iterator it2 = vals.begin();
+  std::vector<value>::iterator it2 = vals.begin();
   for(;it1!=a_vals.end();++it1,++it2) (*it2).set(*it1);}
 
-  inlib::value res;
+  value res;
   std::string serror;
   if(!proc.execute(vals,res,serror)) {
-    a_out << "inlib::calc : execution failure of " << inlib::sout(a_formula)
-          << ". Error message " << inlib::sout(serror) << std::endl;
+    a_out << "inlib::calc : execution failure of " << sout(a_formula)
+          << ". Error message " << sout(serror) << std::endl;
     return false;
   }
-  return inlib::value::to_double(res,a_value);
+  return value::to_double(res,a_value);
 }
 
 inline bool calc(std::ostream& a_out,const std::string& a_formula,const std::vector<std::string>& a_vals,std::string& a_value){
-  inlib::yacc::cexpr_eval proc(a_out,a_formula);
+  yacc::cexpr_eval proc(a_out,a_formula);
   std::vector<std::string> vars;
   if(!proc.find_variables(vars)) {
-    a_out << "inlib::calc : can't find variables in " << inlib::sout(a_formula) << "." << std::endl;
+    a_out << "inlib::calc : can't find variables in " << sout(a_formula) << "." << std::endl;
     return false;
   }
   if(!proc.compile(vars)) {
-    a_out << "inlib::calc : can't compile " << inlib::sout(a_formula) << "." << std::endl;
+    a_out << "inlib::calc : can't compile " << sout(a_formula) << "." << std::endl;
     return false;
   }
   size_t number = vars.size();
@@ -63,34 +63,34 @@ inline bool calc(std::ostream& a_out,const std::string& a_formula,const std::vec
     a_out << "inlib::calc : bad number of values. " << number << " required." << std::endl;
     return false;
   }
-  std::vector<inlib::value> vals;
-  vals.resize(number,inlib::value(0.));
+  std::vector<value> vals;
+  vals.resize(number,value(0.));
 
  {std::vector<std::string>::const_iterator it1 = a_vals.begin();
-  std::vector<inlib::value>::iterator it2 = vals.begin();
+  std::vector<value>::iterator it2 = vals.begin();
   for(;it1!=a_vals.end();++it1,++it2) {
     double d;
-    if(!inlib::to<double>(*it1,d)) {
-      a_out << "inlib::calc : argument " << inlib::sout(*it1) << " not a double." << std::endl;
+    if(!to<double>(*it1,d)) {
+      a_out << "inlib::calc : argument " << sout(*it1) << " not a double." << std::endl;
       return false;
     }
     (*it2).set(d);
   }}
 
-  inlib::value res;
+  value res;
   std::string serror;
   if(!proc.execute(vals,res,serror)) {
-    a_out << "inlib::calc : execution failure of " << inlib::sout(a_formula)
-          << ". Error message " << inlib::sout(serror) << std::endl;
+    a_out << "inlib::calc : execution failure of " << sout(a_formula)
+          << ". Error message " << sout(serror) << std::endl;
     return false;
   }
 
-//if(res.type()!=inlib::value::DOUBLE) {
+//if(res.type()!=value::DOUBLE) {
 //  a_out << "inlib::calc : result not a double." << std::endl;
 //  return false;
 //}
 
-  a_value = inlib::value::to_string(res);
+  a_value = value::to_string(res);
   return true;
 }
 

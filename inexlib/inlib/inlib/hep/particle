@@ -198,7 +198,7 @@ public:
 public: //Geant4 API (for inlib/g4dum) :
   double GetPDGCharge() const { return m_charge;}
   double GetPDGMass() const { return m_mass;}
-//  double GetPDGWidth() const { return m_width;} 
+//  double GetPDGWidth() const { return m_width;}
 protected:
   std::string    m_name;
   int            m_pdg_code;                    // PDG code of the particle

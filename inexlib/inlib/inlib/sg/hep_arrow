@@ -14,143 +14,10 @@
 #include "draw_style"
 #include "infos"
 #include "text_hershey_marker"
-
-#include "../hep/spdg"
+#include "hep_strings"
 
 namespace inlib {
 namespace sg {
-
-inline std::string cvt2paw(std::string& a_s){
-  if(a_s==hep::s_e_plus()) {
-    a_s = "e^+";
-    return encoding_PAW();
-  } else if(a_s==hep::s_e_minus()) {
-    a_s = "e^-";
-    return encoding_PAW();
-
-  } else if(a_s==hep::s_gamma()) {
-    a_s = "[g]";
-    return encoding_PAW();
-
-  } else if(a_s==hep::s_mu_plus()) {
-    a_s = "[m]^+";
-    return encoding_PAW();
-  } else if(a_s==hep::s_mu_minus()) {
-    a_s = "[m]^-";
-    return encoding_PAW();
-
-  } else if(a_s==hep::s_nu_e()) {
-    a_s = "[n]?e";
-    return encoding_PAW();
-  } else if(a_s==hep::s_nu_mu()) {
-    a_s = "[n]?[m]";
-    return encoding_PAW();
-
-  } else if(a_s==hep::s_proton()) {
-    a_s = "p";
-    return encoding_none();
-
-  } else if(a_s==hep::s_neutron()) {
-    a_s = "n";
-    return encoding_none();
-
-  } else if(a_s==hep::s_pi_plus()) {
-    a_s = "[p]^+";
-    return encoding_PAW();
-  } else if(a_s==hep::s_pi_minus()) {
-    a_s = "[p]^-";
-    return encoding_PAW();
-  } else if(a_s==hep::s_pi0()) {
-    a_s = "[p]^0";
-    return encoding_PAW();
-
-  } else if(a_s==hep::s_K_plus()) {
-    a_s = "K^+";
-    return encoding_PAW();
-  } else if(a_s==hep::s_K_minus()) {
-    a_s = "K^-";
-    return encoding_PAW();
-  } else if(a_s==hep::s_K0()) {
-    a_s = "K^0";
-    return encoding_PAW();
-
-  } else {
-    return encoding_none();
-  }
-}
-
-inline bool cvt2stix(const std::string& a_s,std::vector<sg::base_freetype::unichar>& a_line){
-
-  a_line.clear();
-  if(a_s==hep::s_e_plus()) {
-    a_line.push_back(0x00065); // e
-    a_line.push_back(0x0002B); // +
-
-  } else if(a_s==hep::s_e_minus()) {
-    a_line.push_back(0x00065); // e
-    a_line.push_back(0x0002D); // -
-
-  } else if(a_s==hep::s_gamma()) {
-    a_line.push_back(0x003B3); // gamma
-
-  } else if(a_s==hep::s_mu_plus()) {
-    a_line.push_back(0x003BC); // mu
-    a_line.push_back(0x0002B); // +
-
-  } else if(a_s==hep::s_mu_minus()) {
-    a_line.push_back(0x003BC); // mu
-    a_line.push_back(0x0002D); // -
-
-  } else if(a_s==hep::s_nu_e()) {
-    a_line.push_back(0x003BD); // nu
-  //a_line.push_back(0x0002F); // /
-    a_line.push_back(0x0002D); // -
-    a_line.push_back(0x00065); // e
-
-  } else if(a_s==hep::s_nu_mu()) {
-    a_line.push_back(0x003BD); // nu
-  //a_line.push_back(0x0002F); // /
-    a_line.push_back(0x0002D); // -
-    a_line.push_back(0x003BC); // mu
-
-  } else if(a_s==hep::s_proton()) {
-    a_line.push_back(0x00070); // p
-
-  } else if(a_s==hep::s_neutron()) {
-    a_line.push_back(0x0006E); // n
-
-  } else if(a_s==hep::s_pi_plus()) {
-    a_line.push_back(0x003C0); // pi
-    a_line.push_back(0x0002B); // +
-
-  } else if(a_s==hep::s_pi_minus()) {
-    a_line.push_back(0x003C0); // pi
-    a_line.push_back(0x0002D); // -
-
-  } else if(a_s==hep::s_pi0()) {
-    a_line.push_back(0x003C0); // pi
-    a_line.push_back(0x00030); // 0
-
-  } else if(a_s==hep::s_K_plus()) {
-    a_line.push_back(0x0004B); // K
-    a_line.push_back(0x0002B); // +
-
-  } else if(a_s==hep::s_K_minus()) {
-    a_line.push_back(0x0004B); // K
-    a_line.push_back(0x0002D); // -
-
-  } else if(a_s==hep::s_K0()) {
-    a_line.push_back(0x0004B); // K
-    a_line.push_back(0x00030); // 0
-
-  } else if(a_s=="nu") {
-    a_line.push_back(0x003BD); // nu
-
-  } else {
-    inlib_sforcit(a_s,it) a_line.push_back(*it);
-  }
-  return true;
-}
 
 inline void add_marker_text(group& a_sep,
                             float a_x,float a_y,float a_z,
@@ -158,7 +25,7 @@ inline void add_marker_text(group& a_sep,
                             float a_scale,
                             const std::string& a_s,
                             const base_freetype& a_ttf) {
-  separator* sep = new separator;    
+  separator* sep = new separator;
   a_sep.add(sep);
 
   rgba* color = new rgba();
@@ -167,7 +34,7 @@ inline void add_marker_text(group& a_sep,
 
   matrix* mtx = new matrix;
   mtx->set_translate(a_x,a_y,a_z);
-  sep->add(mtx);    
+  sep->add(mtx);
 
   if(false) {
     text_hershey_marker* text = new text_hershey_marker;
@@ -186,9 +53,9 @@ inline void add_marker_text(group& a_sep,
     text->height = text->height.value()*a_scale;
     sep->add(text);
   }
-    
+
 }
-  
+
 inline separator* create_arrow(const vec3f& a_pos,const vec3f& a_dir,float a_length,float a_radius,bool a_base_tube,
                                const std::string& a_name,
                                float a_text_scale,float a_text_pos,const base_freetype& a_ttf,
@@ -196,7 +63,7 @@ inline separator* create_arrow(const vec3f& a_pos,const vec3f& a_dir,float a_len
   separator* sep = new separator;
 
   if(a_infos) sep->add(a_infos); //under sep, so that picking of the arrow or text give infos.
-    
+
  {separator* _sep = new separator;
   sep->add(_sep);
   if(false) {
@@ -221,7 +88,7 @@ inline separator* create_arrow(const vec3f& a_pos,const vec3f& a_dir,float a_len
 
     float length_base = a_length*0.8f;
     float length_head = a_length-length_base;
-   
+
    {matrix* mtx = new matrix;
     mtx->set_translate(a_pos);
     mtx->mul_rotate(vec3f(0,0,1),a_dir); //first
@@ -261,12 +128,12 @@ inline separator* create_arrow(const vec3f& a_pos,const vec3f& a_dir,float a_len
     //cone->angle = fhalf_pi();
     _sep->add(cone);
   }}
-    
+
   if(a_name.size()) {
     vec3f pos = a_pos+a_dir*a_length*a_text_pos;
     add_marker_text(*sep,pos.x(),pos.y(),pos.z(),a_color,a_text_scale,a_name,a_ttf);
   }
-  
+
   return sep;
 }
 

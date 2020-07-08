@@ -22,7 +22,7 @@ inline bool is_console() { // Getline/gl_init() logic.
   } else { // We assume that we run from a DOS prompt.
     return true;
   }
-#else    
+#else
   return true;
 #endif
 }

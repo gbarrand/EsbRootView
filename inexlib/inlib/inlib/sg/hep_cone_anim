@@ -64,7 +64,7 @@ public:
   sf<double> time_cone_begin;
   sf<double> time_cone_elapse;
   sf<double> speed;
- 
+
   hep::sf_polyhedron operand;
   sf_enum<solid_operation> operation;
 public:
@@ -111,7 +111,7 @@ public:
   ,operand(hep::polyhedron())
   ,operation(solid_none)
   {
-    add_fields();    
+    add_fields();
     m_group.add(new noderef(m_polyhedron));
   }
   virtual ~hep_cone_anim() {}
@@ -128,7 +128,7 @@ protected:
   ,operand(a_from.operand)
   ,operation(a_from.operation)
   {
-    add_fields();    
+    add_fields();
     m_group.add(new noderef(m_polyhedron));
   }
   hep_cone_anim& operator=(const hep_cone_anim& a_from){
@@ -143,7 +143,7 @@ protected:
     operation = a_from.operation;
     return *this;
   }
-protected:  
+protected:
   polyhedron m_polyhedron;
 };
 

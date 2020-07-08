@@ -19,7 +19,8 @@ public:
     double fac = double(a_length)/double(m_size);
     m_progress.value = float(fac);
     m_ui.win_render();
-    return m_ui.stop_works()?false:true;
+  //return m_ui.stop_works()?false:true;
+    return true;
   }
 public:
   progress(std::ostream& a_out,bool a_verbose,sg::ui& a_ui,sg::progress& a_progress,uint64 a_size)

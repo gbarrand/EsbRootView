@@ -4,22 +4,22 @@
 #ifndef inlib_sg_write_paper
 #define inlib_sg_write_paper
 
-#include <inlib/sg/zb_action>  
-#include <inlib/wps>  
-#include <inlib/sg/node>  
-#include <inlib/typedefs>  
-#include <inlib/sg/gl2ps_action>
-#include <inlib/touplow>
+#include "zb_action"
+#include "node"
+#include "gl2ps_action"
+#include "../wps"
+#include "../typedefs"
+#include "../touplow"
 
 namespace inlib {
 namespace sg {
 
 typedef bool (*png_writer)(std::ostream&,const std::string&,
                            unsigned char*,unsigned int,unsigned int,unsigned int);
-  
+
 typedef bool (*jpeg_writer)(std::ostream&,const std::string&,
                             unsigned char*,unsigned int,unsigned int,unsigned int,int);
-			      
+
 inline bool write_paper(std::ostream& a_out,
                         gl2ps_manager& a_gl2ps_mgr,zb_manager& a_zb_mgr,
                         png_writer a_png_writer,jpeg_writer a_jpeg_writer,
@@ -43,9 +43,9 @@ inline bool write_paper(std::ostream& a_out,
   zb_action action(a_zb_mgr,a_out,a_width,a_height);
   action.zbuffer().clear_color_buffer(0);
   action.add_color(a_back_r,a_back_g,a_back_b,a_back_a);
-  action.zbuffer().clear_depth_buffer();    
+  action.zbuffer().clear_depth_buffer();
   a_scene_graph.render(action);
-  
+
   if(a_format=="inzb_ps") {
     wps wps(a_out);
     if(!wps.open_file(a_file)) {
@@ -58,21 +58,21 @@ inline bool write_paper(std::ostream& a_out,
     wps.PS_END_PAGE();
     wps.close_file();
     return true;
-  }    
-      
+  }
+
   if(a_format=="inzb_png") {
     if(!a_png_writer) {
-      a_out << "inlib::sg::write_paper : no jpeg_writer given." << std::endl;
+      a_out << "inlib::sg::write_paper : no png_writer given." << std::endl;
       return false;
     }
-    
+
     size_t sz;
     unsigned char* buffer = action.get_rgbas(sz);
     if(!buffer) {
       a_out << "inlib::sg::write_paper : can't get rgba image." << std::endl;
       return false;
     }
-      
+
     if(!a_png_writer(a_out,a_file,buffer,a_width,a_height,4)) {
       a_out << "inlib::sg::write_paper : inlib::png::write() failed." << std::endl;
       delete [] buffer;
@@ -83,7 +83,7 @@ inline bool write_paper(std::ostream& a_out,
   }
 
   if(a_format=="inzb_jpeg") {
-  
+
     if(!a_jpeg_writer) {
       a_out << "inlib::sg::write_paper : no jpeg_writer given." << std::endl;
       return false;
@@ -95,7 +95,7 @@ inline bool write_paper(std::ostream& a_out,
       a_out << "inlib::sg::write_paper : can't get rgb image." << std::endl;
       return false;
     }
-      
+
     if(!a_jpeg_writer(a_out,a_file,buffer,a_width,a_height,3,100)) {
       a_out << "inlib::sg::write_paper : inlib::jpeg::write() failed." << std::endl;
       delete [] buffer;
@@ -104,7 +104,7 @@ inline bool write_paper(std::ostream& a_out,
     delete [] buffer;
     return true;
   }
-    
+
   a_out << "inlib::sg::write_paper : unknown format " << a_format << std::endl;
   return false;
 }

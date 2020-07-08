@@ -35,7 +35,7 @@ public: //iro
   virtual iro* copy() const {return new geo_pattern_finder(*this);}
   virtual bool stream(buffer& a_buffer) {
     _clear();
-    
+
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
@@ -62,7 +62,7 @@ public: //iro
       a_buffer.out() << "inlib::rroot::geo_pattern_finder::stream : "
                      << "can't read fVolume."
                      << std::endl;
-      _clear();		      
+      _clear();
       return false;
     }
 
@@ -151,7 +151,7 @@ public:
   geo_matrix* matrix() {return m_matrix;}
   const geo_volume* volume() const {return m_volume;}
   geo_volume* volume() {return m_volume;}
-  
+
 protected:
   void _clear() {
     if(m_matrix_created) {delete m_matrix;m_matrix = 0;m_matrix_created = false;}
@@ -803,7 +803,7 @@ template <class T>
 inline T* cast_pattern_finder(geo_pattern_finder& a_pf) {
   return id_cast<geo_pattern_finder,T>(a_pf);
 }
-  
+
 }}
 
 #endif

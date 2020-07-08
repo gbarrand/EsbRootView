@@ -34,7 +34,7 @@ public:
     m_matrix.set_translate(position.value());
     m_matrix.mul_rotate(vec3f(0,0,-1),direction.value());
     m_matrix.mul_translate(0,0,-float(height)*0.5f); //applied first.
-    
+
     m_cone.height = float(height);
     m_cone.rmin = 0;
     m_cone.rmax = rmax;
@@ -81,7 +81,7 @@ public:
   ,time_cone_elapse(1)
   ,speed(1)
   {
-    add_fields();    
+    add_fields();
     m_group.add(new noderef(m_matrix));
     m_group.add(new noderef(m_cone));
   }
@@ -97,7 +97,7 @@ protected:
   ,time_cone_elapse(a_from.time_cone_elapse)
   ,speed(a_from.speed)
   {
-    add_fields();    
+    add_fields();
     m_group.add(new noderef(m_matrix));
     m_group.add(new noderef(m_cone));
   }
@@ -111,7 +111,7 @@ protected:
     speed = a_from.speed;
     return *this;
   }
-protected:  
+protected:
   matrix m_matrix;
   cone_hat m_cone;
 };

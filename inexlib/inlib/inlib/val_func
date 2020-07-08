@@ -35,13 +35,13 @@ public:
     mem::increment(s_class().c_str());
 #endif
   }
-  virtual ~val_func(){ 
+  virtual ~val_func(){
 #ifdef INLIB_MEM
     mem::decrement(s_class().c_str());
 #endif
   }
 protected:
-  val_func(const val_func& a_from) 
+  val_func(const val_func& a_from)
   :ival_func(),m_name(a_from.m_name),m_num_args(a_from.m_num_args){
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
@@ -60,11 +60,11 @@ protected:
   bool eval0(const value& a_x,value& a_return,std::string& a_error,Func0 a_func) {
 
     if(a_x.type()==value::ARRAY_DOUBLE) {
-  
+
      {std::vector<unsigned int> is;
       const std::vector<double>& stdv = a_x.get_array_double(is);
       a_return.set(is,stdv);}
-  
+
       // In the below, we need a non const method.
       std::vector<double>& stdv = a_return.array_double();
       size_t number = stdv.size();
@@ -81,15 +81,15 @@ protected:
   bool eval0(const value& a_x,value& a_return,std::string& a_error,Func0 a_func,InDomain a_domain) {
 
     if(a_x.type()==value::ARRAY_DOUBLE) {
-  
+
      {std::vector<unsigned int> is;
       const std::vector<double>& stdv = a_x.get_array_double(is);
       a_return.set(is,stdv);}
-  
+
       // In the below, we need a non const method.
       std::vector<double>& stdv = a_return.array_double();
       size_t number = stdv.size();
-      for(size_t index=0;index<number;index++) { 
+      for(size_t index=0;index<number;index++) {
         double x = stdv[index];
         if(!a_domain(x)) {
           a_error = std::string("inlib::val_func::eval0 : ")
@@ -105,7 +105,7 @@ protected:
     } else {
       double x;
       if(!TO_D(a_x,x,a_return,a_error)) return false;
-  
+
       if(!a_domain(x)) {
         a_error = std::string("inlib::val_func::eval0(2) : ")
                + " " + m_name + " : variable value ";
@@ -114,7 +114,7 @@ protected:
         a_return.set_none();
         return false;
       }
-  
+
       a_return.set(a_func(x));
       return true;
     }
@@ -124,17 +124,17 @@ protected:
 
     double d_1;
     if(!TO_D(a_1,d_1,a_return,a_error)) return false;
-  
+
     if(a_x.type()==value::ARRAY_DOUBLE) {
-  
+
      {std::vector<unsigned int> is;
       const std::vector<double>& stdv = a_x.get_array_double(is);
       a_return.set(is,stdv);}
-  
+
       // In the below, we need a non const method.
       std::vector<double>& stdv = a_return.array_double();
       size_t number = stdv.size();
-      for(size_t index=0;index<number;index++) { 
+      for(size_t index=0;index<number;index++) {
         stdv[index] = a_func(stdv[index],d_1);
       }
       return true;
@@ -146,7 +146,7 @@ protected:
     }
   }
 
-protected:  
+protected:
   static bool TO_D(const value& a_vx,double& a_x,value& a_return,std::string& a_error) {
     if(!a_vx.to_double(a_x)) {
       a_error = "inlib::val_func::TO_D : can't convert value to double.";
@@ -161,28 +161,29 @@ protected:
 };
 
 class val_func_cfunc : public val_func {
+  typedef val_func parent;
 public:
   typedef double(*cfunc)(double);
   typedef bool(*domain_func)(double);
 public:
   virtual bool eval(const args& a_args,value& a_return,std::string& a_error) {
     if(a_args.size()!=m_num_args) return false;
-    return val_func::eval0(a_args[0],a_return,a_error,m_cfunc,m_domain);
+    return parent::eval0(a_args[0],a_return,a_error,m_cfunc,m_domain);
   }
   virtual ival_func* copy() const { return new val_func_cfunc(*this);}
 public:
   val_func_cfunc(const std::string& a_name,cfunc a_function,domain_func a_domain)
-  :val_func(a_name,1)
+  :parent(a_name,1)
   ,m_cfunc(a_function),m_domain(a_domain)
   {}
   virtual ~val_func_cfunc(){}
 public:
   val_func_cfunc(const val_func_cfunc& a_from)
-  :ival_func(a_from),val_func(a_from)
+  :ival_func(a_from),parent(a_from)
   ,m_cfunc(a_from.m_cfunc),m_domain(a_from.m_domain)
   {}
-  val_func_cfunc& operator=(const val_func_cfunc& a_from){ 
-    val_func::operator=(a_from);
+  val_func_cfunc& operator=(const val_func_cfunc& a_from){
+    parent::operator=(a_from);
     return *this;
   }
 protected:
@@ -193,10 +194,12 @@ protected:
 }
 
 #include "rtausmed"
+#include "forit"
 
 namespace inlib {
 
 class val_funcs {
+public:
   static const std::string& s_class() {
     static const std::string s_v("inlib::val_funcs");
     return s_v;
@@ -211,9 +214,7 @@ public:
   }
 public:
   val_funcs(const val_funcs& a_from):m_random_flat(a_from.m_random_flat) {
-    for(std::vector<ival_func*>::const_iterator it = a_from.m_funcs.begin();it!=a_from.m_funcs.end();++it) {
-      m_funcs.push_back((*it)->copy());
-    }  
+    inlib_vforcit(ival_func*,a_from.m_funcs,it) {m_funcs.push_back((*it)->copy());}
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
 #endif
@@ -222,13 +223,11 @@ public:
     if(&a_from==this) return *this;
     m_random_flat = a_from.m_random_flat;
     clear();
-    for(std::vector<ival_func*>::const_iterator it = a_from.m_funcs.begin();it!=a_from.m_funcs.end();++it) {
-      m_funcs.push_back((*it)->copy());
-    }  
+    inlib_vforcit(ival_func*,a_from.m_funcs,it) {m_funcs.push_back((*it)->copy());}
     return *this;
   }
 public:
-  void clear(){ 
+  void clear(){
     std::vector<ival_func*>::iterator it;
     while(!m_funcs.empty()) {
       it = m_funcs.end();
@@ -240,12 +239,19 @@ public:
   }
   void add(ival_func* a_func) {m_funcs.push_back(a_func);}
   void add_front(ival_func* a_func) {m_funcs.insert(m_funcs.begin(),a_func);}
-  ival_func* find(const std::string& a_name) const {  
-    for(std::vector<ival_func*>::const_iterator it = m_funcs.begin();
-        it!=m_funcs.end();++it) {
-      if((*it)->name()==a_name) return (*it);
-    }  
+  ival_func* find(const std::string& a_name) const {
+    inlib_vforcit(ival_func*,m_funcs,it) {if((*it)->name()==a_name) return (*it);}
     return 0;
+  }
+  bool remove(ival_func* a_func) {
+    //NOTE : no delete on a_node is performed.
+    inlib_vforit(ival_func*,m_funcs,it) {
+      if(a_func==(*it)) {
+        m_funcs.erase(it);
+        return true;
+      }
+    }
+    return false;
   }
 
   std::vector<ival_func*>& funcs() {return m_funcs;}

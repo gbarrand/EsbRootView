@@ -41,7 +41,7 @@ public:
   }
 public:
   virtual const std::string& name() const {return m_name;}
-  virtual bool get_entry(double& a_value) const { 
+  virtual bool get_entry(double& a_value) const {
     value ret;
     if(!get_value(ret)) {a_value=0;return false;}
     if(ret.is_array()) {a_value=0;return false;}
@@ -68,7 +68,7 @@ protected:
   ,parent(a_from)
   ,m_ntu(a_from.m_ntu)
   ,m_valop(a_from.m_valop)
-  { 
+  {
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
 #endif
@@ -82,7 +82,7 @@ protected:
 public:
   //read::intuple& ntu() {return m_ntu;}
 
-  bool get_value(value& a_ret) const { 
+  bool get_value(value& a_ret) const {
     //std::vector<value> input(m_vars.size());
 
     col_valop& self = const_cast<col_valop&>(*this);
@@ -132,7 +132,7 @@ public:
     return true;
   }
 
-  bool mean_rms(double& a_mean,double& a_rms,unsigned int& a_count) const { 
+  bool mean_rms(double& a_mean,double& a_rms,unsigned int& a_count) const {
 
     a_mean = 0;
     a_rms = 0;
@@ -150,7 +150,7 @@ public:
         //::printf("debug : col_valop::mean_rms : get_value() failed.\n");
         return false;
       }
-  
+
       if(ret.is_array()) {
         switch(ret.type()){
         //case ARRAY_UNSIGNED_SHORT:
@@ -331,7 +331,7 @@ public:
         a_v.push_back((*it)->name());
       }
     }
-  } 
+  }
 
 protected:
   void initialize(){  // analyse m_valop :
@@ -351,7 +351,7 @@ protected:
     for(it=v.m_nodes.begin();it!=v.m_nodes.end();++it){
 
       //::printf("debug : \"%s\" %d\n",
-      //   (*it)->m_name.c_str(),(*it)->m_index);      
+      //   (*it)->m_name.c_str(),(*it)->m_index);
 
       bool found = false;
      {std::vector< std::pair<icol_t*,int> >::const_iterator pit;
@@ -374,11 +374,11 @@ protected:
               m_cols.push_back(std::pair<icol_t*,int>(*cit,(*it)->m_index));
               break;
             }
-          } 
+          }
         }
       }
     }}
-    
+
   }
 protected:
   read::intuple& m_ntu;
@@ -398,10 +398,10 @@ inline bool fill_2D(read::intuple& a_ntu,const col_valop& a_x,const col_valop& a
 
     value x_ret;
     if(!a_x.get_value(x_ret)) return false;
-  
+
     value y_ret;
     if(!a_y.get_value(y_ret)) return false;
-  
+
     if(!x_ret.is_array()&&!y_ret.is_array()) {
       double x;
       if(!x_ret.to_double(x)) return false;
@@ -590,13 +590,13 @@ inline bool fill_3D(read::intuple& a_ntu,const col_valop& a_x,const col_valop& a
 
     value x_ret;
     if(!a_x.get_value(x_ret)) return false;
-  
+
     value y_ret;
     if(!a_y.get_value(y_ret)) return false;
-  
+
     value z_ret;
     if(!a_z.get_value(z_ret)) return false;
-  
+
     if(!x_ret.is_array()&&!y_ret.is_array()&&!z_ret.is_array()) {
       double x;
       if(!x_ret.to_double(x)) return false;

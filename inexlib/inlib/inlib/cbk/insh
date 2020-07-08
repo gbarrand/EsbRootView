@@ -18,7 +18,7 @@ inline inlib::sg::return_action action_insh_1(inlib::sg::gui_viewer& a_gv,inlib:
  {bool value;tob(a_widget.values[3],value,false);_state.m_set_x = value;}
  {bool value;tob(a_widget.values[4],value,false);_state.m_set_n = value;}
  {bool value;tob(a_widget.values[5],value,false);_state.m_set_d = value;}
-  
+
   a_gv.insh().exec_line(cmd+" "+sargs,_state);
   */
   a_gv.insh().exec_line_reset_to_stop(cmd+" "+sargs);
@@ -31,7 +31,7 @@ inline inlib::sg::return_action action_menu_insh(inlib::sg::gui_viewer& a_gv) {
 
   std::vector<std::string> names;
   a_gv.insh().exec_names(names);
-  
+
 //entries->add_opts("names",names.size()?names[0]:"",names);
   entries->add_combo_string("cmd",names.size()?names[0]:"",names);  //combo, to be able to give an insh file name to execute.
   entries->add_string("args","");
@@ -45,6 +45,21 @@ inline inlib::sg::return_action action_menu_insh(inlib::sg::gui_viewer& a_gv) {
   a_gv.push_list(entries);
   return inlib::sg::return_to_render;
 }
+
+
+inline sg::return_action action_menu_insh_keyboard_ok(sg::gui_viewer& a_gv,sg::keyboard& a_widget) {
+  a_gv.insh().exec_line_reset_to_stop(a_widget.value.value());
+  return sg::return_to_render;
+}
+
+inline sg::return_action action_menu_insh_keyboard(sg::gui_viewer& a_gv) {
+  sg::keyboard* node = new sg::keyboard(a_gv.ttf());
+  a_gv.set_style(*node);
+  sg::add_callback(a_gv,*node,action_menu_insh_keyboard_ok);
+  a_gv.push_list(node);
+  return sg::return_to_render;
+}
+
 }}
 
 #endif

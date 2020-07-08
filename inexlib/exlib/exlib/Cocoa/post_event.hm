@@ -21,15 +21,15 @@ inline void post_event(NSWindow* a_window,short a_event) {
   NSInteger windowNum = [a_window windowNumber];
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1014
   NSGraphicsContext* context = [(NSWindow*)a_window graphicsContext];
-#else  
+#else
   NSGraphicsContext* context = nil;
-#endif  
+#endif
 
   short subtype = a_event;
   NSInteger data1 = 0;
   NSInteger data2 = 0;
 
-  NSEvent* event = [NSEvent 
+  NSEvent* event = [NSEvent
 //#if MAC_OS_X_VERSION_MAX_ALLOWED < 1012
 #if MAC_OS_X_VERSION_MAX_ALLOWED <= 1060   //macarts.
     otherEventWithType:NSApplicationDefined
@@ -44,7 +44,7 @@ inline void post_event(NSWindow* a_window,short a_event) {
                subtype:subtype
                  data1:data1
                  data2:data2];
-  [NSApp postEvent:event atStart:YES]; 
+  [NSApp postEvent:event atStart:YES];
 
 }
 

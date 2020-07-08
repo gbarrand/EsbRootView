@@ -33,7 +33,7 @@ public:
                              ntu_proj& a_proj,
                              rroot::file& a_file,
                              rroot::key& a_key,const sg::pos_data& a_data) {
-      return new root_obj(a_gv,a_proj,a_file,a_key,action_main(),a_data); 
+      return new root_obj(a_gv,a_proj,a_file,a_key,action_main(),a_data);
     }
   };
 
@@ -53,27 +53,27 @@ public:
 
     if(m_action==action_main()) {
 
-      unsigned int sz;    
+      unsigned int sz;
       char* buf = m_key.get_object_buffer(m_file,sz);//we don't have ownership of buf.
       if(!buf) {
         out << "root_obj::action :"
             << " can't get data buffer for " << m_key.object_name() << "."
             << std::endl;
         m_gv.pop_warn(m_popup,m_ex,m_ey,"key.get_buffer() failed");
-        return sg::return_to_render;     
+        return sg::return_to_render;
       }
 
       //out  << "root_obj::action :"
       //     << " size of data object " << sz
       //     << std::endl;
-  
+
       rroot::buffer b(out,m_file.byte_swap(),sz,buf,m_key.key_length(),false);
-  
+
       if(m_key.object_class()==rroot::TGeoManager_cls()) {
-  
+
         b.set_map_objs(true);
 
-        //look if a geo_manager already loaded 
+        //look if a geo_manager already loaded
         //  labels.push_back(k.object_name());
 
         //std::cout << "debug :"
@@ -84,7 +84,7 @@ public:
         rroot::geo_manager* mgr = m_gv.find_in_tmp_group<rroot::geo_manager>(m_key.object_name());
         if(mgr) {
           //m_gv.out() << "debug : geo_manager already in tmp_group."
-          //           << std::endl;          
+          //           << std::endl;
         } else {
           //m_gv.out() << "debug : geo_manager not found in tmp_group."
           //           << std::endl;
@@ -97,7 +97,7 @@ public:
                 << std::endl;
             delete mgr;
             m_gv.pop_warn(m_popup,m_ex,m_ey,"geo_mgr.stream() failed");
-            return sg::return_to_render;     
+            return sg::return_to_render;
           }
           //m_gv.out() << "read geom time : "
           //           << atime::elapsed(begin)
@@ -106,7 +106,7 @@ public:
           if(!master) {
             delete mgr;
             m_gv.pop_warn(m_popup,m_ex,m_ey,"no master volume");
-            return sg::return_to_render;     
+            return sg::return_to_render;
           }
 
           std::vector< std::pair<std::string,unsigned int> > vds;
@@ -128,7 +128,7 @@ public:
               if(!read_vds(_path,vds)){
                 m_gv.pop_warn(m_popup,m_ex,m_ey,"can't read vds file "+_path+".");
                 delete mgr;
-                return sg::return_to_render;     
+                return sg::return_to_render;
               }
             }
             mgr->set_vds(vds);
@@ -139,7 +139,7 @@ public:
 
           m_gv.remove_in_tmp_group<rroot::geo_manager>(m_key.object_name());
           m_gv.add_in_tmp_group<rroot::geo_manager>(m_key.object_name(),mgr);
-        } 
+        }
 
         sg::list* list = new sg::list(m_gv.ttf());
         m_gv.set_style(*list);
@@ -165,7 +165,7 @@ public:
         list->add("enter vol",_cbk);}
 
         m_gv.show_widget(*this,list);
-    
+
         return sg::return_to_render;
 
       } else if(m_key.object_class()==rroot::TH1F_cls()) {
@@ -181,7 +181,7 @@ public:
           sg::plot(m_gv,*h);
           delete h;
         }
-  
+
       } else if(m_key.object_class()==rroot::TH1D_cls()) {
         histo::h1d* h = rroot::TH1D_stream(b); //we get ownership.
         if(!h) {
@@ -195,7 +195,7 @@ public:
           sg::plot(m_gv,*h);
           delete h;
         }
-  
+
       } else if(m_key.object_class()==rroot::TH2F_cls()) {
         histo::h2d* h = rroot::TH2F_stream(b); //we get ownership.
         if(!h) {
@@ -209,7 +209,7 @@ public:
           sg::plot(m_gv,*h);
           delete h;
         }
-  
+
       } else if(m_key.object_class()==rroot::TH2D_cls()) {
         histo::h2d* h = rroot::TH2D_stream(b); //we get ownership.
         if(!h) {
@@ -223,7 +223,7 @@ public:
           sg::plot(m_gv,*h);
           delete h;
         }
-  
+
       } else if(m_key.object_class()==rroot::TProfile_cls()) {
         histo::p1d* p = rroot::TProfile_stream(b);
         if(!p) {
@@ -237,7 +237,7 @@ public:
           sg::plot(m_gv,*p);
           delete p;
         }
-  
+
       } else if(m_key.object_class()==osc::s_h1d()) {
         histo::h1d h("",10,0,1);
         if(!rroot::from_osc(b,osc::s_h1d(),h)) {
@@ -250,7 +250,7 @@ public:
           if(!m_popup) m_gv.hide_main_menu();
           sg::plot(m_gv,h);
         }
-  
+
       } else if(m_key.object_class()==osc::s_h2d()) {
         histo::h2d h("",10,0,1,10,0,1);
         if(!rroot::from_osc(b,osc::s_h2d(),h)) {
@@ -263,7 +263,7 @@ public:
           if(!m_popup) m_gv.hide_main_menu();
           sg::plot(m_gv,h);
         }
-  
+
       } else if(m_key.object_class()==osc::s_h3d()) {
         histo::h3d h("",10,0,1,10,0,1,10,0,1);
         if(!rroot::from_osc(b,osc::s_h3d(),h)) {
@@ -277,7 +277,7 @@ public:
           //if(!m_popup) m_gv.hide_main_menu();
           //sg::plot(m_gv,*h);
         }
-  
+
       } else if(m_key.object_class()==osc::s_p1d()) {
         histo::p1d h("",10,0,1);
         if(!rroot::from_osc(b,osc::s_p1d(),h)) {
@@ -290,7 +290,7 @@ public:
           if(!m_popup) m_gv.hide_main_menu();
           sg::plot(m_gv,h);
         }
-  
+
       } else if(m_key.object_class()==osc::s_p2d()) {
         histo::p2d h("",10,0,1,10,0,1);
         if(!rroot::from_osc(b,osc::s_p2d(),h)) {
@@ -304,17 +304,17 @@ public:
         //if(!m_popup) m_gv.hide_main_menu();
         //sg::plot(m_gv,*h);
         }
-  
+
       } else if(m_key.object_class()==rroot::TTree_cls()) {
         rroot::fac* fac = new rroot::fac(out);
         rroot::tree* tree = new rroot::tree(m_file,*fac);
-  
+
         m_gv.remove_in_tmp_group<rroot::fac>(m_key.object_name());
         m_gv.add_in_tmp_group<rroot::fac>(m_key.object_name(),fac);
-  
+
         m_gv.remove_in_tmp_group<rroot::tree>(m_key.object_name());
         m_gv.add_in_tmp_group<rroot::tree>(m_key.object_name(),tree);
-  
+
         if(!tree->stream(b)) {
           out << "root_obj::action :"
               << " TTree streaming failed"
@@ -322,24 +322,24 @@ public:
         } else {
           //tree.dump(out,"","  ");
           //find leaves with primary type that we can histogram...
-  
+
           rroot::ntuple* ntu = new rroot::ntuple(*tree);
-  
+
           m_gv.remove_in_tmp_group<rroot::ntuple>(m_key.object_name());
           m_gv.add_in_tmp_group<rroot::ntuple>(m_key.object_name(),ntu);
-  
+
           if(!ntu->initialize(out)) {
             out << "inlib::cbk::root_obj::action :"
                 << " can't initialize ntuple."
                 << std::endl;
             m_gv.pop_warn(m_popup,m_ex,m_ey,"ntu.init() failed");
-            return sg::return_to_render;     
+            return sg::return_to_render;
           }
           if(ntu->columns().empty()) {
             m_gv.pop_warn(m_popup,m_ex,m_ey,"ntu has no columns");
-            return sg::return_to_render;     
+            return sg::return_to_render;
           }
-  
+
           sg::entries* entries = new sg::entries(m_gv.ttf());
           m_gv.set_style(*entries);
           std::vector<std::string> opts;
@@ -347,28 +347,28 @@ public:
           opts.push_back(sg::s_2D());
           entries->add_opts("proj",sg::s_1D(),opts);
         //entries->visible_items = 1;
-  
+
           cbk::choose_proj* _cbk = new cbk::choose_proj(m_gv,m_proj,*ntu,cbk::choose_proj::action_main(),*this);
           _cbk->m_entries = entries;
           entries->add_callback(_cbk);
-  
+
           m_gv.show_widget(*this,entries);
-  
-          return sg::return_to_render;     
-  
+
+          return sg::return_to_render;
+
         }
-  
+
       } else if(m_key.object_class()==rroot::TDirectory_cls()) {
-  
+
         std::string label = m_key.object_name();
         //out << "inlib::cbk::root_obj::action : directory : "
         //    << label << std::endl;
-  
+
         rroot::TDirectory* tdir = new rroot::TDirectory(m_file);
-  
+
         m_gv.remove_in_tmp_group<rroot::TDirectory>(m_key.object_name());
         m_gv.add_in_tmp_group<rroot::TDirectory>(m_key.object_name(),tdir);
-  
+
         if(!tdir->stream(b)) {
           out  << "inlib::cbk::root_obj::action :"
                << " can't stream TDirectory."
@@ -379,7 +379,7 @@ public:
           cbk_fact fact;
           cbk::rkeys_menu(m_file,keys,m_gv,m_proj,fact,*this);
         }
-  
+
       } else {
         out << "inlib::cbk::root_obj::action :"
             << " dont't know how to plot object of class "
@@ -388,7 +388,7 @@ public:
         m_gv.pop_warn(m_popup,m_ex,m_ey,"no vis for "+m_key.object_class());
       }
 
-      return sg::return_to_render;     
+      return sg::return_to_render;
 
     } else if(m_action==action_geo()) { //vis per depth.
 
@@ -397,7 +397,7 @@ public:
       node->add_uint("min_depth",0);    //0
       node->add_uint("max_depth",1);    //1
       node->add_uint("solid_depth",1);  //2
-     {std::vector<std::string> opts;  
+     {std::vector<std::string> opts;
       opts.push_back("single");
       opts.push_back("depth");
       opts.push_back("material");
@@ -411,18 +411,18 @@ public:
       }
       node->add_bool("clear det sg",false);      //7
       node->add_float("radius",0); //8 //0 = we do not recreate camera.
-  
+
       root_obj* _cbk = new root_obj(m_gv,m_proj,m_file,m_key,action_geo_sg(),*this);
-      _cbk->m_entries = node;           
+      _cbk->m_entries = node;
       _cbk->m_geo_mgr = m_geo_mgr;
       _cbk->m_vol = m_vol;
       node->add_callback(_cbk);
-  
+
       m_gv.set_style(*node);
-  
+
       m_gv.show_widget(*this,node);
 
-      return sg::return_to_render;     
+      return sg::return_to_render;
 
     } else if(m_action==action_geo_sg()) {
 
@@ -432,17 +432,17 @@ public:
       unsigned int min_depth;
       if(!to<unsigned int>(m_entries->values[0],min_depth)) {
         m_gv.pop_warn(m_popup,m_ex,m_ey,"min depth not a number");
-        return sg::return_to_render;     
+        return sg::return_to_render;
       }
       unsigned int max_depth;
       if(!to<unsigned int>(m_entries->values[1],max_depth)) {
         m_gv.pop_warn(m_popup,m_ex,m_ey,"max depth not a number");
-        return sg::return_to_render;     
+        return sg::return_to_render;
       }
       unsigned int solid_depth;
       if(!to<unsigned int>(m_entries->values[2],solid_depth)) {
         m_gv.pop_warn(m_popup,m_ex,m_ey,"solid depth not a number");
-        return sg::return_to_render;     
+        return sg::return_to_render;
       }
 
       const std::string satb = m_entries->values[3];
@@ -450,29 +450,29 @@ public:
       float r,g,b,a;
       if(!m_entries->get_color(4,r,g,b,a)) { //values[4]
         m_gv.pop_warn(m_popup,m_ex,m_ey,"color not a color");
-        return sg::return_to_render;     
+        return sg::return_to_render;
       }
 
       unsigned int max_time;
       if(!to<unsigned int>(m_entries->values[5],max_time)) {
         m_gv.pop_warn(m_popup,m_ex,m_ey,"max time not a number");
-        return sg::return_to_render;     
+        return sg::return_to_render;
       }
       unsigned int max_shapes;
       if(!to<unsigned int>(m_entries->values[6],max_shapes)) {
         m_gv.pop_warn(m_popup,m_ex,m_ey,"max shapes not a number");
-        return sg::return_to_render;     
+        return sg::return_to_render;
       }
       bool clear_scene;
       if(!to(m_entries->values[7],clear_scene)) {
         m_gv.pop_warn(m_popup,m_ex,m_ey,"clear scene not a bool");
-        return sg::return_to_render;     
+        return sg::return_to_render;
       }
 
      {float scene_radius;
       if(!to<float>(m_entries->values[8],scene_radius)) {
         m_gv.pop_warn(m_popup,m_ex,m_ey,"scene radius not a number");
-        return sg::return_to_render;     
+        return sg::return_to_render;
       }
       if(!_evd->is_evd()) { //existing scene is not a evd scene.
         _evd->create_sg_evd(scene_radius?scene_radius:1);
@@ -560,7 +560,7 @@ public:
 
       if(geo->shape_count()>=5000) m_gv.m_params.m_auto_hide_scene = true;
 
-      return sg::return_to_render;     
+      return sg::return_to_render;
 
     } else if(m_action==action_vols()) {
 
@@ -591,10 +591,10 @@ public:
       if(!numas<uint64>(vols.size(),s)){}
       m_gv.show_console(s);}
 
-      return sg::return_to_render;     
-    
+      return sg::return_to_render;
+
     } else if(m_action==action_vol_vis()) {
-      
+
       m_action = action_geo();
       return action();
 
@@ -603,17 +603,17 @@ public:
       sg::entries* node = new sg::entries(m_gv.ttf());
 
       node->add_string("volume","");
-  
+
       root_obj* _cbk = new root_obj(m_gv,m_proj,m_file,m_key,action_choosen_vol_vis(),*this);
-      _cbk->m_entries = node;           
+      _cbk->m_entries = node;
       _cbk->m_geo_mgr = m_geo_mgr;
       node->add_callback(_cbk);
-  
+
       m_gv.set_style(*node);
-  
+
       m_gv.show_widget(*this,node);
 
-      return sg::return_to_render;     
+      return sg::return_to_render;
 
     } else if(m_action==action_choosen_vol_vis()) {
 
@@ -624,7 +624,7 @@ public:
 
     } else if(m_action==action_sub_vols()) {
 
-      if(!m_tree_vol) return sg::return_to_render;     
+      if(!m_tree_vol) return sg::return_to_render;
 
       std::vector<rroot::geo_node*>* nodes = m_tree_vol->nodes();
       if(!nodes) { //m_tree_vol is a leaf.
@@ -676,12 +676,12 @@ public:
 
       m_gv.show_widget(*this,list);
 
-      return sg::return_to_render;     
+      return sg::return_to_render;
 
     } else {
     }
 
-    return sg::return_none;     
+    return sg::return_none;
   }
   virtual sg::bcbk* copy() const {return new root_obj(*this);}
 public:

@@ -12,6 +12,8 @@ namespace inlib {
 namespace rroot {
 
 class geo_node_offset : public geo_node {
+  typedef geo_node parent;
+private:
   static const std::string& s_store_class() {
     static const std::string s_v("TGeoNodeOffset");
     return s_v;
@@ -24,18 +26,18 @@ public:
 public: //iro
   virtual void* cast(const std::string& a_class) const {
     if(void* p = cmp_cast<geo_node_offset>(this,a_class)) return p;
-    return geo_node::cast(a_class);
+    return parent::cast(a_class);
   }
   virtual const std::string& s_cls() const {return s_class();}
   virtual iro* copy() const {return new geo_node_offset(*this);}
   virtual bool stream(buffer& a_buffer) {
     _clear();
-    
+
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
 
-    if(!geo_node::stream(a_buffer)) return false;
+    if(!parent::stream(a_buffer)) return false;
 
     if(!a_buffer.read(m_offset)) return false;
     if(!a_buffer.read(m_index)) return false;
@@ -56,14 +58,14 @@ public: //iro
 public:
   static cid id_class() {return geo_node_offset_cid();}
   virtual void* cast(cid a_class) const {
-    if(void* p = cmp_cast<geo_node_offset>(this,a_class)) {return p;}
-    else return geo_node::cast(a_class);
+    if(void* p = cmp_cast<geo_node_offset>(this,a_class)) return p;
+    return parent::cast(a_class);
   }
   virtual cid id_cls() const {return id_class();}
 
 public:
   geo_node_offset(ifac& a_fac)
-  :geo_node(a_fac)
+  :parent(a_fac)
   ,m_offset(0)
   ,m_index(0)
   ,m_finder(0) //not owner
@@ -82,14 +84,14 @@ public:
 protected:
   geo_node_offset(const geo_node_offset& a_from)
   :iro(a_from)
-  ,geo_node(a_from)
+  ,parent(a_from)
   ,m_offset(a_from.m_offset)
   ,m_index(a_from.m_index)
   ,m_finder(a_from.m_finder)
   ,m_finder_created(a_from.m_finder_created)
   {}
   geo_node_offset& operator=(const geo_node_offset& a_from){
-    geo_node::operator=(a_from);
+    parent::operator=(a_from);
     m_offset = a_from.m_offset;
     m_index = a_from.m_index;
     m_finder = a_from.m_finder;

@@ -60,7 +60,7 @@ inline bool rkeys_menu(rroot::file& a_file,
           (k.object_class()==osc::s_p1d()) ||
           (k.object_class()==osc::s_p2d()) ||
 
-          (k.object_class()==rroot::TGeoManager_cls()) 
+          (k.object_class()==rroot::TGeoManager_cls())
 
         ){
 

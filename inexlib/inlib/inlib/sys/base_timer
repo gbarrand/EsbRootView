@@ -71,9 +71,9 @@ public:
     atime elaps = atime::elapsed(m_prev);
     if((unsigned int)elaps.milli_seconds()>m_interval) {
       action();
-      m_prev = atime::now();    
+      m_prev = atime::now();
     }
-  }  
+  }
 protected:
   unsigned int m_interval; //milliseconds.
   bool m_started;

@@ -29,7 +29,7 @@ public: //iro
   virtual iro* copy() const {return new geo_scaled_shape(*this);}
   virtual bool stream(buffer& a_buffer) {
     _clear();
-    
+
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
@@ -51,7 +51,7 @@ public: //iro
       a_buffer.out() << "inlib::rroot::geo_scaled_shape::stream : "
                      << "can't read fScale."
                      << std::endl;
-      _clear();		     
+      _clear();
       return false;
     }
 
@@ -74,7 +74,7 @@ public:
   ,m_shape_created(false)
   ,m_scale(0)
   ,m_scale_created(false)
-  {  
+  {
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
 #endif

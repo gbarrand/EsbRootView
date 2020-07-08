@@ -12,7 +12,7 @@ inline bool is_ip(const std::string& a_string){
   if(a_string.empty()) return false;
   if(a_string[0]=='.') return false;
   if(a_string[a_string.size()-1]=='.') return false;
-  unsigned int ndot = 0;  
+  unsigned int ndot = 0;
   std::string::const_iterator it;
   for(it=a_string.begin();it!=a_string.end();++it) {
     if((*it)=='.') {

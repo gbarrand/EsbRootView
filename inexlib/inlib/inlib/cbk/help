@@ -33,7 +33,7 @@ public:
         list->add(label,_cbk);
       }
       m_gv.push_list(list);
-      return sg::return_to_render;     
+      return sg::return_to_render;
 
     } else if(m_action==action_vis()) {
 
@@ -58,9 +58,9 @@ public:
 
       m_gv.gui_scroll_text(txt);
 
-      return sg::return_to_render;     
+      return sg::return_to_render;
     }
-    return sg::return_none;     
+    return sg::return_none;
   }
   virtual bcbk* copy() const {return new help(*this);}
 public:

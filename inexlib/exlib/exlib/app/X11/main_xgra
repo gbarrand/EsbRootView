@@ -69,6 +69,7 @@ public:
   virtual void win_render() {
     m_to_render = true; //do not do render() here to avoid a too much flashing window.
   }
+  virtual unsigned char* get_pixels(unsigned int,unsigned int,bool = true) {return 0;}
 public:
   main(std::ostream& a_out
        ,const std::string& a_doc_dir
@@ -94,7 +95,7 @@ public:
     parent::push_home(); //NOTE : it can't call a potential push_home() done on an inheriting class.
   }
   virtual ~main(){}
-protected:  
+protected:
   main(const main& a_from)
   :parent_pv_holder(a_from)
   ,parent(a_from)

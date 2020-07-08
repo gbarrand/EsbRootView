@@ -2,7 +2,7 @@
 // See the file inlib.license for terms.
 
 #ifndef inlib_fort_fmt_lexer_h
-#define inlib_fort_fmt_lexer_h 
+#define inlib_fort_fmt_lexer_h
 
 #include <string>
 #include <ostream>

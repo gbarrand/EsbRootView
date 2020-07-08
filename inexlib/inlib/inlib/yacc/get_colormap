@@ -50,13 +50,13 @@ inline sg::base_colormap* get_colormap(std::ostream& a_out,const sg::style& a_st
     } else if(painting==sg::painting_violet_to_red) {
       return new sg::violet_to_red_colormap();
     }
-  } else {        
+  } else {
     //a_out << "inlib::get_colormap : unknown painting_policy " << painting << "." << std::endl;
     //return new sg::const_colormap(a_style.color);
   }
   return 0;
 }
-    
+
 }
 
 #endif

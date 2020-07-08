@@ -14,7 +14,7 @@ namespace rroot {
 
 class hash_list : public obj_list {
   typedef obj_list parent;
-private:  
+private:
   static const std::string& s_store_class() {
     static const std::string s_v("THashList");
     return s_v;

@@ -84,7 +84,7 @@ inline void insh_pdg(ishell& a_insh,const pdgs& a_pdgs,const std::vector<std::st
       }
       a_pdgs.print_particle(stdout,*_particle);
     }
-  }  
+  }
 }
 
 inline const std::string& insh_pdg_help() {
@@ -117,7 +117,7 @@ namespace hep {
 inline void insh_particle_print(ishell& a_insh,const pdgs& a_pdgs,xml::styles& a_styles,const std::vector<std::string>& a_args) {
 
   const std::vector<particle>& _particles = a_pdgs.particles();
-  
+
   //////////////////////////////////////
   //// get style : /////////////////////
   //////////////////////////////////////
@@ -153,7 +153,7 @@ inline void insh_particle_print(ishell& a_insh,const pdgs& a_pdgs,xml::styles& a
   inlib::size_tas(cut_particles.size(),sheader);
   sheader += ") with cut ";
   sheader += sout(_style.cut.value())+" : ";
-  
+
  {std::vector<std::string> vout;
   if(a_insh.in_backquote()) {
     _eval_cut.dump(a_pdgs.out(),cut_particles,names,sheader,true,vout);

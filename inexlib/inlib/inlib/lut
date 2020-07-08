@@ -19,7 +19,7 @@ class lut {
 #ifdef INLIB_MEM
   INLIB_T_SCLASS(TB,inlib::lut)
 #endif
-public:  
+public:
   lut(const TB& a_min = TB(0),const TB& a_max = TB(1),size_t a_coln = 12)
   :m_min(a_min)
   ,m_max(a_max)
@@ -35,7 +35,7 @@ public:
     // <>  |  <>  |  <>  |  <>  |  <>  // a_coln <>
     //    min                  max
     // there are :
-    //   5 <> 
+    //   5 <>
     // and :
     //   4 | (borne)
     if(m_max<=m_min) m_max = m_min+1; //throw
@@ -68,7 +68,7 @@ public:
     return *this;
   }
 public:
-  size_t apply(const TB& a_x) const {    
+  size_t apply(const TB& a_x) const {
     // a_coln = 5 :
     // <>  |  <>  |  <>  |  <>  |  <>  // a_coln <>
     //    min                  max

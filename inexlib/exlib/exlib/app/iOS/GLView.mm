@@ -23,9 +23,9 @@
   inlib::sg::view_sg_serv* m_view_sg_serv;
 #ifdef TRY_NSFILE_HANDLE
   NSFileHandle* m_sg_serv_file_handle;
-#else  
+#else
   NSTimer* m_sg_serv_timer;
-#endif  
+#endif
 }
 - (id)init:(GLView*)a_view;
 - (void)dealloc;
@@ -45,7 +45,7 @@
 - (NSFileHandle*)add_fh:(int)a_id selector:(SEL)a_selector;
 - (void)remove_fh:(NSFileHandle*)a_fh;
 - (void)sg_serv_fh_callback:(NSNotification*)a_not;
-#else  
+#else
 - (void)start_sg_serv_timer;
 - (void)stop_sg_serv_timer;
 #endif
@@ -72,8 +72,8 @@ public:
             [m_app_delegate add_fh:_view_sg_serv->socket() selector:@selector(sg_serv_fh_callback:)]];
         }
       }
-    } 
-    return inlib::sg::return_none;     
+    }
+    return inlib::sg::return_none;
   }
   virtual parent* copy() const {return new sg_serv_connect_work(*this);}
 public:
@@ -125,8 +125,8 @@ inline void sg_serv_connect_func(inlib::net::sg_serv_args& a_args){
         NSLog(@"debug : sg_serv_connect_func. add_fh");
         [_app_delegate set_sg_serv_file_handle:[_app_delegate add_fh:_view_sg_serv->socket() selector:@selector(sg_serv_fh_callback:)]];
       }
-    } 
-  } 
+    }
+  }
 }
 #endif //TRY_WORK
 inline void sg_serv_disconnect_func(inlib::net::sg_serv_args& a_args){
@@ -140,7 +140,7 @@ inline void sg_serv_disconnect_func(inlib::net::sg_serv_args& a_args){
     [_app_delegate set_sg_serv_file_handle:0];
   }
 }
-#else  
+#else
 inline void sg_serv_initialize_func(void* a_app_delegate,void*){
   //NSLog(@"debug : sg_serv_initialize_func.");
   app_delegate* _app_delegate = (app_delegate*)a_app_delegate;
@@ -157,7 +157,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 - (id)init:(GLView*)a_view {
   if(self = [super init]) {
     //NSLog(@"debug : app_delegate::init : 0017");
-    
+
     m_view = a_view;
     m_buf = new NSLog_streambuf();
     m_out = new std::ostream(m_buf);
@@ -185,7 +185,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 
     bool verbose = false;
     //verbose = true;
-    
+
     m_main = new app_iOS::main(*m_out,doc_dir,res_dir,out_dir,stmp_dir,verbose);
 
     m_main->set_GLView(a_view);
@@ -201,16 +201,16 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
     if(m_view_sg_serv) {
       //NSLog(@"debug : app_delegate::init : 1000");
       m_view_sg_serv->set_params(0,sg_serv_connect_func,sg_serv_disconnect_func,0,self,0);
-    }      
+    }
 #else
     if(m_view_sg_serv) m_view_sg_serv->set_params(sg_serv_initialize_func,0,0,sg_serv_finalize_func,self,0);
     m_sg_serv_timer = 0;
-#endif    
+#endif
 
     m_main->source_dot_insh();
     m_main->source_startup_insh();
     m_main->exec_insh_startup();
-    
+
     //NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
     //[center addObserver:self selector:@selector(mem_pb:)
     //               name:UIApplicationDidReceiveMemoryWarningNotification
@@ -224,7 +224,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
     [self remove_fh:m_sg_serv_file_handle];
     m_sg_serv_file_handle = 0;
   }
-#endif  
+#endif
   [[NSNotificationCenter defaultCenter] removeObserver:self];
   m_main->set_GLView(0);
   delete m_main;
@@ -246,20 +246,20 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
   (void)a_sender;
 }
 - (void)applicationWillResignActive:(UIApplication*)a_sender {
-  //NSLog(@"debug : delegate applicationWillResignActive : 001 : !!!!!!!!");  
+  //NSLog(@"debug : delegate applicationWillResignActive : 001 : !!!!!!!!");
   if(m_view_sg_client) m_view_sg_client->disconnect_from_sg_serv();
   [m_view set_disable_GL:true];
   (void)a_sender;
 }
 - (void)applicationDidBecomeActive:(UIApplication*)a_sender {
-  //NSLog(@"debug : delegate applicationDidBecomeActive : 004 : !!!!!!!!");  
+  //NSLog(@"debug : delegate applicationDidBecomeActive : 004 : !!!!!!!!");
   [m_view set_disable_GL:false];
   //in case an openURL is done (then whilst being in background).
   m_main->win_render();
   (void)a_sender;
 }
 - (void)applicationDidReceiveMemoryWarning:(UIApplication*)a_sender {
-  //NSLog(@"debug : delegate : applicationDidReceiveMemoryWarning");  
+  //NSLog(@"debug : delegate : applicationDidReceiveMemoryWarning");
   m_main->set_memory_warning(true);
   //[[ImageCache sharedImageCache] removeAllImagesInMemory];
   (void)a_sender;
@@ -272,7 +272,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 
 
 - (void)applicationWillTerminate:(UIApplication*)a_sender {
-  //NOTE : 
+  //NOTE :
   // with iOS 3.2 : when hiting the home button we passed here.
   // with iOS 4.0 : by default hiting the home button passes
   //                the process in "background" and we do not
@@ -391,7 +391,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
       m_main->win_render();
     }
   }
-  
+
   [fh waitForDataInBackgroundAndNotify];
 }
 #else
@@ -414,7 +414,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 - (void)sg_serv_timer_proc:(id)a_sender{
   //static unsigned int s_sg_serv_timer_count = 0;
   //NSLog(@"debug : sg_serv_timer_proc %d",s_sg_serv_timer_count);s_sg_serv_timer_count++;
-  
+
   if(m_view_sg_serv && m_view_sg_serv->is_connected()) {
     bool have_input;
     if(!m_view_sg_serv->is_there_input(have_input)) {
@@ -432,7 +432,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
   (void)a_sender;
 }
 #endif
-  
+
 @end
 
 @implementation GLView
@@ -446,7 +446,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 // The EAGL view is stored in the nib file.
 // When it's unarchived it's sent -initWithCoder:
 
-- (id)initWithCoder:(NSCoder*)a_coder {    
+- (id)initWithCoder:(NSCoder*)a_coder {
   if ((self = [super initWithCoder:a_coder])) {
   //NSLog(@"debug : GLView::initWithCode : 004");
 
@@ -456,7 +456,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
     CAEAGLLayer* eaglLayer = (CAEAGLLayer*)self.layer;
 
     eaglLayer.opaque = TRUE;
-    eaglLayer.drawableProperties = 
+    eaglLayer.drawableProperties =
       [NSDictionary dictionaryWithObjectsAndKeys:
        [NSNumber numberWithBool:FALSE],
        kEAGLDrawablePropertyRetainedBacking,
@@ -483,7 +483,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
                                  GL_RENDERBUFFER_OES,
                                  m_color_buffer);
 
-    glGenRenderbuffersOES(1,&m_depth_buffer); 
+    glGenRenderbuffersOES(1,&m_depth_buffer);
     glBindRenderbufferOES(GL_RENDERBUFFER_OES,m_depth_buffer);
     glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES,
                                  GL_DEPTH_ATTACHMENT_OES,
@@ -491,7 +491,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
                                  m_depth_buffer);
 
     // Antialiasing :
-#ifdef EXLIB_IOS_ANTIALIASING 
+#ifdef EXLIB_IOS_ANTIALIASING
     glGenFramebuffersOES(1,&m_aa_frame_buffer);
     glBindFramebufferOES(GL_FRAMEBUFFER_OES,m_aa_frame_buffer);
 
@@ -502,7 +502,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
                                  GL_RENDERBUFFER_OES,
                                  m_aa_color_buffer);
 
-    glGenRenderbuffersOES(1,&m_aa_depth_buffer); 
+    glGenRenderbuffersOES(1,&m_aa_depth_buffer);
     glBindRenderbufferOES(GL_RENDERBUFFER_OES,m_aa_depth_buffer);
     glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES,
                                  GL_DEPTH_ATTACHMENT_OES,
@@ -527,13 +527,13 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 
    {//begin gesture declarations :
 /*
-    UITapGestureRecognizer* tap_gesture = 
+    UITapGestureRecognizer* tap_gesture =
      [[UITapGestureRecognizer alloc]
         initWithTarget:self action:@selector(single_tap_gesture:)];
     tap_gesture.numberOfTapsRequired = 1;
     [self addGestureRecognizer:tap_gesture];
 
-    UITapGestureRecognizer* double_tap_gesture = 
+    UITapGestureRecognizer* double_tap_gesture =
      [[UITapGestureRecognizer alloc]
         initWithTarget:self action:@selector(double_tap_gesture:)];
     double_tap_gesture.numberOfTapsRequired = 2;
@@ -548,7 +548,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
     [pan_gesture release];}
 
 */
-   {UIPinchGestureRecognizer* pinch_gesture = 
+   {UIPinchGestureRecognizer* pinch_gesture =
      [[UIPinchGestureRecognizer alloc]
         initWithTarget:self action:@selector(pinch_gesture:)];
     [self addGestureRecognizer:pinch_gesture];
@@ -564,7 +564,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 */
 
 /*
-   {UIRotationGestureRecognizer* rotation_gesture = 
+   {UIRotationGestureRecognizer* rotation_gesture =
       [[UIRotationGestureRecognizer alloc]
         initWithTarget:self action:@selector(rotation_gesture:)];
     //[rotation_gesture requireGestureRecognizerToFail:pinch_gesture];
@@ -576,14 +576,14 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
     //UISwipeGestureRecognizerDirectionRight //default
     //UISwipeGestureRecognizerDirectionLeft
     //UISwipeGestureRecognizerDirectionUp
-    //UISwipeGestureRecognizerDirectionDown 
+    //UISwipeGestureRecognizerDirectionDown
     [swipe_gesture setDirection:UISwipeGestureRecognizerDirectionDown];
     [swipe_gesture setNumberOfTouchesRequired:1]; //default is 1.
     [self addGestureRecognizer:swipe_gesture];
     [pan_gesture requireGestureRecognizerToFail:swipe_gesture];
     [swipe_gesture release];
 
-    UILongPressGestureRecognizer* long_press_gesture = 
+    UILongPressGestureRecognizer* long_press_gesture =
       [[UILongPressGestureRecognizer alloc]
           initWithTarget:self action:@selector(long_press_gesture:)];
     [long_press_gesture setMinimumPressDuration:2]; //1 sec = default.
@@ -601,7 +601,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 - (void)dealloc {
 
   [self stop_timer];
-  
+
   if(m_frame_buffer) {
     glDeleteFramebuffersOES(1,&m_frame_buffer);
     m_frame_buffer = 0;
@@ -617,7 +617,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
     m_depth_buffer = 0;
   }
 
-#ifdef EXLIB_IOS_ANTIALIASING 
+#ifdef EXLIB_IOS_ANTIALIASING
   if(m_aa_frame_buffer) {
     glDeleteFramebuffersOES(1,&m_aa_frame_buffer);
     m_aa_frame_buffer = 0;
@@ -655,7 +655,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
   [m_timer setFrameInterval:1];
   [m_timer addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
 #else
-  if(m_timer) return; //done 
+  if(m_timer) return; //done
   //NSLog(@"debug : start_timer : 0001.");
   double seconds = 1./60.; // 0.016666
   m_timer = [NSTimer scheduledTimerWithTimeInterval:seconds target:self selector:@selector(timer_proc:) userInfo:nil repeats:TRUE];
@@ -698,7 +698,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
   if(timer_stop) [self stop_timer];
   (void)a_sender;
 }
-  
+
 - (void)set_disable_GL:(bool)a_value {
   m_disable_GL = a_value;
 }
@@ -721,7 +721,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
                            GL_DEPTH_COMPONENT16_OES,
                            ww,wh);
 
-#ifdef EXLIB_IOS_ANTIALIASING 
+#ifdef EXLIB_IOS_ANTIALIASING
   glBindRenderbufferOES(GL_RENDERBUFFER_OES,m_aa_color_buffer);
   glRenderbufferStorageMultisampleAPPLE(GL_RENDERBUFFER_OES,2,GL_RGB5_A1_OES,ww,wh);
 
@@ -751,7 +751,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 
   [EAGLContext setCurrentContext:m_context];
 
-#ifdef EXLIB_IOS_ANTIALIASING 
+#ifdef EXLIB_IOS_ANTIALIASING
   glBindFramebufferOES(GL_FRAMEBUFFER_OES,m_aa_frame_buffer);
   bool old_produce_out_jpeg = _main->produce_out_jpeg();
   _main->set_produce_out_jpeg(false);
@@ -763,7 +763,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
 
   _main->render();
 
-#ifdef EXLIB_IOS_ANTIALIASING 
+#ifdef EXLIB_IOS_ANTIALIASING
  {GLenum attachments[] = {GL_DEPTH_ATTACHMENT_OES};
   glDiscardFramebufferEXT(GL_READ_FRAMEBUFFER_APPLE,1,attachments);}
   glBindFramebufferOES(GL_READ_FRAMEBUFFER_APPLE,m_aa_frame_buffer);
@@ -888,11 +888,11 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
                (a_sender.state == UIGestureRecognizerStateEnded)   ){
 
       unsigned int saved_xcursor,saved_ycursor;
-      inlib::sg::base_camera* saved_camera = 
+      inlib::sg::base_camera* saved_camera =
         _main->saved_cursor_and_camera(saved_xcursor,saved_ycursor);
 
       if(camera && saved_camera) {
-        float dx = camera->dx.value();        
+        float dx = camera->dx.value();
         dx *= 15; //ok with povama.
         float trans = dx*(scale-1);
 
@@ -938,7 +938,7 @@ inline void sg_serv_finalize_func(void* a_app_delegate,void*){
              (a_sender.state == UIGestureRecognizerStateEnded)   ){
 
     unsigned int saved_xcursor,saved_ycursor;
-    inlib::sg::base_camera* saved_camera = 
+    inlib::sg::base_camera* saved_camera =
       _main->saved_cursor_and_camera(saved_xcursor,saved_ycursor);
 
     camera->orientation.value(saved_camera->orientation.value());

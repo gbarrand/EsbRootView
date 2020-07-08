@@ -113,7 +113,7 @@ public:
             delete [] cp_buffer;
             delete [] a_uc_buffer;a_uc_buffer = 0;
             return true; //not fatal
-          }    
+          }
           if(rsz!=a_uc_length) {
             m_out << "inlib::net::sg_serv::receive_zdoc :"
                   << " unzip size mismatch."
@@ -159,7 +159,7 @@ public:
       m_out << "inlib::net::sg_serv::receive_zdoc :"
             << " fetch uc_length failed."
             << std::endl;
-      a_opts.clear();	    
+      a_opts.clear();
       a_uc_length = 0;
       stop_sg_client();
       return false;
@@ -169,7 +169,7 @@ public:
       m_out << "inlib::net::sg_serv::receive_zdoc :"
             << " fetch cp_length failed."
             << std::endl;
-      a_opts.clear();	    
+      a_opts.clear();
       a_uc_length = 0;
       stop_sg_client();
       return false;
@@ -180,7 +180,7 @@ public:
       m_out << "inlib::net::sg_serv::receive_zdoc :"
             << " can't allocate " << a_cp_length << " bytes."
             << std::endl;
-      a_opts.clear();	    
+      a_opts.clear();
       a_uc_length = 0;
       a_cp_length = 0;
       stop_sg_client();
@@ -191,7 +191,7 @@ public:
       m_out << "inlib::net::sg_serv::receive_zdoc :"
             << " fetch_buffer failed."
             << std::endl;
-      a_opts.clear();	    
+      a_opts.clear();
       a_uc_length = 0;
       a_cp_length = 0;
       delete [] a_cp_buffer;
@@ -206,7 +206,7 @@ public:
 protected:
   std::ostream& m_out;
   net::inet_socket m_data_server_sock;
-  net::inet_socket m_sg_client_sock;  
+  net::inet_socket m_sg_client_sock;
 };
 
 }}

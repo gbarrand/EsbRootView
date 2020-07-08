@@ -279,8 +279,8 @@ public:
   ,m_vds(a_from.m_vds)
   ,m_background(a_from.m_background)
   ,m_light_on(a_from.m_light_on)
-  ,m_console(a_from.m_console)	
-  ,m_scale(a_from.m_scale)	
+  ,m_console(a_from.m_console)
+  ,m_scale(a_from.m_scale)
   ,m_rotation(a_from.m_rotation)
   ,m_translation(a_from.m_translation)
   ,m_volumes(a_from.m_volumes)
@@ -477,11 +477,11 @@ inline bool load_colormap(std::ostream& a_out,const tree& a_tree,std::vector<std
     } else {
       a_out << "exlib::xml::load_colormap :"
             << " unknown property " << sout(_elem->name()) << "."
-            << std::endl; 
+            << std::endl;
       return false;
     }
 
-  }}  
+  }}
 
   return true;
 }
@@ -511,18 +511,18 @@ inline bool load_volume(std::ostream& a_out,const tree& a_tree,scenario& a_sno) 
     } else {
       a_out << "exlib::xml::load_volume :"
             << " unknown property " << sout(_elem->name()) << "."
-            << std::endl; 
+            << std::endl;
       return false;
     }
 
-  }}  
+  }}
 
   // look for a colormap :
  {looper _for(a_tree);
   while(tree* _tree = _for.next_tree()) {
 
     const std::string& tag = _tree->tag_name();
-    if(tag==s_colormap()) {   
+    if(tag==s_colormap()) {
       if(!load_colormap(a_out,*_tree,vol.m_colormap)) return false;
     }
 
@@ -548,11 +548,11 @@ inline bool load_fog(std::ostream& a_out,const tree& a_tree,scenario& a_sno) {
     } else {
       a_out << "exlib::xml::load_fog :"
             << " unknown property " << sout(_elem->name()) << "."
-            << std::endl; 
+            << std::endl;
       return false;
     }
 
-  }}  
+  }}
 
   return true;
 }
@@ -590,11 +590,11 @@ inline bool load_camera(std::ostream& a_out,const tree& a_tree,scenario& a_sno) 
     } else {
       a_out << "exlib::xml::load_camera :"
             << " unknown field " << sout(_elem->name()) << "."
-            << std::endl; 
+            << std::endl;
       return false;
     }
 
-  }} 
+  }}
 
   return true;
 }
@@ -641,11 +641,11 @@ inline bool load_gun(std::ostream& a_out,const tree& a_tree,scenario& a_sno) {
     } else {
       a_out << "exlib::xml::load_gun :"
             << " unknown field " << sout(_elem->name()) << "."
-            << std::endl; 
+            << std::endl;
       return false;
     }
 
-  }} 
+  }}
 
   return true;
 }
@@ -659,7 +659,7 @@ inline bool load_named_atbs(std::ostream& a_out,const tree& a_tree,named_atbs_t&
   if(!a_tree.attribute_value(s_name(),a_natbs.m_name)) {
     a_out << "exlib::xml::load_named_atbs :"
           << " attribute name not found."
-          << std::endl; 
+          << std::endl;
     return false;
   }
 */
@@ -673,7 +673,7 @@ inline bool load_named_atbs(std::ostream& a_out,const tree& a_tree,named_atbs_t&
       if(!_elem->attribute_value(s_name(),particle)) {
         a_out << "exlib::xml::load_named_atbs :"
               << " name attribute not found for <particle>."
-              << std::endl; 
+              << std::endl;
         return false;
       }
 
@@ -683,7 +683,7 @@ inline bool load_named_atbs(std::ostream& a_out,const tree& a_tree,named_atbs_t&
       if(!_elem->attribute_value(s_color(),atb.m_color)) {
         a_out << "exlib::xml::load_named_atb :"
               << " color attribute not found."
-              << std::endl; 
+              << std::endl;
         return false;
       }
 
@@ -705,7 +705,7 @@ inline bool load_named_atbs(std::ostream& a_out,const tree& a_tree,named_atbs_t&
       if(!_elem->attribute_value(s_value(),v)) {
         a_out << "exlib::xml::load_named_atbs :"
               << " value attribute not found."
-              << std::endl; 
+              << std::endl;
         return false;
       }
 
@@ -715,7 +715,7 @@ inline bool load_named_atbs(std::ostream& a_out,const tree& a_tree,named_atbs_t&
       if(!_elem->attribute_value(s_color(),atb.m_color)) {
         a_out << "exlib::xml::load_named_atb :"
               << " color attribute not found."
-              << std::endl; 
+              << std::endl;
         return false;
       }
 
@@ -724,7 +724,7 @@ inline bool load_named_atbs(std::ostream& a_out,const tree& a_tree,named_atbs_t&
     } else {
       a_out << "exlib::xml::load_named_atbs :"
             << " unknown property " << sout(_elem->name()) << "."
-            << std::endl; 
+            << std::endl;
       return false;
     }
 
@@ -736,12 +736,12 @@ inline bool load_named_atbs(std::ostream& a_out,const tree& a_tree,named_atbs_t&
     } else {
       a_out << "exlib::xml::load_named_atbs :"
             << " unknown property " << sout(_elem->name()) << "."
-            << std::endl; 
+            << std::endl;
       return false;
     }
 */
 
-  }}  
+  }}
 
   return true;
 }
@@ -784,53 +784,53 @@ inline bool load_scenario(std::ostream& a_out,const tree& a_tree,scenario& a_sno
     } else {
       a_out << "exlib::xml::load_scenario :"
             << " unknown field " << sout(_elem->name()) << "."
-            << std::endl; 
+            << std::endl;
       return false;
     }
 
-  }}  
+  }}
 
   // scan children :
  {looper _for(a_tree);
   while(tree* _tree = _for.next_tree()) {
 
     const std::string& tag = _tree->tag_name();
-    if(tag==s_volume()) {   
+    if(tag==s_volume()) {
       if(!load_volume(a_out,*_tree,a_sno)) return false;
 
-    } else if(tag==s_fog()) {   
+    } else if(tag==s_fog()) {
       if(!load_fog(a_out,*_tree,a_sno)) return false;
 
-    } else if(tag==s_camera()) {   
+    } else if(tag==s_camera()) {
       if(!load_camera(a_out,*_tree,a_sno)) return false;
 
-    } else if(tag==s_gun()) {   
+    } else if(tag==s_gun()) {
       if(!load_gun(a_out,*_tree,a_sno)) return false;
 
-    } else if(tag==s_trajectories()) {   
+    } else if(tag==s_trajectories()) {
       a_sno.m_trajectories.push_back(named_atbs_t());
       if(!load_named_atbs(a_out,*_tree,a_sno.m_trajectories.back()))
         return false;
 
-    } else if(tag==s_primaries()) {   
+    } else if(tag==s_primaries()) {
       a_sno.m_primaries.push_back(named_atbs_t());
       if(!load_named_atbs(a_out,*_tree,a_sno.m_primaries.back()))
         return false;
 
-    } else if(tag==s_text()) {   
+    } else if(tag==s_text()) {
       //a_sno.m_texts.push_back(named_atbs_t());
       //if(!load_named_atbs(a_out,*_tree,a_sno.m_texts.back()))
       if(!load_named_atbs(a_out,*_tree,a_sno.m_text))
         return false;
 
-    } else if(tag==s_title()) {   
+    } else if(tag==s_title()) {
       if(!load_named_atbs(a_out,*_tree,a_sno.m_title))
         return false;
 
     } else {
       a_out << "exlib::xml::load_scenario :"
             << " unknown tag " << sout(tag) << "."
-            << std::endl; 
+            << std::endl;
       return false;
     }
 

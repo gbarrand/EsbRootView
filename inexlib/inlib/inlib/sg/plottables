@@ -21,7 +21,7 @@ public:
 public:
   virtual ~bins1D(){}
 public:
-  virtual void bins_Sw_range(float&,float&) const = 0;
+  virtual void bins_Sw_range(float&,float&,bool) const = 0;
 public:
   // axis :
   virtual unsigned int bins() const = 0;
@@ -31,6 +31,8 @@ public:
   virtual float bin_lower_edge(int) const = 0;
   virtual float bin_upper_edge(int) const = 0;
   // bins :
+  virtual bool has_entries_per_bin() const = 0;
+  virtual unsigned int bin_entries(int) const = 0;
   virtual float bin_Sw(int) const = 0;
   virtual float bin_error(int) const = 0;
 public:
@@ -48,7 +50,7 @@ public:
 public:
   virtual ~bins2D(){}
 public:
-  virtual void bins_Sw_range(float&,float&) const = 0;
+  virtual void bins_Sw_range(float&,float&,bool) const = 0;
 public:
   // x axis :
   virtual unsigned int x_bins() const = 0;
@@ -175,7 +177,7 @@ namespace sg {
 class plottable_text : public virtual plotprim {
   typedef plotprim parent;
 public:
-  INLIB_SCLASS(plottable_text)  
+  INLIB_SCLASS(plottable_text)
 public: //inlib::sg::plotprim
   virtual void* cast(const std::string& a_class) const {
     if(void* p = cmp_cast<plottable_text>(this,a_class)) {return p;}
@@ -265,7 +267,7 @@ public:
 class plottable_box : public virtual plotprim {
   typedef plotprim parent;
 public:
-  INLIB_SCLASS(plottable_box)  
+  INLIB_SCLASS(plottable_box)
 public: //inlib::sg::plotprim
   virtual void* cast(const std::string& a_class) const {
     if(void* p = cmp_cast<plottable_box>(this,a_class)) {return p;}
@@ -324,7 +326,7 @@ public:
 class plottable_ellipse : public virtual plotprim {
   typedef plotprim parent;
 public:
-  INLIB_SCLASS(plottable_ellipse)  
+  INLIB_SCLASS(plottable_ellipse)
 public: //inlib::sg::plotprim
   virtual void* cast(const std::string& a_class) const {
     if(void* p = cmp_cast<plottable_ellipse>(this,a_class)) {return p;}
@@ -391,7 +393,7 @@ namespace sg {
 class plottable_img : public virtual plotprim {
   typedef plotprim parent;
 public:
-  INLIB_SCLASS(plottable_img)  
+  INLIB_SCLASS(plottable_img)
 public: //inlib::sg::plotprim
   virtual void* cast(const std::string& a_class) const {
     if(void* p = cmp_cast<plottable_img>(this,a_class)) {return p;}

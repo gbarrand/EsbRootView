@@ -2,13 +2,13 @@
 
   inlib::base_timer* _term_timer = 0;
 #ifdef EXLIB_APP_HAS_TERM
-#ifdef _WIN32 
-  if(!Gl_is_windows_console()) {
-     _term_out << "exlib_main : you have to run this program from a DOS prompt." << std::endl;
-     return EXIT_FAILURE;
-  }
-#endif  
   if(args.is_arg(inlib::s_arg_terminal())) {
+#ifdef _WIN32
+    if(!Gl_is_windows_console()) {
+       _term_out << "exlib_main : you have to run this program from a DOS prompt." << std::endl;
+       return EXIT_FAILURE;
+    }
+#endif
 #ifdef EXLIB_APP_TERM_INSH
     std::string prompt = a_app_name+"_insh$ ";  //used if PS1 is not defined at this stage (by some .insh startup file).
     std::string history_file = out_dir+inlib::sep()+".insh_history";

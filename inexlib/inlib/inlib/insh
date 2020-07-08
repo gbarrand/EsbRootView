@@ -30,18 +30,24 @@
 #include "sys/atime"
 #include "sys/console" //windows.h
 
+#include "platform"
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 namespace inlib {
 
 class insh : public virtual ishell {
   typedef ishell parent;
-private:  
+private:
   INLIB_SCLASS(inlib::insh)
 public: //ishell:
   virtual bool in_backquote() const {return m_state.m_in_backquote;}
 
   virtual void warn(const std::string& a_string,bool a_to_stop = true) {
     m_out << a_string << std::endl;
-    map_warn(a_string);
+    map_warn(a_string,a_to_stop);
     if(a_to_stop) m_state.m_to_stop = true;
   }
   virtual void out_begin() {if(m_state.m_in_backquote) m_state.m_backquote_return.clear();}
@@ -87,6 +93,7 @@ public: //ishell:
   }
 
   virtual std::ostream& out() const {return m_out;}
+  virtual void set_to_stop() {m_state.m_to_stop = true;}
 public:
   virtual void map_warn(const std::string& a_msg,bool /*a_warn*/ = true) {}
 public:
@@ -126,14 +133,14 @@ public:
     std::string m_value;
     bool m_is_env;
   };
-  
+
   typedef std::pair<std::string,variable> var_t;
   typedef std::pair<std::string,std::string> alias_t;
 
 protected:
   class block : public std::vector<std::string> {
     typedef std::vector<std::string> parent;
-  public:    
+  public:
     enum block_type {
       block_none, //none = none of for and if.
       block_for,
@@ -269,7 +276,7 @@ public:
       return find<std::string,std::string>(m_aliases,a_alias,a_value);
     }
     void remove_aliases() {m_aliases.clear();}
-  
+
     void add_env(const std::string& a_env,const std::string& a_value) {
       if(m_set_d) m_out << "inlib::insh::state::add_env : " << sout(a_env) << ", value " << sout(a_value) << std::endl;
       inlib_vforit(var_t,m_vars,it) {
@@ -301,7 +308,7 @@ public:
       return false;
     }
   //bool is_env(const std::string& a_env) const {return is_in(m_envs,a_env);}
-    
+
     bool find_env(const std::string& a_env,std::string& a_value) const {
       inlib_vforcit(var_t,m_vars,it) {
         if( ((*it).second.m_is_env) && ((*it).first==a_env) ){
@@ -334,10 +341,10 @@ public:
     bool m_set_d;
   };
   const state& get_state() const {return m_state;}
-protected:  
+protected:
   void pop_state() {
     m_state = m_states.back();
-    m_states.pop_back();    
+    m_states.pop_back();
   }
   void push_state() {m_states.push_back(m_state);}
 public:
@@ -441,12 +448,13 @@ public:
     }
     m_cmds[a_name] = a_cmd;
   }
+  bool remove_command(const std::string& a_name) {return delete_key(m_cmds,a_name);}
   void command_names(std::vector<std::string>& a_names,const std::string& a_begin = std::string(),bool a_sort = true) const { //for _help_complete.
     a_names.clear();
     if(a_begin.empty()) {
      {inlib_mforcit(std::string,base_cmd*,m_cmds,it) a_names.push_back((*it).first);}
      {inlib_mforcit(std::string,base_cmd*,m_builtins,it) a_names.push_back((*it).first);}
-    } else {     
+    } else {
      {inlib_mforcit(std::string,base_cmd*,m_cmds,it) {
         if(is_beg((*it).first,a_begin)) a_names.push_back((*it).first);
       }}
@@ -460,11 +468,10 @@ public:
   ////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
-//  void set_to_stop() {m_state.m_to_stop = true;}
   void reset_to_stop() {m_state.m_to_stop = false;}
   //void set_return_value(const std::string& a_s) {m_state.m_backquote_return = a_s;}
   bool to_stop() const {return m_state.m_to_stop;}
-  
+
   ////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
@@ -524,7 +531,7 @@ public:
       if(a_endl) m_out << std::endl; else m_out.flush();
     }
   }
-  
+
   ////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
   ////////////////////////////////////////////////////////
@@ -590,7 +597,7 @@ public:
     m_state.m_to_stop = false;
     _exec_line(a_line);
   }
-  void exec_lines_reset_to_stop(const std::vector<std::string>& a_lines) {
+  virtual void exec_lines_reset_to_stop(const std::vector<std::string>& a_lines) {
     m_state.m_to_stop = false;
     _exec_lines(a_lines);
   }
@@ -607,7 +614,7 @@ public:
     remove_variable(s_variable);
     return status;
   }
-  
+
 //void remove_env(const std::string& a_env) {m_state.remove_env(a_env);}
 
   void add_variable(const std::string& a_variable,const std::string& a_value) {m_state.add_variable(a_variable,a_value);}
@@ -627,7 +634,7 @@ public:
       base_cmd* _cmd;
       if(!find(m_builtins,ws0,_cmd)) {
         if(!find(m_cmds,ws0,_cmd)) _cmd = 0;
-      }      
+      }
       if(!_cmd) {
         exec_names(a_names,ws0);
         if(a_names.size()==1) {
@@ -642,14 +649,14 @@ public:
         a_begin = ws0+" "+a_names[0];
         a_names.clear();
       }
-      return;      
+      return;
     }
     if(ws.size()==2) {
       const std::string& ws1 = ws[1];
       base_cmd* _cmd;
       if(!find(m_builtins,ws0,_cmd)) {
         if(!find(m_cmds,ws0,_cmd)) _cmd = 0;
-      }      
+      }
       if(!_cmd) {a_names.clear();return;}
       _cmd->complete_command(ws1,a_names);
       if(a_names.size()==1) {
@@ -697,7 +704,7 @@ protected:
     }
     m_builtins[a_name] = a_cmd;
   }
-  
+
   bool copy_state(const state& a_state) {
     std::vector<var_t> _vars;
    {inlib_vforcit(var_t,m_state.m_vars,it) {
@@ -707,7 +714,7 @@ protected:
    {inlib_vforcit(var_t,_vars,it) m_state.add_env((*it).first,(*it).second.m_value);}
     return true;
   }
-  
+
   bool _assign(const std::string& a_arg,bool a_env,bool a_alias) {
     std::string::size_type pos = a_arg.find('=');
     if(pos==std::string::npos) return false;
@@ -818,24 +825,24 @@ protected:
 protected:
   void _get_args(const std::string& a_line,std::vector<std::string>& a_args) {
     a_args.clear();
-    
+
     if(m_state.m_set_v) m_out << a_line << std::endl;
 
     if(m_state.m_set_d) m_out << "inlib::insh::_get_args : begin : " << sout(a_line) << std::endl;
-    
+
     std::string line = a_line;
-    
+
     std::string serror;
 
    {std::string::size_type pos;
     if(!find_first_sharp(line,pos,serror)) {warn(serror);return;}
     if(pos!=std::string::npos) line = line.substr(0,pos);}
-  
+
     strip(line);
-    
+
     if(line.empty()) return;
     if(line.substr(0,1)=="#") return;
-    
+
     if(m_state.m_set_d) m_out << "inlib::insh::_get_args : after strip and not comment : " << sout(line) << std::endl;
 
     std::vector<sh_string> _words;
@@ -931,7 +938,7 @@ protected:
     }
 
   }
-  
+
   void _exec_args(const std::vector<std::string>& a_args) {
     if(a_args.empty()) return;
 
@@ -940,7 +947,7 @@ protected:
    {std::string sa;
     conc(args," ",sa);
     if(_assign(sa,false,false)) return;}  //assignement has priority on alias.
-    
+
     if(look_for_alias(args)) return;
 
     std::string cmd = args[0];
@@ -963,7 +970,7 @@ protected:
    {base_cmd* _cmd;
     if(!find(m_builtins,cmd,_cmd)) {
       if(!find(m_cmds,cmd,_cmd)) _cmd = 0;
-    }      
+    }
     if(_cmd) {
       if(m_state.m_set_n) {
         if( (cmd=="set") && args.size() && (args[0]=="+n") ) _cmd->execute(args);
@@ -991,7 +998,7 @@ protected:
           size_t2s(count+1,sc);
           m_state.add_variable(sc,args[count]);
         }}}
-	
+
         _source_file(file);
 
         m_state.remove_variable("#");
@@ -1010,11 +1017,11 @@ protected:
     if(_search_file(cmd)) {
       _exec_file_new_state(cmd,args);
       return;
-    }	
+    }
 
     warn("inlib::insh::_exec_line : "+sout(cmd)+" not found.");
   }
-  
+
 public:
   void _exec_line(const std::string& a_line) {
     std::vector<std::string> args;
@@ -1060,7 +1067,7 @@ public:
         in_for_block++;
         if(in_for_block==1) {
           if(token.size()) {a_blocks.push_back(token);token.clear();}
-          token.m_type = block::block_for; 
+          token.m_type = block::block_for;
           token.m_header = const_line;
         } else {
           token.push_back(const_line);
@@ -1103,7 +1110,7 @@ public:
         } else {
           token.push_back(const_line);
         }
-        
+
       } else {
         token.push_back(const_line);
       }
@@ -1129,7 +1136,7 @@ public:
       if(m_state.m_is_sourcing && m_state.m_to_return) break;
     }
   }
-  
+
   void _exec_lines(const std::vector<std::string>& a_lines) {
     std::vector<block> blocks;
     std::string serror;
@@ -1177,11 +1184,11 @@ public:
     }
   }
   bool _exec_file(const std::string& a_file) {
-    if(!file::exists(a_file)) {    
+    if(!file::exists(a_file)) {
       warn("insh::_exec_file : "+a_file+" not found.");
       return false;
     }
-    std::vector<std::string> lines;    
+    std::vector<std::string> lines;
     if(!file::read(a_file,lines)) {
       warn("insh::_exec_file : can't read "+a_file);
       return false;
@@ -1227,7 +1234,7 @@ public:
     std::string _ss;
     size_t2s(_size,_ss);
     size_t _size_size = _ss.size();
-    
+
     size_t beg = 0;
     if(!a_all) {
       if(size_t(a_n)>_size) {
@@ -1247,7 +1254,7 @@ public:
       m_out << " " << _si << " " << lines[index] << std::endl;
     }}
   }
-public:  
+public:
   bool append_to_history(const std::string& a_line) {
     std::vector<std::string> lines;
     if(!file::read(m_history_file,lines)) {
@@ -1283,7 +1290,7 @@ public:
     }
     a_line = lines[a_index-1].c_str();
     return true;
-  }    
+  }
   bool get_history_line_beg(const std::string& a_begin,std::string& a_line) {
     std::vector<std::string> lines;
     if(!file::read(m_history_file,lines)) {
@@ -1375,6 +1382,18 @@ protected:
       a_value = left!=right;
       return true;
     }
+    int ileft;
+    if(to<int>(left,ileft)) {
+      int iright;
+      if(to<int>(right,iright)) {
+        if(op=="-gt") {a_value = ileft>iright?true:false;return true;}
+        if(op=="-ge") {a_value = ileft>=iright?true:false;return true;}
+        if(op=="-lt") {a_value = ileft<iright?true:false;return true;}
+        if(op=="-le") {a_value = ileft<=iright?true:false;return true;}
+        if(op=="-eq") {a_value = ileft==iright?true:false;return true;}
+        if(op=="-ne") {a_value = ileft!=iright?true:false;return true;}
+      }
+    }
     return false;
     /*
     std::vector<std::string> args;
@@ -1418,7 +1437,7 @@ protected:
     if(a_args.empty()) {
       print_last_history(0,true); // true = all.
       return;
-    }      
+    }
     args _args(a_args);
     if(_args.is_arg("-c")) {
       file::make_empty(m_history_file);
@@ -1447,7 +1466,7 @@ history: history [-c] [n]\n\
     base_cmd* _cmd;
     if(!find(m_builtins,scmd,_cmd)) {
       if(!find(m_cmds,scmd,_cmd)) _cmd = 0;
-    }      
+    }
     if(!_cmd) {
       warn("inlib::insh::_help : command "+sout(scmd)+" not found.");
       return;
@@ -1498,7 +1517,7 @@ help: help [command]\n\
       m_out << "*/" << std::endl;
       return;
     }
-    
+
    {inlib_mforcit(std::string,base_cmd*,m_builtins,it) {
       const std::string& _s = (*it).second->help();
       if(_s==no_help()) {
@@ -1585,7 +1604,7 @@ alias: alias [name[=value]]\n\
 ");
     return s_help;
   }
-  
+
 
   void _let(const std::vector<std::string>& a_args) {
     if(a_args.size()!=1) {
@@ -1627,7 +1646,7 @@ let: let arg\n\
 ");
     return s_help;
   }
-  
+
 
   void _echo(const std::vector<std::string>& a_args) {
     std::vector<std::string> args(a_args);
@@ -1649,7 +1668,7 @@ echo: [-n] [arg ...]\n\
 ");
     return s_help;
   }
-  
+
   void _printenv(const std::vector<std::string>& a_args) {
     if(a_args.empty()) {
       out_begin();
@@ -1676,7 +1695,7 @@ printenv: printenv [name]\n\
 ");
     return s_help;
   }
-  
+
   void _compgen(const std::vector<std::string>& a_args) {
     if(a_args.empty()) return;
     bool opt_c = false;
@@ -1775,7 +1794,7 @@ type: type [-t] name [name ...]\n\
   }
 
   void _exit(const std::vector<std::string>&) {m_state.m_to_stop = true;}
-  
+
   void _date(const std::vector<std::string>&) {
     std::string sdate;
     time2s(sdate);
@@ -1788,14 +1807,14 @@ date: date\n\
 ");
     return s_help;
   }
-  
+
   void _time(const std::vector<std::string>& a_args) {
     std::string sa;
     conc(a_args," ",sa);
     atime _start = atime::now();
     _exec_line(sa);
     atime _end = atime::elapsed(_start);
-    
+
     sa.clear();
     numas(_end.seconds(),sa);
     sa += " secs ";
@@ -1826,7 +1845,7 @@ unset: unset variable\n\
 ");
     return s_help;
   }
-  
+
   void _unalias(const std::vector<std::string>& a_args) {
     if(a_args.empty()) {
       warn("inlib::insh::_unalias : one argument expected.");
@@ -1851,7 +1870,7 @@ unalias: unalias [-a] name\n\
 ");
     return s_help;
   }
-  
+
   void _export(const std::vector<std::string>& a_args) {
     if(a_args.empty()) {
       out_begin();
@@ -2000,15 +2019,14 @@ cp: cp source target\n\
   }
 
   void _rm(const std::vector<std::string>& a_args) {
-    if(a_args.empty()) {
-      warn("inlib::insh::_rm : one arguments expected.");
-      return;
-    }
     args _args(a_args);
     std::string _path;
-    if(!_args.first_not_hyphen(_path)) return;
+    if(!_args.first_not_hyphen(_path)) {
+      warn("inlib::insh::_rm : a file name is expected.");
+      return;
+    }
     if(!file::exists(_path)) {
-      warn("inlib::insh::_rm : file "+sout(_path)+" does not exist.");
+      if(!_args.is_arg("-f")) warn("inlib::insh::_rm : file "+sout(_path)+" does not exist.");
       return;
     }
     if(::remove(_path.c_str())) {
@@ -2114,6 +2132,19 @@ suffix: suffix path\n\
     return s_help;
   }
 
+  void _sys_os(const std::vector<std::string>& a_args) {out(os());}
+  static const std::string& _sys_os_help() {
+    static const std::string s_help("\
+sys_os: sys_os\n\
+  Return OS type. It is defined in inlib/platform/os().\n\
+  It could be:\n\
+    iOS,Android,emscripten,Windows_NT,Darwin,Linux,CYGWIN,OSF1.\n\
+  Example:\n\
+    sys_os\n\
+");
+    return s_help;
+  }
+
   void _print_args(const std::vector<std::string>& a_args) {
     //inlib_vforcit(std::string,a_args,it) m_out << *it << std::endl;
     out_begin();
@@ -2123,6 +2154,26 @@ suffix: suffix path\n\
     static const std::string s_help("\
 print_args: print_args [args]\n\
   Print the arguments. It helps debugging string manipulations in insh.\n\
+");
+    return s_help;
+  }
+
+  void _system(const std::vector<std::string>& a_args) {
+#if TARGET_OS_IPHONE
+    warn("inlib::insh::_system : not available on iOS.");
+#else
+    if(a_args.empty()) return;
+    if(::system(a_args[0].c_str())==(-1)) {}
+#endif
+  }
+  static const std::string& _system_help() {
+    static const std::string s_help("\
+system: system command\n\
+  Pass command to the C ::system() function.\n\
+  Note that a command with arguments must be passed as one string.\n\
+  Example:\n\
+    system ls\n\
+    system 'ls -al'\n\
 ");
     return s_help;
   }
@@ -2344,6 +2395,8 @@ protected:
     INLIB_INSH_ADD_VOID_ARGS_BUILTIN(suffix,_suffix,_suffix_help,no_complete)
     INLIB_INSH_ADD_VOID_ARGS_BUILTIN(print_args,_print_args,_print_args_help,no_complete)
     INLIB_INSH_ADD_VOID_ARGS_BUILTIN(helps,_helps,_helps_help,no_complete)
+    INLIB_INSH_ADD_VOID_ARGS_BUILTIN(system,_system,_system_help,no_complete)
+    INLIB_INSH_ADD_VOID_ARGS_BUILTIN(sys_os,_sys_os,_sys_os_help,no_complete)
 
   }
 

@@ -22,7 +22,7 @@
 namespace app_iOS {
 
 // we can't template EXLIB_APP, since Objective-C does not have template.
-  
+
 class main : protected exlib::sg::pv_holder, public EXLIB_APP::main {
   typedef EXLIB_APP::main parent;
 public:
@@ -52,7 +52,7 @@ public:
 
       if(a_path.size()) {
         NSString* npath = [NSString stringWithUTF8String:a_path.c_str()];
-        NSData* ndata = [NSData dataWithContentsOfFile:npath]; 
+        NSData* ndata = [NSData dataWithContentsOfFile:npath];
         NSString* nmime = [NSString stringWithUTF8String:a_mime.c_str()];
         std::string file_name = inlib::base_name(a_path); //receiver file name.
         NSString* ntofile = [NSString stringWithUTF8String:file_name.c_str()];
@@ -64,11 +64,11 @@ public:
 #else
       [_view_controller_delegate presentViewController:mcvc animated:YES completion:nil];
 #endif
-      
+
       [mcvc release];
 
       return true;
- 
+
     }else {
       UIAlertView *alert =
         [[UIAlertView alloc]
@@ -77,7 +77,7 @@ public:
          delegate:nil
          cancelButtonTitle:@"ok"
          otherButtonTitles:nil];
- 
+
       [alert show];
       [alert release];
       return false;

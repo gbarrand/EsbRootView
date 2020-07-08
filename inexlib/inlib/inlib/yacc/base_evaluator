@@ -106,7 +106,7 @@ public:
     }
     if(m_result.type()!=value::BOOL) {
       m_out << "inlib::base_evaluator::accept :"
-            << " result inlib::value not a BOOLEAN" 
+            << " result inlib::value not a BOOLEAN"
             << " (" << m_result.stype() << ")"
             << " for script " << sout(m_script)
             << std::endl;
@@ -118,7 +118,7 @@ public:
   }
 
   bool is_valid() const {return m_is_valid;}
-  
+
   void get_names(std::vector<std::string>& a_names,bool a_clear = true) {
     if(a_clear) a_names.clear();
     inlib_typename_vforcit(named_value_ref*,m_data_cols,it) a_names.push_back((*it)->name());
@@ -127,11 +127,11 @@ public:
   void get_infos(const DATA& a_data,std::vector<std::string>& a_infos,bool a_clear = true) {
     if(a_clear) a_infos.clear();
     get_variables(a_data);
-    inlib::value v;
+    value v;
     std::string svalue;
     inlib_typename_vforcit(named_value_ref*,m_data_cols,it) {
       (*it)->get_value(v);
-      if(!inlib::value::tos(v,svalue)) {}
+      if(!value::tos(v,svalue)) {}
       a_infos.push_back((*it)->name()+" "+svalue);
     }
   }
@@ -154,7 +154,7 @@ public:
     if(to_dump.empty()) return;
 
     size_t to_dump_size = to_dump.size();
-    inlib::value v;
+    value v;
 
     if(a_to_vout) {
       std::string sout;
@@ -180,7 +180,7 @@ public:
       }
       return;
     }
-    
+
     size_t loffset = 1;
     std::string svalue;
 
@@ -188,7 +188,7 @@ public:
 
     // first pass to get col widths :
    {for(size_t icol=0;icol<to_dump_size;icol++) {
-      widths[icol] = inlib::max_of(widths[icol],loffset+to_dump[icol]->name().size());
+      widths[icol] = max_of(widths[icol],loffset+to_dump[icol]->name().size());
     }}
    {inlib_typename_vforcit(DATA*,a_vec,it) {
       get_variables(*(*it));
@@ -199,20 +199,20 @@ public:
         } else {
           v.tos(svalue);
         }
-        widths[icol] = inlib::max_of(widths[icol],loffset+svalue.size());
+        widths[icol] = max_of(widths[icol],loffset+svalue.size());
       }
     }}
-    
+
     // header :
     if(a_header.size()) a_out << a_header << std::endl;
-    
+
    {for(size_t icol=0;icol<to_dump_size;icol++) {
       svalue = to_dump[icol]->name();
-      inlib::justify(svalue,widths[icol],inlib::side_right);
+      justify(svalue,widths[icol],side_right);
       a_out << svalue;
     }}
     a_out << std::endl;
-    
+
    {inlib_typename_vforcit(DATA*,a_vec,it) {
       get_variables(*(*it));
       for(size_t icol=0;icol<to_dump_size;icol++) {
@@ -222,7 +222,7 @@ public:
         } else {
           v.tos(svalue);
         }
-        inlib::justify(svalue,widths[icol],inlib::side_right);
+        justify(svalue,widths[icol],side_right);
         a_out << svalue;
       }
       a_out << std::endl;
@@ -245,7 +245,7 @@ public:
     if(a_vec.size()) {
       inlib_typename_vforcit(named_value_ref*,_tmp,it) {
         get_variables(*(a_vec[0]));  //to enforce the type of the inlib::value references.
-        inlib::value v;
+        value v;
         (*it)->get_value(v);
         if(v.type()==value::DOUBLE) {
           to_dump.push_back(*it);
@@ -253,10 +253,10 @@ public:
       }
     }}
     if(to_dump.empty()) return;
-    
+
     size_t to_dump_size = to_dump.size();
-    inlib::value v;
-    
+    value v;
+
     // mins, maxs :
     std::vector<double> mins(to_dump_size,DBL_MAX);
     std::vector<double> maxs(to_dump_size,-DBL_MAX);
@@ -287,17 +287,17 @@ public:
 
     // first pass to get col widths :
    {for(size_t icol=0;icol<to_dump_size;icol++) {
-      widths[icol] = inlib::max_of(widths[icol],loffset+to_dump[icol]->name().size());
-      inlib::num2s(Ss[icol],svalue);
-      widths[icol] = inlib::max_of(widths[icol],loffset+svalue.size());
-      inlib::num2s(mins[icol],svalue);
-      widths[icol] = inlib::max_of(widths[icol],loffset+svalue.size());
-      inlib::num2s(maxs[icol],svalue);
-      widths[icol] = inlib::max_of(widths[icol],loffset+svalue.size());
-      inlib::num2s(means[icol],svalue);
-      widths[icol] = inlib::max_of(widths[icol],loffset+svalue.size());
-      inlib::num2s(rmss[icol],svalue);
-      widths[icol] = inlib::max_of(widths[icol],loffset+svalue.size());
+      widths[icol] = max_of(widths[icol],loffset+to_dump[icol]->name().size());
+      num2s(Ss[icol],svalue);
+      widths[icol] = max_of(widths[icol],loffset+svalue.size());
+      num2s(mins[icol],svalue);
+      widths[icol] = max_of(widths[icol],loffset+svalue.size());
+      num2s(maxs[icol],svalue);
+      widths[icol] = max_of(widths[icol],loffset+svalue.size());
+      num2s(means[icol],svalue);
+      widths[icol] = max_of(widths[icol],loffset+svalue.size());
+      num2s(rmss[icol],svalue);
+      widths[icol] = max_of(widths[icol],loffset+svalue.size());
     }}
 
     if(a_arg.empty()||(to_dump_size!=1)) {
@@ -307,69 +307,69 @@ public:
       // name :
      {for(size_t icol=0;icol<to_dump_size;icol++) {
         svalue = to_dump[icol]->name();
-        inlib::justify(svalue,widths[icol],inlib::side_right);
+        justify(svalue,widths[icol],side_right);
         a_out << svalue;
       }}
       a_out << std::endl;
-      
+
       // Ss :
      {for(size_t icol=0;icol<to_dump_size;icol++) {
-        inlib::num2s(Ss[icol],svalue);
-        inlib::justify(svalue,widths[icol],inlib::side_right);
+        num2s(Ss[icol],svalue);
+        justify(svalue,widths[icol],side_right);
         a_out << svalue;
       }}
       a_out << std::endl;
-      
+
       // mins :
      {for(size_t icol=0;icol<to_dump_size;icol++) {
-        inlib::num2s(mins[icol],svalue);
-        inlib::justify(svalue,widths[icol],inlib::side_right);
+        num2s(mins[icol],svalue);
+        justify(svalue,widths[icol],side_right);
         a_out << svalue;
       }}
       a_out << std::endl;
-      
+
       // maxs :
      {for(size_t icol=0;icol<to_dump_size;icol++) {
-        inlib::num2s(maxs[icol],svalue);
-        inlib::justify(svalue,widths[icol],inlib::side_right);
+        num2s(maxs[icol],svalue);
+        justify(svalue,widths[icol],side_right);
         a_out << svalue;
       }}
       a_out << std::endl;
-  
+
       // means :
      {for(size_t icol=0;icol<to_dump_size;icol++) {
-        inlib::num2s(means[icol],svalue);
-        inlib::justify(svalue,widths[icol],inlib::side_right);
+        num2s(means[icol],svalue);
+        justify(svalue,widths[icol],side_right);
         a_out << svalue;
       }}
       a_out << std::endl;
-  
+
       // rmss :
      {for(size_t icol=0;icol<to_dump_size;icol++) {
-        inlib::num2s(rmss[icol],svalue);
-        inlib::justify(svalue,widths[icol],inlib::side_right);
+        num2s(rmss[icol],svalue);
+        justify(svalue,widths[icol],side_right);
         a_out << svalue;
       }}
       a_out << std::endl;
-  
+
     } else if(a_arg=="sum") {
-      //inlib::num2s(Ss[0],a_sout);
+      //num2s(Ss[0],a_sout);
       soutd(Ss[0],a_sout);
     } else if(a_arg=="min") {
-      //inlib::num2s(mins[0],a_sout);
+      //num2s(mins[0],a_sout);
       soutd(mins[0],a_sout);
     } else if(a_arg=="max") {
-      //inlib::num2s(maxs[0],a_sout);
+      //num2s(maxs[0],a_sout);
       soutd(maxs[0],a_sout);
     } else if(a_arg=="mean") {
-      //inlib::num2s(means[0],a_sout);
+      //num2s(means[0],a_sout);
       soutd(means[0],a_sout);
     } else if(a_arg=="rms") {
-      //inlib::num2s(rmss[0],a_sout);
+      //num2s(rmss[0],a_sout);
       soutd(rmss[0],a_sout);
     }
   }
-  
+
   bool evaluate_double_min_max(const std::vector<DATA*>& a_vec,double& a_min,double& a_max) {
     a_min = DBL_MAX;
     a_max = -DBL_MAX;
@@ -410,7 +410,7 @@ public:
     }
     if(to_dump.empty()) return;
 
-    inlib::value v;
+    value v;
     size_t to_dump_size = to_dump.size();
 
     if(a_to_vout) {
@@ -437,7 +437,7 @@ public:
       }
       return;
     }
-    
+
     size_t loffset = 1;
     std::string svalue;
 
@@ -445,7 +445,7 @@ public:
 
     // first pass to get col widths :
    {for(size_t icol=0;icol<to_dump_size;icol++) {
-      widths[icol] = inlib::max_of(widths[icol],loffset+to_dump[icol]->name().size());
+      widths[icol] = max_of(widths[icol],loffset+to_dump[icol]->name().size());
     }}
    {inlib_typename_vforcit(DATA,a_vec,it) {
       get_variables(*it);
@@ -456,20 +456,20 @@ public:
         } else {
           v.tos(svalue);
         }
-        widths[icol] = inlib::max_of(widths[icol],loffset+svalue.size());
+        widths[icol] = max_of(widths[icol],loffset+svalue.size());
       }
     }}
-    
+
     // header :
     if(a_header.size()) a_out << a_header << std::endl;
 
    {for(size_t icol=0;icol<to_dump_size;icol++) {
       svalue = to_dump[icol]->name();
-      inlib::justify(svalue,widths[icol],inlib::side_right);
+      justify(svalue,widths[icol],side_right);
       a_out << svalue;
     }}
     a_out << std::endl;
-    
+
    {inlib_typename_vforcit(DATA,a_vec,it) {
       get_variables(*it);
       for(size_t icol=0;icol<to_dump_size;icol++) {
@@ -479,7 +479,7 @@ public:
         } else {
           v.tos(svalue);
         }
-        inlib::justify(svalue,widths[icol],inlib::side_right);
+        justify(svalue,widths[icol],side_right);
         a_out << svalue;
       }
       a_out << std::endl;
@@ -493,22 +493,22 @@ protected:
     m_vals.clear();
 
     m_processor.set_script(m_script);
-  
+
     // Get cut variables :
     if(!m_processor.find_variables(m_variables)) {
       m_out << "inlib::base_evaluator::initialize :"
             " find_variables() failed for script " << sout(m_script) << "." << std::endl;
       m_variables.clear();
-      return false;    
+      return false;
     }
-  
+
     // Get functions names :
    {std::vector<std::string> funcs;
     if(!m_processor.find_functions(funcs)) {
       m_out << "inlib::base_evaluator::initialize :"
             << " find_function() failed for script " << sout(m_script) << "." << std::endl;
       m_variables.clear();
-      return false;    
+      return false;
     }
     inlib_vforcit(std::string,funcs,it) {
       if(m_processor.find_function(*it,false)) continue;
@@ -516,29 +516,29 @@ protected:
             << " function " << sout(*it) << " not found"
             << " in script " << sout(m_script) << "." << std::endl;
       m_variables.clear();
-      return false;    
+      return false;
       //m_processor.add_function(new ExpFunc_AIDA_FUNC(*it,*func));
     }}
-  
+
     if(!m_processor.compile(m_variables)) {
       m_out << "inlib::base_evaluator::initialize :"
             << " compilation failed for script " << sout(m_script) << "." << std::endl;
       m_variables.clear();
-      return false;    
+      return false;
     }
-  
+
    {size_t number = m_variables.size(); //Could be zero.
     m_named_values.resize(number);
     for(size_t index=0;index<number;index++) {
       named_value_ref* _named_value_ref = find_named<named_value_ref>(m_data_cols,m_variables[index]);
       if(!_named_value_ref) {
         m_out << "inlib::base_evaluator::initialize :"
-              << " " << sout(m_variables[index]) << " not a data named_value_ref." 
+              << " " << sout(m_variables[index]) << " not a data named_value_ref."
               << ". Script is " << sout(m_script) << "." << std::endl;
         m_variables.clear();
         m_named_values.clear();
         return false;
-      } 
+      }
       m_named_values[index] = _named_value_ref;
     }}
 
@@ -579,18 +579,18 @@ protected:
       m_name = a_from.m_name;
       return *this;
     }
-  public:    
+  public:
     const std::string& name() const {return m_name;}
     void get_value(value& a_value) {a_value = m_ref;}
   protected:
     std::string m_name;
     value& m_ref;
   };
-  
+
   void add_named_value_ref(const std::string& a_name,value& a_ref) {
     m_data_cols.push_back(new named_value_ref(a_name,a_ref));
   }
-  
+
   static void soutd(double a_d,std::string& a_s) {
     std::ostringstream ossd;
     ossd.precision(25);

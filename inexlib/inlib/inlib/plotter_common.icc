@@ -81,13 +81,13 @@
     m_plots.current_plotter().add_plottable(p); //it takes ownership.
     return p;
   }
-  
+
   inlib::sg::plottable* plot_cp(const inlib::histo::c3d& a_cloud) {
     inlib::sg::plottable* p = new inlib::sg::c3d2plot_cp(a_cloud);
     m_plots.current_plotter().add_plottable(p); //it takes ownership.
     return p;
   }
-  
+
   template <class T>
   inlib::sg::plottable* plot(const T& a_func) {
     inlib::sg::plottable* p = new inlib::sg::f1d2plot<T>(a_func);

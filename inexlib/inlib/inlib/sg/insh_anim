@@ -74,7 +74,7 @@ public:
       lines.push_back("gui_show_console "+stmp);
     }
 */
-    m_insh._exec_lines(lines);
+    m_insh.exec_lines_reset_to_stop(lines);
 
     m_insh.remove_variable(s_insh_anim_time_min());
     m_insh.remove_variable(s_insh_anim_time_max());
@@ -179,7 +179,7 @@ inline bool insh_anim_add_node(insh& a_insh,group& a_parent,NODE*& a_node) {  //
       return false;
     }
     insh_anim* _anim = (insh_anim*)p;
-    
+
     if(true) {  // sanity check :
       search_action action(a_insh.out());
       const path_t& _path = find_path(action,a_parent,*_anim,false);

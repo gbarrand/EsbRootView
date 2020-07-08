@@ -65,7 +65,7 @@ inline bool load_default_pdg_table(pdgs& a_pdgs) {
     *pos = '\n';pos++;
   }}
   bool status = a_pdgs.load_table_buffer(buffer,_size-1);
-  delete [] buffer;  
+  delete [] buffer;
   return status;
 }
 

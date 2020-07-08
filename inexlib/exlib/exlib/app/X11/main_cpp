@@ -36,7 +36,7 @@ public:
         int width,height;
         if(!m_x11.window_size(m_win,width,height)) return true;
         if(width==height) return true;
-        
+
         int x,y;
         m_main.position(x,y);
         //::printf("debug : location 001 : %d %d\n",x,y);
@@ -132,7 +132,7 @@ inline int exlib_main(const std::string& a_app_name,int argc,char** argv) {
 #ifdef INLIB_MEM
   #ifdef INLIB_MEM_ATEXIT
   ::atexit(at_exit);
-  #endif  
+  #endif
   inlib::mem::set_check_by_class(true);{
 #endif
 
@@ -196,7 +196,7 @@ options are :\n\
   if(home_dir.empty()) {
     std::cout << "exlib_main : can't get home directory." << std::endl;
     return EXIT_FAILURE;
-  }  
+  }
   std::string doc_app_dir = "Documents";
   doc_app_dir += inlib::sep();
   doc_app_dir += a_app_name;
@@ -213,7 +213,7 @@ options are :\n\
 //  std::cout << "exlib_main : can't create directory " << inlib::sout(out_dir) << "." << std::endl;
 //  return EXIT_FAILURE;
 //}
-      
+
   std::string tmp_dir = "/tmp";
 
   if(XInitThreads()==False) { // for inlib::sg::view_sg_serv.
@@ -264,7 +264,7 @@ options are :\n\
                                 ,x11.context()
 #endif
                                 );
-  _main.set_argcv(args);  
+  _main.set_argcv(args);
   if(args.is_arg(inlib::s_arg_black())) _main.m_params.m_scene_screen_color = inlib::colorf_black();
 
   //////////////////////////////////////////////////////////////////
@@ -290,7 +290,7 @@ options are :\n\
   //////////////////////////////////////////////////////////////////
  {std::string DOCUMENT;
   args.files_at_end(); //take care of the upper -land.
-  if(!args.file(DOCUMENT)) args.find(inlib::s_arg_document(),DOCUMENT);  
+  if(!args.file(DOCUMENT)) args.find(inlib::s_arg_document(),DOCUMENT);
   if(verbose) {
     std::cout << "exlib_main :"
               << " document is " << inlib::sout(DOCUMENT) << "."
@@ -301,7 +301,7 @@ options are :\n\
     bool done;
     _main.opener().open(DOCUMENT,inlib::file::s_format_guessed(),inlib::args(),done);
   }}
-  
+
   //////////////////////////////////////////////////////////////////
   /// terminal : ///////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////
@@ -340,7 +340,7 @@ options are :\n\
               << std::endl;
   }
 
-  while(!_main.to_exit()) { 
+  while(!_main.to_exit()) {
 
     if(_main.num_cbks() || (_term_timer && _term_timer->active()) ) {
       if(_main.num_cbks()) _main.do_works();
@@ -355,7 +355,7 @@ options are :\n\
           x11.dispatch(xevent);
         }
       }
- 
+
       if(_view_sg_client && _view_sg_client->is_connected()) {
         bool have_sock_input;
         if(!_view_sg_client->is_there_input(have_sock_input)) {
@@ -371,7 +371,7 @@ options are :\n\
           }
         }
       }
-  
+
       if(_view_sg_serv && _view_sg_serv->is_connected()) {
         bool have_sock_input;
         if(!_view_sg_serv->is_there_input(have_sock_input)) {
@@ -384,7 +384,7 @@ options are :\n\
           }
         }
       }
-  
+
 #ifdef EXLIB_NO_GL
       _main.do_paint();
 #endif
@@ -402,7 +402,7 @@ options are :\n\
         x11.dispatch(xevent);
       }
     }
- 
+
     if(_view_sg_client && _view_sg_client->is_connected()) {
       bool have_sock_input;
       if(!_view_sg_client->is_there_input(have_sock_input)) {
@@ -419,7 +419,7 @@ options are :\n\
         }
       }
     }
-  
+
     if(_view_sg_serv && _view_sg_serv->is_connected()) {
       bool have_sock_input;
       if(!_view_sg_serv->is_there_input(have_sock_input)) {
@@ -433,14 +433,14 @@ options are :\n\
         }
       }
     }
-    
+
 #else //not EXLIB_APP_POLL
     socks.clear();
     socks.push_back(fd_X11);
     // For the two below lines, we must provide something even if _view_sg_client, _view_sg_serv = 0.
     socks.push_back(_view_sg_client ? _view_sg_client->socket() : INVALID_SOCKET);
     socks.push_back(_view_sg_serv ? _view_sg_serv->socket() : INVALID_SOCKET);
-      
+
     if(!inlib::net::wait_input(socks,has_input)) {
       std::cout << "exlib_main : inlib::net::wait_input failed." << std::endl;
       break;
@@ -466,7 +466,7 @@ options are :\n\
         x11.dispatch(xevent);
       }
     }
-    
+
     if(has_input[1]) {  //from wall :
       if(verbose) std::cout << "exlib_main : event on view_sg_client..." << std::endl;
       if(!_view_sg_client->poll()) {}
@@ -498,8 +498,8 @@ options are :\n\
     if(verbose) {
       std::cout << "exlib_main : enter steering loop (pure X11) ..." << std::endl;
     }
-  
-    while(!_main.to_exit()) { 
+
+    while(!_main.to_exit()) {
 
       //std::cout << "exlib_main : loop..." << std::endl;
       if(_main.num_cbks() || (_term_timer && _term_timer->active()) ) {
@@ -545,7 +545,7 @@ options are :\n\
   inlib::mem::balance(std::cout);
   #endif
   std::cout << a_app_name << "_X11 : exit(mem) ..." << std::endl;
-#else  
+#else
   if(verbose) std::cout << a_app_name << "_X11 : exit ..." << std::endl;
 #endif
 

@@ -46,7 +46,7 @@ public:
     double t = atime::diff(a_now,m_start).value();
 
     double time_delta = time_max.value()-time_min.value();
-    
+
     double time_beg = (tp/delay.value())*time_delta+time_min.value();
     double time_end = (t/delay.value())*time_delta+time_min.value();
     if(time_end<=time_beg) return true;
@@ -89,7 +89,7 @@ public:
   ,time_max(1)
   ,end_begin(false)
   {
-    add_fields();    
+    add_fields();
   }
   virtual ~slice_anim() {}
 protected:

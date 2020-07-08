@@ -1,5 +1,5 @@
 #ifndef inlib_fort_fmt_h
-#define inlib_fort_fmt_h 
+#define inlib_fort_fmt_h
 
 #include "fort_fmt_lexer.h"
 
@@ -32,7 +32,7 @@ public:
   std::string cformat() const;
 public:
   std::vector<data_desc*> m_children;
-  data_desc* m_parent;  
+  data_desc* m_parent;
   int m_index;
   // Leaf data :
   unsigned int m_multiplicity;
@@ -65,7 +65,7 @@ private:
 public:
   void setScript(const std::string&);
   const std::string& script() const;
-  void clear(); 
+  void clear();
   bool parse();
   bool isSuccess() const;
   const data_desc& result() const;

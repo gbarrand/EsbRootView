@@ -95,7 +95,12 @@ inline void insh_ls(ishell& a_insh,const std::vector<std::string>& a_args) {
   }
   if(opt_a) {
     sort::sort(ls);
-    a_insh.unix_print(ls);
+    if(a_insh.in_backquote()) {
+      a_insh.out_begin();
+      inlib_vforcit(std::string,ls,it) a_insh.out(*it,true);
+    } else {
+      a_insh.unix_print(ls);
+    }
     return;
   }
   std::vector<std::string> no_dots;
@@ -107,7 +112,12 @@ inline void insh_ls(ishell& a_insh,const std::vector<std::string>& a_args) {
     no_dots.push_back(item);
   }}
   sort::sort(no_dots);
-  a_insh.unix_print(no_dots);
+  if(a_insh.in_backquote()) {
+    a_insh.out_begin();
+    inlib_vforcit(std::string,no_dots,it) a_insh.out(*it,true);
+  } else {
+    a_insh.unix_print(no_dots);
+  }
 }
 
 inline const std::string& insh_ls_help() {

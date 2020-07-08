@@ -9,7 +9,7 @@
 
 //#define INLIB_NET_THREAD_ACCEPT_NOT_BLOCKING
 //NOTE : we are in a special thread, being blocking is ok and
-//       take less CPU. 
+//       take less CPU.
 
 namespace inlib {
 namespace net {

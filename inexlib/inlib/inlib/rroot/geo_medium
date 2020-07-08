@@ -36,15 +36,15 @@ public:
   virtual iro* copy() const {return new geo_medium(*this);}
   virtual bool stream(buffer& a_buffer) {
     _clear();
-    
+
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
 
     //::printf("debug : geo_mediumn::stream : v %d\n",v);
-    
+
     std::string name;
-    std::string title;  
+    std::string title;
     if(!Named_stream(a_buffer,name,title)) return false;
 
     int fId;         // unique Id
@@ -59,7 +59,7 @@ public:
       a_buffer.out() << "inlib::rroot::geo_medium::stream : "
                      << "can't read fMaterial."
                      << std::endl;
-      _clear();		       
+      _clear();
       return false;
     }
 

@@ -53,7 +53,7 @@ protected: //render_gstos
 public: //node
   virtual void render(render_action& a_action) {
     if(gstos_render(a_action)) return;
-    
+
     // immediate rendering :
     const state& state = a_action.state();
     bool draw_edges = false;
@@ -240,9 +240,9 @@ protected:
     int s;
 
     float* vts = 0;
-    unsigned int ivt = 0;       
+    unsigned int ivt = 0;
     float* nms = 0;
-    unsigned int inm = 0;       
+    unsigned int inm = 0;
     _new((3+2*nrows)*3,nms,inm,vts,ivt);
 
     /* iterate over the 20 sides of the icosahedron */
@@ -260,8 +260,8 @@ protected:
             lerp(t->pt[1], t->pt[2], (float)(i+1)/nrows, v2);
             lerp(t->pt[1], t->pt[2], (float)i/nrows, v3);
 
-            ivt = 0;       
-            inm = 0;       
+            ivt = 0;
+            inm = 0;
             _V(v0,a_radius,nms,vts,inm,ivt);
             _V(v1,a_radius,nms,vts,inm,ivt);
             for(j = 0; j < i; j++) {
@@ -277,7 +277,7 @@ protected:
               if(a_as_triangles) {
                 a_visitor.add_triangle_strip_as_triangles(ivt,vts,nms);
               } else {
-                a_visitor.add_triangle_strip(ivt,vts,nms);
+                a_visitor.add_triangle_strip_normal(ivt,vts,nms);
               }
             } else if(a_style==draw_lines) {
               a_visitor.add_line_strip(ivt,vts);

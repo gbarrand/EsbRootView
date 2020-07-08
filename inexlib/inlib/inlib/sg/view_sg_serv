@@ -64,8 +64,8 @@ public:
     m_disconnect_func = a_disconnect_func;
     m_finalize_func = a_finalize_func;
     m_data_1 = a_data_1;
-    m_data_2 = a_data_2;   		   
-  }		  
+    m_data_2 = a_data_2;
+  }
   bool initialize(const std::string& a_host,unsigned int a_port) {
     if(m_viewer.verbose()) {
       m_viewer.out() << "inlib::sg::view_sg_serv::initialize :"
@@ -80,7 +80,7 @@ public:
     }
     m_sg_serv.finalize();
     if(m_finalize_func) m_finalize_func(m_data_1,m_data_2);
-  }  
+  }
   net::sg_serv& sg_serv() {return m_sg_serv;}
 public:
   bool is_connected() {return m_sg_serv.sg_client_sock().is_connected();}
@@ -103,17 +103,17 @@ public:
       out << "inlib::sg::view_sg_serv::treat_event : received prot " << inlib::sout(prot) << "." << std::endl;
 
     std::string cmd;
-    
+
     if(prot==inlib::sg::s_protocol_disconnect()) {
       m_sg_serv.stop_sg_client();
-/*	    
+/*
     } else if(prot==inlib::sg::s_protocol_acknowledge()) {
       if(!m_sg_serv.sg_client_sock().send_string("ok")) {
         out  << "inlib::sg::view_sg_serv::treat_event : send_string() failed." << std::endl;
         m_sg_serv.stop_sg_client();
         return false;
       }
-*/  
+*/
     } else if(prot==inlib::sg::s_protocol_view_all()) {
       m_viewer.adapt_camera_to_scene();
       m_viewer.win_render();
@@ -129,7 +129,7 @@ public:
     } else if(prot==inlib::sg::s_protocol_reset_camera()) {
       m_viewer.reset_camera();
       m_viewer.win_render();
-	    
+
     } else if(prot==inlib::sg::s_protocol_clear_static_sg()) {
       m_viewer.insh().exec_line_new_state(s_insh_clear_static_scene());
       m_viewer.win_render();
@@ -152,39 +152,39 @@ public:
         }
         if(!m_viewer.receive_document_buffer(buffer,length,inlib::sg::s_protocol_arg_sep())) {
 	  //m_viewer.set_to_exit();
-        }	  
+        }
       }
       delete [] buffer;
-	    
+
     } else if(prot==inlib::sg::s_protocol_get_wall_params()) {
-    
+
       std::string _prot;
       _prot = inlib::sg::s_protocol_get_wall_params();
 
       _prot += "\n";
       _prot += sg::s_sg_serv_ww()+"=";
       numas(m_viewer.width(),_prot);
-      
+
       _prot += "\n";
       _prot += sg::s_sg_serv_wh()+"=";
       numas(m_viewer.height(),_prot);
-      
+
       _prot += "\n";
       _prot += sg::s_sg_serv_bw()+"=";
       numas(0,_prot);
-      
+
       _prot += "\n";
       _prot += sg::s_sg_serv_bh()+"=";
       numas(0,_prot);
-      
+
       _prot += "\n";
       _prot += sg::s_sg_serv_cols()+"=";
       numas(1,_prot);
-      
+
       _prot += "\n";
       _prot += sg::s_sg_serv_rows()+"=";
       numas(1,_prot);
-    
+
       if(!m_sg_serv.sg_client_sock().send_string(_prot)) {
         out << "inlib::sg::view_sg_serv::treat_event : send_string failed." << std::endl;
         return false;
@@ -194,19 +194,19 @@ public:
       inlib::args args(cmd,"\n",false);
       if(!m_viewer.args2params(args.get_args(),false)) {}
       m_viewer.win_render();
-      
+
     } else if(is_beg(prot,inlib::sg::s_protocol_set_camera(),cmd)) { //inlib/app/file_to_sg_serv.cpp :
       inlib::args args(cmd,"\n",false);
       if(!m_viewer.args2camera(args.get_args(),false)) {}
       m_viewer.win_render();
-	
+
     } else {
       out << "inlib::sg::view_sg_serv::treat_event : prot " << inlib::sout(prot) << " not handled." << std::endl;
-      return false;	    
+      return false;
     }
     return true;
   }
-/*		       
+/*
     create_main_button(m_out,m_res_dir,m_params,m_image_readers,
                        m_camenu_sep,a_wcw,a_wch,a_wb,a_hb,0,
                        a_nb-6,0,
@@ -217,7 +217,7 @@ public:
       m_camenu_sg_serv_has_client_text_button.back_color::color = colorf_pink();
     } else {
       m_camenu_sg_serv_has_client_text_button.back_color::color = m_params.m_gui_back_color;
-    }		          
+    }
 */
 protected:
   gui_viewer& m_viewer;

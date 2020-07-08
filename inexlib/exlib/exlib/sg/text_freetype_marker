@@ -13,7 +13,7 @@ class text_freetype_marker : public text_freetype {
   INLIB_NODE(text_freetype_marker,exlib::sg::text_freetype_marker,text_freetype)
 public:
   virtual bool draw_in_frame_buffer() const {return true;}
-  
+
   virtual void render(inlib::sg::render_action& a_action) {
     if(touched()) {
       update_sg(a_action.out(),font.touched(),a_action.state());
@@ -109,7 +109,7 @@ public:
         delete [] vp;
         a_action.set_matrices_from_state();
         return;
-      }       
+      }
 
       delete [] vp;
     }}
@@ -131,7 +131,7 @@ public:
         delete [] vp;
         a_action.set_matrices_from_state();
         return;
-      }       
+      }
       delete [] vp;
     }}
 
@@ -157,7 +157,7 @@ public:
         py = *pos;pos++;
         pz = 0;
         a_action.add_one_point(px,py,pz);
-      }  
+      }
 
     }}
 
@@ -176,7 +176,7 @@ public:
         py = *pos;pos++;
         pz = 0;
         a_action.add_one_point(px,py,pz);
-      }  
+      }
     }}
 */
   }

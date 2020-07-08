@@ -38,7 +38,7 @@ public:
   virtual iro* copy() const {return new geo_polygon(*this);}
   virtual bool stream(buffer& a_buffer) {
     _clear();
-    
+
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
@@ -53,11 +53,11 @@ public:
     if(!fixed_array_stream<int>(a_buffer,m_nconvex,m_indcs)) return false;
 
     //TObjArray* fDaughters;        // list of concave daughters
-    ifac::args args;    
+    ifac::args args;
     if(!pointer_stream(a_buffer,m_fac,args,m_daughters,m_daughters_created)){
       a_buffer.out() << "inlib::rroot::geo_polygon::stream : "
                      << "can't read fDaughters."
-                     << std::endl;	
+                     << std::endl;
       return false;
     }
 
@@ -97,7 +97,7 @@ protected:
   ,m_indcs(0)
   ,m_daughters(a_from.m_daughters)
   ,m_daughters_created(a_from.m_daughters_created)
-  { 
+  {
     carray_copy(m_inds,m_nvert,a_from.m_inds);
     carray_copy(m_indcs,m_nconvex,a_from.m_indcs);
   }

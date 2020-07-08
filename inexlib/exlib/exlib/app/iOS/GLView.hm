@@ -24,9 +24,9 @@
 #define USE_DISPLAY_LINK
 
 //
-#define EXLIB_IOS_ANTIALIASING 
+#define EXLIB_IOS_ANTIALIASING
 
-@interface GLView : UIView {    
+@interface GLView : UIView {
 @private
   view_controller_delegate* m_view_controller_delegate;
 
@@ -35,7 +35,7 @@
   GLuint m_color_buffer;
   GLuint m_depth_buffer;
 
-#ifdef EXLIB_IOS_ANTIALIASING 
+#ifdef EXLIB_IOS_ANTIALIASING
   GLuint m_aa_frame_buffer;
   GLuint m_aa_color_buffer;
   GLuint m_aa_depth_buffer;

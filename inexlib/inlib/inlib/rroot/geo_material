@@ -42,7 +42,7 @@ public:
     //::printf("debug : geo_material::stream : v %d\n",v);
 
     std::string name;
-    std::string title;  
+    std::string title;
     if(!Named_stream(a_buffer,name,title)) return false;
 
    {short color,style;
@@ -205,9 +205,9 @@ public:
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
-	
+
     //::printf("debug : geo_mixture::stream : v %d\n",v);
-    
+
     // version 5 and 3 handled.
 
     //a_buffer.out() << " debug : geo_mixture : vers " << v << std::endl;
@@ -233,7 +233,7 @@ public:
       if(v>=3) { //EsbRoot/geo_full.root has v = 3.
         //Double_t* fVecNbOfAtomsPerVolume; //[fNelements] array of numbers of atoms per unit volume
         if(!dummy_array_stream<double>(a_buffer,fNelements)) return false;
-      }	
+      }
 
       //TObjArray* fElements;   // array of elements composing the mixture
       if(!dummy_TXxx_pointer_stream(a_buffer,m_fac)) {

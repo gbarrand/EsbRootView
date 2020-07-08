@@ -33,7 +33,7 @@ inline int exlib_main(const std::string& a_app_name,int argc,char** argv) {
 #ifdef INLIB_MEM
   #ifdef INLIB_MEM_ATEXIT
   ::atexit(at_exit);
-  #endif  
+  #endif
   inlib::mem::set_check_by_class(true);{
 #endif
 
@@ -57,7 +57,7 @@ inline int exlib_main(const std::string& a_app_name,int argc,char** argv) {
 
   std::string DOCUMENT;
   args.files_at_end(); //take care of the upper -land.
-  if(!args.file(DOCUMENT)) args.find("-document",DOCUMENT);  
+  if(!args.file(DOCUMENT)) args.find("-document",DOCUMENT);
   if(verbose) {
     std::cout << "exlib_main :"
               << " document is " << inlib::sout(DOCUMENT) << "."
@@ -65,7 +65,7 @@ inline int exlib_main(const std::string& a_app_name,int argc,char** argv) {
   }
 
   std::string orders;
-  args.find(inlib::s_arg_orders(),orders,"offscreen.insh");
+  args.find(inlib::s_arg_orders(),orders,DOCUMENT.size()?DOCUMENT:"offscreen.insh");
 
   //////////////////////////////////////////////////////////////////
   /// dirs : ///////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ inline int exlib_main(const std::string& a_app_name,int argc,char** argv) {
   if(home_dir.empty()) {
     std::cout << "exlib_main : can't get home directory." << std::endl;
     return EXIT_FAILURE;
-  }  
+  }
   std::string doc_app_dir = "Documents";
   doc_app_dir += inlib::sep();
   doc_app_dir += a_app_name;

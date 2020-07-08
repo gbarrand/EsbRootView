@@ -47,8 +47,8 @@ protected:
 public:
   void set_params(net::sg_client::start_func a_start_func,net::sg_client::stop_func a_stop_func,
                   void* a_data_1,void* a_data_2) {
-    m_sg_client.set_params(a_start_func,a_stop_func,a_data_1,a_data_2);		  
-  }		  
+    m_sg_client.set_params(a_start_func,a_stop_func,a_data_1,a_data_2);
+  }
   bool is_connected() {return m_sg_client.socket().is_connected();}
   bool is_there_input(bool& a_is,unsigned int a_micro_secs = 10) {
     return m_sg_client.socket().is_there_input(a_is,a_micro_secs);
@@ -77,9 +77,9 @@ public:
 
   const xml::walls& walls() const { return m_walls;}
   xml::walls& walls() { return m_walls;}
-  
+
   text_button& camenu_send_button() {return m_camenu_send_button;}
-  
+
   void update_camenu_send_button(const gui_params& a_params) {
     if(m_sg_client.socket().is_connected()) {
       m_camenu_send_button.back_area::color = colorf_pink();
@@ -91,7 +91,7 @@ protected:
   net::sg_client m_sg_client;
   xml::walls m_walls;
   compress_func m_compress_func;
-  text_button m_camenu_send_button;  
+  text_button m_camenu_send_button;
 };
 
 }}

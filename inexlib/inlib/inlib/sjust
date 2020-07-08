@@ -34,7 +34,7 @@ inline void justify(std::string& a_string,size_t a_size,side a_side = side_left,
 
 #ifdef INLIB_DEPRECATED
 inline std::string sjust(const std::string& a_string,size_t a_size,side a_side = side_left){
-  std::string s(a_string); 
+  std::string s(a_string);
   justify(s,a_size,a_side);
   return s;
 }

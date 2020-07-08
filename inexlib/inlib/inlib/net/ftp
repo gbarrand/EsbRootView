@@ -60,7 +60,7 @@ public:
 
     return true;
   }
-  
+
 protected:
   class xxx : public inet_socket {
     typedef inet_socket parent;
@@ -87,7 +87,7 @@ protected:
     ftp& m_ftp;
   };
 public:
-  
+
   bool fetch_file(const std::string& a_file,
                          const std::string& a_local,
                          unsigned int a_BLOCK = 65536,
@@ -106,7 +106,7 @@ public:
       std::string this_host;
     //if(!inet_host(m_out,this_host)){
       if(!host_name(m_out,this_host)){
-        m_out << "inlib::ftp::fetch_file :" 
+        m_out << "inlib::ftp::fetch_file :"
               << " cannot get computer name."
               << std::endl;
         ::fclose(file);
@@ -117,8 +117,8 @@ public:
       _bind.set_after_bind_func(data_after_bind,&tag);
       if(!_bind.bind(this_host,0,bin_num_trial(),1,true)) {::fclose(file);return false;}
 
-    //m_out << "debug : inlib::ftp::fetch_file : sin_port " << tag.m_sin_port 
-    //      << std::endl; 
+    //m_out << "debug : inlib::ftp::fetch_file : sin_port " << tag.m_sin_port
+    //      << std::endl;
 
      {char cmd[256];
       snpf
@@ -131,20 +131,20 @@ public:
               (int)*((unsigned char *)(&tag.m_sin_port)+1));
       if(!send_command(cmd,answer)) {::fclose(file);return false;}
       if(answer.substr(0,3)=="500"){
-        m_out << "inlib::ftp::fetch_file :" 
+        m_out << "inlib::ftp::fetch_file :"
               << " for cmd " << sout(std::string(cmd))
               << ", received a " << sout(answer)
               << std::endl;
         ::fclose(file);
         return false;
       }}
-  
+
     } else {
 
       std::string cmd = "PASV";
       if(!send_command(cmd,answer)) return false;
       if(answer.substr(0,3)!="227"){
-        m_out << "inlib::ftp::fetch_file :" 
+        m_out << "inlib::ftp::fetch_file :"
               << " for cmd " << sout(std::string(cmd))
               << ", received a " << sout(answer)
               << std::endl;
@@ -154,18 +154,18 @@ public:
       //227 Entering Passive Mode (134,158,91,15,80,72)
 
       //Get the port from the two last number :
-     
+
       std::string host;
       unsigned short svr_port;
       if(!host_port_from_answer(answer,host,svr_port)) {
-        m_out << "inlib::ftp::fetch_file :" 
-              << " can't get port from " << sout(answer) 
+        m_out << "inlib::ftp::fetch_file :"
+              << " can't get port from " << sout(answer)
               << std::endl;
         return false;
       }
 
       if(m_verbose) {
-        m_out << "inlib::ftp::fetch_file :" 
+        m_out << "inlib::ftp::fetch_file :"
               << " server host " << host
               << " server port " << svr_port
               << std::endl;
@@ -174,42 +174,42 @@ public:
       if(!data.connect(host,svr_port,10,3,1)) return false;
 
       if(m_verbose) {
-        m_out << "inlib::ftp::fetch_file :" 
+        m_out << "inlib::ftp::fetch_file :"
               << " connected to server."
               << std::endl;
       }
 
-    } 
+    }
 
     if(!send_command("TYPE I",answer)) {::fclose(file);return false;}
-  
+
     if(!send_command(std::string("RETR ")+a_file,answer)) {
       ::fclose(file);
       return false;
     }
 
     if(answer.substr(0,3)=="550"){
-      m_out << "inlib::ftp::fetch_file :" 
+      m_out << "inlib::ftp::fetch_file :"
             << " failed to open file " << sout(a_file) << "."
             << std::endl;
       ::fclose(file);
       return false;
     }
-  
+
     // sometime we receive here the answer of TYPE or RETR !
     //if(answer.substr(0,3)!="150"){
-    //  m_out << "inlib::ftp::fetch_file :" 
+    //  m_out << "inlib::ftp::fetch_file :"
     //        << " answer is not 150. " << sout(answer) << "."
     //        << std::endl;
     //  ::fclose(file);
     //  return false;
     //}
-  
+
     if(a_active) {
       SOCKET data_sock_id = _bind.socket();
       if(!data.accept(data_sock_id,true)) {
-        m_out << "inlib::ftp::fetch_file :" 
-              << " data.accept() failed." 
+        m_out << "inlib::ftp::fetch_file :"
+              << " data.accept() failed."
               << std::endl;
         return false;
       }
@@ -219,21 +219,21 @@ public:
     if(m_verbose) {
       m_out << "start transfer..." << std::endl;
     }
-  
+
     uint64 length;
    {if(!data.fetch_upto_end(file,length,a_BLOCK)) {
-      m_out << "inlib::ftp::fetch_file :" 
-            << " fetch_upto_end failed." 
+      m_out << "inlib::ftp::fetch_file :"
+            << " fetch_upto_end failed."
             << std::endl;
       ::fclose(file);
       return false;
     }
     if(m_verbose) {
       m_out << "end transfer."
-            << " Got " << length << " bytes." 
+            << " Got " << length << " bytes."
             << std::endl;
     }}
-  
+
     if(length) if(!get_answer(answer)) {::fclose(file);return false;}
 
     ::fclose(file);
@@ -245,19 +245,19 @@ public:
                  char*& a_buffer,uint64& a_length,
                  bool a_active = true) {
     a_buffer = 0;
-    a_length = 0;    
-  
+    a_length = 0;
+
     inet_socket _bind(m_out,m_verbose);
     inet_socket data(m_out,m_verbose);
 
     std::string answer;
-  
+
     if(a_active) {
 
       std::string this_host;
     //if(!inet_host(m_out,this_host)){
       if(!host_name(m_out,this_host)){
-        m_out << "inlib::ftp::fetch_dir :" 
+        m_out << "inlib::ftp::fetch_dir :"
               << " cannot get computer name."
               << std::endl;
         return false;
@@ -266,7 +266,7 @@ public:
       bind_infos tag;
       _bind.set_after_bind_func(data_after_bind,&tag);
       if(!_bind.bind(this_host,0,bin_num_trial(),1,true)) return false;
-    
+
      {char cmd[256];
       snpf
           (cmd,sizeof(cmd),"PORT %d,%d,%d,%d,%d,%d",
@@ -278,7 +278,7 @@ public:
               (int)*((unsigned char *)(&tag.m_sin_port)+1));
       if(!send_command(cmd,answer)) return false;
       if(answer.substr(0,3)=="500"){
-        m_out << "inlib::ftp::fetch_dir :" 
+        m_out << "inlib::ftp::fetch_dir :"
               << " for cmd " << sout(std::string(cmd))
               << ", received a " << sout(answer)
               << std::endl;
@@ -286,11 +286,11 @@ public:
       }}
 
     } else {
-    
+
       std::string cmd = "PASV";
       if(!send_command(cmd,answer)) return false;
       if(answer.substr(0,3)!="227"){
-        m_out << "inlib::ftp::fetch_dir :" 
+        m_out << "inlib::ftp::fetch_dir :"
               << " for cmd " << sout(std::string(cmd))
               << ", received a " << sout(answer)
               << std::endl;
@@ -300,18 +300,18 @@ public:
       //227 Entering Passive Mode (134,158,91,15,80,72)
 
       //Get the port from the two last number :
-     
+
       std::string host;
       unsigned short svr_port;
       if(!host_port_from_answer(answer,host,svr_port)) {
-        m_out << "inlib::ftp::fetch_dir :" 
-              << " can't get port from " << sout(answer) 
+        m_out << "inlib::ftp::fetch_dir :"
+              << " can't get port from " << sout(answer)
               << std::endl;
         return false;
       }
 
       if(m_verbose) {
-        m_out << "inlib::ftp::fetch_dir :" 
+        m_out << "inlib::ftp::fetch_dir :"
               << " server host " << host
               << " server port " << svr_port
               << std::endl;
@@ -320,27 +320,27 @@ public:
       if(!data.connect(host,svr_port,10,3,1)) return false;
 
       if(m_verbose) {
-        m_out << "inlib::ftp::fetch_dir :" 
+        m_out << "inlib::ftp::fetch_dir :"
               << " connected to server."
               << std::endl;
       }
     }
-    
+
     if(!send_command("TYPE I",answer)) return false;
-  
+
     if(!send_command(std::string("CWD ")+a_dir,answer)) return false;
 
     if(answer.substr(0,3)=="550"){
-      m_out << "inlib::ftp::fetch_dir :" 
+      m_out << "inlib::ftp::fetch_dir :"
             << " failed to change directory " << sout(a_dir) << "."
             << std::endl;
       return false;
     }
-  
+
     if(!send_command("LIST",answer)) return false;
-  
+
     if(answer.substr(0,3)=="425"){
-      m_out << "inlib::ftp::fetch_dir :" 
+      m_out << "inlib::ftp::fetch_dir :"
             << " failed with " << sout(answer) << "."
             << std::endl;
       return false;
@@ -348,17 +348,17 @@ public:
 
     // sometime we receive here the answer of TYPE or RETR !
     //if(answer.substr(0,3)!="150"){
-    //  m_out << "inlib::ftp::fetch_dir :" 
+    //  m_out << "inlib::ftp::fetch_dir :"
     //        << " answer is not 150. " << sout(answer) << "."
     //        << std::endl;
     //  return false;
     //}
-  
+
     if(a_active) {
       SOCKET data_sock_id = _bind.socket();
       if(!data.accept(data_sock_id,true)) {
-        m_out << "inlib::ftp::fetch_dir :" 
-              << " data.accept() failed." 
+        m_out << "inlib::ftp::fetch_dir :"
+              << " data.accept() failed."
               << std::endl;
         return false;
       }
@@ -368,28 +368,28 @@ public:
     if(m_verbose) {
       m_out << "start transfer..." << std::endl;
     }
-  
+
    {uint64 length;
     char* buffer;
     if(!data.fetch_upto_end(buffer,length)) {
-      m_out << "inlib::ftp::fetch_dir :" 
+      m_out << "inlib::ftp::fetch_dir :"
             << " fetch_upto_end failed."
             << std::endl;
       return false;
     }
     if(m_verbose) {
       m_out << "end transfer."
-            << " Got " << length << " bytes." 
+            << " Got " << length << " bytes."
             << std::endl;
     }
-  
+
     if(length) if(!get_answer(answer)) return false;
 
     a_buffer = buffer;
     a_length = length;}
 
     return true;
-  }    
+  }
 
   bool fetch_dir(const std::string& a_path,
                  const std::string& a_local,
@@ -407,7 +407,7 @@ protected:
   static char LF() {return 10;}
   static char CR() {return 13;}
 
-  struct bind_infos {  
+  struct bind_infos {
     unsigned int m_sin_addr;
     unsigned short m_sin_port;
   };
@@ -424,7 +424,7 @@ protected:
     uint64 length;
     //NOTE : get only one line ? See net/mail for multiline answer.
     if(!fetch_upto_char(CR(),buffer,length)) {
-      m_out << "fetch_upto_char failed." << std::endl; 
+      m_out << "fetch_upto_char failed." << std::endl;
       a_answer.clear();
       return false;
     }
@@ -437,7 +437,7 @@ protected:
     }
     return true;
   }
-  
+
   bool send_command(const std::string& a_cmd,std::string& a_answer) {
     if(a_cmd.empty()) {
       a_answer.clear();
@@ -447,7 +447,7 @@ protected:
       m_out << "send_command : " << sout(a_cmd) << std::endl;
     }
     //NOTE : use C str. std::string don't like CR,LF.
-    char* cmd = str_new();    
+    char* cmd = str_new();
     str_cat(cmd,a_cmd.c_str());
     str_cat(cmd,CR());
     str_cat(cmd,LF());

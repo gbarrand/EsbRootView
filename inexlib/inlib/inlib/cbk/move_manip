@@ -31,29 +31,29 @@ public:
       // a sub object of a cube_manip :
 
       sg::cube* cb = safe_cast<sg::node,sg::cube>(*m_node);
-      if(!cb) return sg::return_none;     
+      if(!cb) return sg::return_none;
 
       // find back the manip :
       sg::cube_manip* cm = sg::find_ancestor<sg::cube_manip>(m_out,m_sg,*m_node,m_verbose);
       if(!cm) return sg::return_none;
 
       cm->set_active_node(cb);
-      cm->m_active_state = m_event_action->saved_state(); 
+      cm->m_active_state = m_event_action->saved_state();
       m_event_action->set_done(true); //to render.
 
     } else if(m_action==action_manip_move()) {
 
       sg::move_event* mevt = sg::event_cast<sg::event,sg::move_event>(*m_event);
-      if(!mevt) return sg::return_none;     
+      if(!mevt) return sg::return_none;
 
       // m_node is the manip.
 
       sg::cube_manip* cm = safe_cast<sg::node,sg::cube_manip>(*m_node);
-      if(!cm) return sg::return_none;     
-      if(!cm->active_node()) return sg::return_none;     
+      if(!cm) return sg::return_none;
+      if(!cm->active_node()) return sg::return_none;
 
       const sg::cube* cb = safe_cast<sg::node,sg::cube>(*(cm->active_node()));
-      if(!cb) return sg::return_none;     
+      if(!cb) return sg::return_none;
 
       // get state when cb had been picked :
       const sg::state& state = cm->m_active_state;
@@ -74,7 +74,7 @@ public:
       float dz = z-oz;
       vec3f dt(dx,dy,dz); //no need to back-project in cm coord.
 
-      //m_out << "inlib::cbk::move_manip::action :" 
+      //m_out << "inlib::cbk::move_manip::action :"
       //           << " action_manip_move "
       //           << " dx=" << dx << ",dy=" << dy << ",dz=" << dz
       //           << std::endl;
@@ -119,7 +119,7 @@ public:
           // in yz plane and parallele to diagonal od cm :
 
           vec3f::s_x().cross(cbc,m_u);
-          m_u.normalize();        
+          m_u.normalize();
           float dot = dt.dot(m_u);
           float da = dot>=0?mevt_fac:-mevt_fac;
           da *= ftwo_pi();
@@ -136,7 +136,7 @@ public:
           cm->mul_translate(m_u.x(),m_u.y(),m_u.z());
         } else */ {
           vec3f::s_y().cross(cbc,m_u);
-          m_u.normalize();        
+          m_u.normalize();
           float dot = dt.dot(m_u);
           float da = dot>=0?mevt_fac:-mevt_fac;
           da *= ftwo_pi();
@@ -147,7 +147,7 @@ public:
       } else if(cm->to_rotate_z(*cb)) {
 
         vec3f::s_z().cross(cbc,m_u);
-        m_u.normalize();        
+        m_u.normalize();
         float dot = dt.dot(m_u);
         float da = dot>=0?mevt_fac:-mevt_fac;
         da *= ftwo_pi();
@@ -189,7 +189,7 @@ public:
 
     }
 
-    return sg::return_none;     
+    return sg::return_none;
   }
   virtual sg::bcbk* copy() const {return new move_manip(*this);}
 public:
@@ -221,7 +221,7 @@ public:
   static void add_cbks(sg::selection& a_sel,sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,bool a_verbose){
   //a_sel.up_cbks().add(new move_manip(a_ui,a_out,a_sg,a_verbose,action_set_manip()));
     a_sel.down_cbks().add(new move_manip(a_ui,a_out,a_sg,a_verbose,action_start_move()));
-  }  
+  }
 protected:
   sg::alert& m_ui;
   std::ostream& m_out;
@@ -321,7 +321,7 @@ public: //from a_node
 
   static sg::cube_manip* is_maniped(std::ostream& a_out,sg::node& a_sg,sg::node& a_node,bool a_verbose){
     sg::search_action sa(a_out);
-    const path_t& path = sg::find_path(sa,a_sg,a_node,a_verbose);      
+    const path_t& path = sg::find_path(sa,a_sg,a_node,a_verbose);
     return is_maniped(a_out,path,a_node,a_verbose);
   }
 
@@ -351,7 +351,7 @@ public: //from a_node
       }
       if(!cm_grp->delete_from(cm)) { //touchy
         a_ui.warn("remove_from failed");
-        return false;     
+        return false;
       }
 
     } else {
@@ -360,11 +360,11 @@ public: //from a_node
         std::string sclass;
         sg::parent_class(path,sclass);
         a_ui.warn("container not found. Parent is of class "+sout(sclass));
-        return false;     
+        return false;
       }
       if(!grp->remove(a_node)) {
         a_ui.warn("remove in group failed");
-        return false;     
+        return false;
       }
       delete a_node;
     }
@@ -413,7 +413,7 @@ public: //from a_node
     bool status = _set_manip(a_ui,a_out,a_sg,a_node,*grp,mtx,cm->m_path,gidx,a_hcam,a_verbose);
     delete cm;
 
-    return status;   
+    return status;
   }
 
   static bool manip_top(sg::alert& a_ui,std::ostream& a_out,sg::node& a_sg,sg::node& a_node,float a_hcam,bool a_verbose){
@@ -458,7 +458,7 @@ public: //from a_node
     bool status = _set_manip(a_ui,a_out,a_sg,a_node,*grp,mtx,cm->m_path,gidx,a_hcam,a_verbose);
     delete cm;
 
-    return status;   
+    return status;
   }
 
 protected:
@@ -471,7 +471,7 @@ protected:
 			 float a_hcam,
                          bool a_verbose){
     // get bbox "after a_mtx in a_grp".
- 
+
     sg::bbox_action ba(a_out);
     //a_node->bbox(ba);
 
@@ -521,7 +521,7 @@ protected:
     if(!ba.box().center(bc)) {
       a_out << "empty bbox (2)." << std::endl;
       a_ui.warn("can't get center");
-      return false;     
+      return false;
     }
 
     if(a_verbose) {

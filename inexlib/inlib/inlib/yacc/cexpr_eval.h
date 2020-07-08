@@ -26,7 +26,7 @@ namespace yacc {
 
 class cexpr_eval {
 public:
-  cexpr_eval(std::ostream& a_out,const std::string& a_s) 
+  cexpr_eval(std::ostream& a_out,const std::string& a_s)
   :m_out(a_out)
   ,m_string(a_s)
   ,m_find_names(false)
@@ -88,7 +88,7 @@ public:
           << " stack anomaly " << (unsigned int)m_tmp_exps.size()
           << std::endl;
     }
-    inlib::unique<std::string>(m_names);
+    unique<std::string>(m_names);
     a_names = m_names;
     return true;
   }
@@ -111,12 +111,12 @@ public:
           << " stack anomaly " << (unsigned int)m_tmp_exps.size()
           << std::endl;
     }
-    inlib::unique<std::string>(m_names);
+    unique<std::string>(m_names);
     a_names = m_names;
     return true;
   }
 
-  bool execute(const std::vector<inlib::value>& aInput,inlib::value& aResult,std::string& aError) {
+  bool execute(const std::vector<value>& aInput,value& aResult,std::string& aError) {
     //printf("debug : inlib::yacc::cexpr_eval::execute : \"%s\" %lu\n",
     //  m_string.c_str(),m_result);
     if(!m_string.size()) {
@@ -129,7 +129,7 @@ public:
       return false;
     }
 
-    inlib::valop_exec v(aInput,aError);
+    valop_exec v(aInput,aError);
     if(!v.visit(*m_result)) {
       aResult.set_none();
       return false;
@@ -145,17 +145,17 @@ public:
     return true;
   }
 
-  bool cut(const std::vector<inlib::value>& aInput,bool& aResult,std::string& aError) {
-    inlib::value ret; //WARNING : this allocation can take time.
+  bool cut(const std::vector<value>& aInput,bool& aResult,std::string& aError) {
+    value ret; //WARNING : this allocation can take time.
     if(!execute(aInput,ret,aError)) {
       aResult = true;
       return false;
     }
-    if(ret.type()==inlib::value::BOOL) {
+    if(ret.type()==value::BOOL) {
       aResult = ret.get_bool();
       return true;
     }
-    if(ret.type()==inlib::value::NONE) { 
+    if(ret.type()==value::NONE) {
       //This may happen if m_string is empty.
       aResult = true;
       return true;
@@ -164,7 +164,7 @@ public:
     aError = "inlib::yacc::cexpr_eval::cut : failed.";
     return false;
   }
-    
+
   bool compile() {
     std::vector<std::string> vars;
     find_variables(vars);
@@ -193,7 +193,7 @@ public:
   }
 
   void clear() {
-   {std::vector<inlib::valop*>::iterator it;
+   {std::vector<valop*>::iterator it;
     for(it=m_tmp_exps.begin();it!=m_tmp_exps.end();++it) delete (*it);
     m_tmp_exps.clear();}
     m_names.clear();
@@ -211,9 +211,9 @@ public:  // Internal :
   bool find_names() const{ return m_find_names;}
 
   bool find_variable(const std::string& a_s,unsigned int& aIndex){
-    if(!inlib::item_index<std::string>(m_names,a_s,aIndex)) {
-      m_out << "inlib::yacc::cexpr_eval::find_variable :" 
-            << " " << a_s << " not a variable." 
+    if(!item_index<std::string>(m_names,a_s,aIndex)) {
+      m_out << "inlib::yacc::cexpr_eval::find_variable :"
+            << " " << a_s << " not a variable."
             << std::endl;
       return false;
     }
@@ -222,16 +222,16 @@ public:  // Internal :
 
   bool find_functions() const{ return m_find_functions;}
 
-  void add_function(inlib::ival_func* aFunc) {return m_funcs.add(aFunc);}
+  void add_function(ival_func* aFunc) {return m_funcs.add(aFunc);}
 
-  inlib::ival_func* find_function(const std::string& a_s,bool a_warn = true) const {
-    inlib::ival_func* func = m_funcs.find(a_s);
+  ival_func* find_function(const std::string& a_s,bool a_warn = true) const {
+    ival_func* func = m_funcs.find(a_s);
     if(!func && a_warn) {
       m_out << "inlib::yacc::cexpr_eval::find_function : " << a_s << " not a function." << std::endl;
       return 0;
     }
 
-    //m_out << "inlib::yacc::cexpr_eval::find_function :" 
+    //m_out << "inlib::yacc::cexpr_eval::find_function :"
     //      << " " << a_s << " found."
     //      << std::endl;
 
@@ -242,8 +242,8 @@ public:  // Internal :
 
   std::ostream& out() const { return m_out;}
 
-  std::vector<inlib::valop*>& stack(){ return m_tmp_exps;}
-  void set_result(inlib::valop* aValue){ m_result = aValue;}
+  std::vector<valop*>& stack(){ return m_tmp_exps;}
+  void set_result(valop* aValue){ m_result = aValue;}
   void set_status(bool aValue){m_success = aValue;}
 
 protected:
@@ -253,9 +253,9 @@ protected:
   bool m_find_functions;
   std::vector<std::string> m_names;
   cexpr_lexer m_lexer;
-  inlib::valop* m_result;
+  valop* m_result;
   bool m_success;
-  std::vector<inlib::valop*> m_tmp_exps;
+  std::vector<valop*> m_tmp_exps;
   std::string m_error;
   inlib::val_funcs m_funcs;
 };

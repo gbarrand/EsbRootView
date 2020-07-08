@@ -11,7 +11,7 @@
 namespace inlib {
 namespace cbk {
 
-inline inlib::sg::return_action action_open_file(inlib::sg::gui_viewer& a_gv,inlib::sg::entries& a_widget,const sg::pos_data& a_data) {
+inline sg::return_action action_open_file(sg::gui_viewer& a_gv,sg::entries& a_widget,const sg::pos_data& a_data) {
   args _args;
  {std::string sv;
   b2s(a_data.m_popup,sv);
@@ -27,20 +27,20 @@ inline inlib::sg::return_action action_open_file(inlib::sg::gui_viewer& a_gv,inl
 
   const std::string& file = a_widget.etc()[0];
   const std::string& format = a_widget.etc()[1];
-  
+
   _args.add(sg::s_send_placement(),placement);
   if(clear) _args.add(sg::s_send_clear());
-  
+
   bool done;
   a_gv.opener().open(file,format,_args,done);
 
   a_gv.hide_main_menu();
-  return inlib::sg::return_to_render;
+  return sg::return_to_render;
 }
 
 inline sg::return_action action_choose_file_and_options(sg::gui_viewer& a_gv,sg::file_chooser& a_fch,const sg::pos_data& a_data) {
   if(file::need_placement(a_fch.format.value())) {
-    inlib::sg::entries* entries = new inlib::sg::entries(a_gv.ttf());
+    sg::entries* entries = new sg::entries(a_gv.ttf());
     a_gv.set_style(*entries);
 
     std::vector<std::string> opts;
@@ -49,11 +49,11 @@ inline sg::return_action action_choose_file_and_options(sg::gui_viewer& a_gv,sg:
     opts.push_back(sg::s_placement_screen());
     entries->add_opts("placement",opts[0],opts);
     entries->add_bool("clear scene",false);
-  
+
     entries->etc().push_back(a_fch.value.value());
     entries->etc().push_back(a_fch.format.value());
 
-    inlib::sg::add_callback(a_gv,*entries,action_open_file,a_data);
+    sg::add_callback(a_gv,*entries,action_open_file,a_data);
     a_gv.push_list(entries);
 
   } else {
@@ -65,7 +65,7 @@ inline sg::return_action action_choose_file_and_options(sg::gui_viewer& a_gv,sg:
     _args.add(sg::s_ex(),sv);
     num2s(a_data.m_ey,sv);
     _args.add(sg::s_ey(),sv);}
-  
+
     const std::string& file = a_fch.value.value();
     const std::string& format = a_fch.format.value();
 

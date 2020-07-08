@@ -137,7 +137,7 @@ public:
     EGLDisplay display = ::eglGetDisplay(EGL_DEFAULT_DISPLAY);
     ::eglInitialize(display,0,0);
 
-#ifdef EXLIB_ANDROID_ANTIALIASING 
+#ifdef EXLIB_ANDROID_ANTIALIASING
     const EGLint aa_attribs[] = {
       EGL_BLUE_SIZE, 8,
       EGL_GREEN_SIZE, 8,
@@ -146,7 +146,7 @@ public:
       EGL_DEPTH_SIZE, 8,
       EGL_STENCIL_SIZE, 8,
       EGL_SAMPLE_BUFFERS,1,
-      EGL_SAMPLES,2, 
+      EGL_SAMPLES,2,
       EGL_NONE
     };
 #endif
@@ -162,7 +162,7 @@ public:
     EGLint numConfigs;
 
     EGLConfig config;
-#ifdef EXLIB_ANDROID_ANTIALIASING 
+#ifdef EXLIB_ANDROID_ANTIALIASING
     ::eglChooseConfig(display,aa_attribs,&config,1,&numConfigs);
     if(numConfigs<=0) {
       ::eglChooseConfig(display,attribs,&config,1,&numConfigs);
@@ -229,7 +229,7 @@ public:
 #ifdef EXLIB_TRACE
     _alogi("app_Android::main::finalize_display : begin");
 #endif
-    reset_gl(); //to clean textures, VBOs. 
+    reset_gl(); //to clean textures, VBOs.
     if(m_display!=EGL_NO_DISPLAY) {
       ::eglMakeCurrent(m_display,EGL_NO_SURFACE,EGL_NO_SURFACE,EGL_NO_CONTEXT);
       ::eglDestroySurface(m_display,m_surface);
@@ -434,7 +434,7 @@ protected:
           jstring j_msg = j_env->NewStringUTF(a_msg.c_str());
           jstring j_path = j_env->NewStringUTF(a_path.c_str());
           jstring j_mime = j_env->NewStringUTF(a_mime.c_str());
-   
+
 #ifdef EXLIB_TRACE
           exlib::Android::logi(a_app_name.c_str(),"send_mail : debug : 001");
 #endif
@@ -736,7 +736,7 @@ static void handle_cmd(struct android_app* a_app,int32_t a_cmd) {
   }
 #ifdef EXLIB_TRACE
   _main->_alogi("app_Android::handle_cmd : end : %d, \"%s\" :",a_cmd,scmd.c_str());
-#endif  
+#endif
 }
 
 #include <inlib/sg/view_sg_client>
@@ -746,7 +746,7 @@ inline void wall_start_func(void* a_app,void*){
   app_Android::main<APP_MAIN>* _main = (app_Android::main<APP_MAIN>*)_app->userData;
 #ifdef EXLIB_TRACE
   _main->_alogi("app_Android::wall_start_func");
-#endif  
+#endif
   inlib::sg::view_sg_client* _view_sg_client = inlib::sg::cast_view_sg_client(*_main);
   if(ALooper_addFd(_app->looper,_view_sg_client->socket(),LOOPER_ID_MAIN,ALOOPER_EVENT_INPUT,
                    handle_view_sg_client<APP_MAIN>,(void*)a_app)==(-1)) {}
@@ -757,7 +757,7 @@ inline void wall_stop_func(void* a_app,void*){
   app_Android::main<APP_MAIN>* _main = (app_Android::main<APP_MAIN>*)_app->userData;
 #ifdef EXLIB_TRACE
   _main->_alogi("app_Android::wall_stop_func");
-#endif  
+#endif
   inlib::sg::view_sg_client* _view_sg_client = inlib::sg::cast_view_sg_client(*_main);
   if(ALooper_removeFd(_app->looper,_view_sg_client->socket())==(-1)) {}
 }
@@ -769,7 +769,7 @@ inline void dc_connect_func(inlib::net::sg_serv_args& a_args){
   app_Android::main<APP_MAIN>* _main = (app_Android::main<APP_MAIN>*)_app->userData;
 #ifdef EXLIB_TRACE
   _main->_alogi("app_Android::dc_connect_func");
-#endif  
+#endif
   inlib::sg::view_sg_serv* _view_sg_serv = inlib::sg::cast_view_sg_serv(*_main);
   if(ALooper_addFd(_app->looper,_view_sg_serv->socket(),LOOPER_ID_MAIN,ALOOPER_EVENT_INPUT,
                    handle_view_sg_serv<APP_MAIN>,(void*)_app)==(-1)) {}
@@ -780,7 +780,7 @@ inline void dc_disconnect_func(inlib::net::sg_serv_args& a_args){
   app_Android::main<APP_MAIN>* _main = (app_Android::main<APP_MAIN>*)_app->userData;
 #ifdef EXLIB_TRACE
   _main->_alogi("app_Android::dc_disconnect_func");
-#endif  
+#endif
   inlib::sg::view_sg_serv* _view_sg_serv = inlib::sg::cast_view_sg_serv(*_main);
   if(ALooper_removeFd(_app->looper,_view_sg_serv->socket())==(-1)) {}
 }
@@ -872,7 +872,7 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
 
   std::string doc_dir = sdcard_data_dir;
   std::string out_dir = sdcard_data_dir;
-  
+
   APP_CONTEXT context(res_dir);
 
   bool verbose = false;
@@ -909,7 +909,7 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
   if(_view_sg_serv) {
     _view_sg_serv->set_params(0,dc_connect_func<APP_MAIN>,dc_disconnect_func<APP_MAIN>,0,(void*)a_app,0);
   }
-  
+
   inlib::sg::view_sg_client* _view_sg_client = inlib::sg::cast_view_sg_client(_main);
   if(_view_sg_client && _view_sg_client->walls()._walls().empty()) _view_sg_client = 0;
   if(_view_sg_client) {
@@ -934,7 +934,7 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
     } else {
       time = -1;  //wait in the below ALooper_pollAll().
     }
-    
+
    {int events;
     struct android_poll_source* source;
     int ident = ALooper_pollAll(time,NULL,&events,(void**)&source);
@@ -952,7 +952,7 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
 
   if(_view_sg_serv) _view_sg_serv->set_params(0,0,0,0,0,0);
   if(_view_sg_client) _view_sg_client->set_params(0,0,0,0);
-  
+
   _main.finalize_display();
 
 #ifdef INLIB_MEM
@@ -960,7 +960,7 @@ void exlib_main(const std::string& a_app_name,const std::string& a_app_domain,st
 #ifdef EXLIB_TRACE
   exlib::Android::logi(a_app_name.c_str(),"exlib_main : exit(mem) ...");
 #endif
-#else  
+#else
 #ifdef EXLIB_TRACE
   exlib::Android::logi(a_app_name.c_str(),"exlib_main : exit ...");
 #endif

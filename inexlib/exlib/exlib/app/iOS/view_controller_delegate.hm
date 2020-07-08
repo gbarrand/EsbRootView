@@ -17,7 +17,7 @@
   CMMotionManager* m_motion_manager;
   inlib::sg::gui_viewer* m_gui_viewer;
 }
-- (void)mailComposeController:(MFMailComposeViewController*)a_controller 
+- (void)mailComposeController:(MFMailComposeViewController*)a_controller
           didFinishWithResult:(MFMailComposeResult)a_result
                         error:(NSError*)a_error;
 - (void)set_gui_viewer:(inlib::sg::gui_viewer*)a_viewer;
@@ -83,16 +83,16 @@
 #endif
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
-- (void)mailComposeController:(MFMailComposeViewController*)a_controller 
+- (void)mailComposeController:(MFMailComposeViewController*)a_controller
           didFinishWithResult:(MFMailComposeResult)a_result
-                        error:(NSError*)a_error { 
+                        error:(NSError*)a_error {
 
 #if __IPHONE_OS_VERSION_MAX_ALLOWED < 60000  //__IPHONE_OS_VERSION_6_0
   [self dismissModalViewControllerAnimated:YES];
-#else  
+#else
   [self dismissViewControllerAnimated:YES completion:nil];
 #endif
-  
+
   //if(a_error) {
   //  NSLog(@"debug : view_controller_delegate::mailComposeController: error %@",[a_error localizedDescription]);
   //}
@@ -143,7 +143,7 @@
 
   /*
   */
-  inlib::rotf   _yaw(inlib::vec3f(0,0,1),a_data.attitude.yaw);   
+  inlib::rotf   _yaw(inlib::vec3f(0,0,1),a_data.attitude.yaw);
   inlib::rotf _pitch(inlib::vec3f(0,1,0),a_data.attitude.pitch);
   inlib::rotf  _roll(inlib::vec3f(1,0,0),a_data.attitude.roll);
   inlib::rotf  _q = _yaw*_pitch*_roll;

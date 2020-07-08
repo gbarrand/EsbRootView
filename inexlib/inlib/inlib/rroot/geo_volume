@@ -37,20 +37,20 @@ public: //iro
 public:
   static cid id_class() {return geo_volume_cid();}
   virtual void* cast(cid a_class) const {
-    if(void* p = cmp_cast<geo_volume>(this,a_class)) {return p;}
-    else return 0;
+    if(void* p = cmp_cast<geo_volume>(this,a_class)) return p;
+    return 0;
   }
 public:
   virtual iro* copy() const {return new geo_volume(*this);}
   virtual bool stream(buffer& a_buffer) {
     _clear();
-    
+
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
 
     //::printf("debug : geo_volumne::stream : v %d\n",v);
-    
+
     if(!Named_stream(a_buffer,m_name,m_title)) return false;
 
     if(!GeoAtt_stream(a_buffer)) return false;
@@ -67,7 +67,7 @@ public:
       a_buffer.out() << "inlib::rroot::geo_volume::stream : "
                      << "can't read fNodes."
                      << std::endl;
-      _clear();		     
+      _clear();
       return false;
     }}
 
@@ -205,7 +205,7 @@ protected:
 protected:
   ifac& m_fac;
   std::string m_name;
-  std::string m_title;  
+  std::string m_title;
   obj_array<geo_node>* m_nodes;
   bool m_nodes_created;
   geo_shape* m_shape;
@@ -235,7 +235,7 @@ public: //iro
 public:
   static cid id_class() {return geo_volume_assembly_cid();}
   virtual void* cast(cid a_class) const {
-    if(void* p = cmp_cast<geo_volume_assembly>(this,a_class)) {return p;}
+    if(void* p = cmp_cast<geo_volume_assembly>(this,a_class)) return p;
     return geo_volume::cast(a_class);
   }
 public:
@@ -286,7 +286,7 @@ public: //iro
 public:
   static cid id_class() {return geo_volume_multi_cid();}
   virtual void* cast(cid a_class) const {
-    if(void* p = cmp_cast<geo_volume_multi>(this,a_class)) {return p;}
+    if(void* p = cmp_cast<geo_volume_multi>(this,a_class)) return p;
     return geo_volume::cast(a_class);
   }
 public:
@@ -328,7 +328,7 @@ template <class T>
 inline T* cast_volume(geo_volume& a_volume) {
   return id_cast<geo_volume,T>(a_volume);
 }
-  
+
 inline bool vol_depth(const geo_volume& a_vol,unsigned int a_depth,const std::string& a_name,int& a_vol_depth) {
   if(rcmp(a_name,a_vol.name())) {
     a_vol_depth = (int)a_depth;
@@ -359,7 +359,7 @@ inline void tree_voln(const geo_volume& a_vol,unsigned int a_depth,unsigned int&
 inline void vds(const geo_volume& a_vol,unsigned int a_depth,std::vector< std::pair<std::string,unsigned int> >& a_vds){
   //must not clear a_vds since this function is recursive.
  {const std::string& name = a_vol.name();
-  bool found = false; 
+  bool found = false;
   std::vector< std::pair<std::string,unsigned int> >::const_iterator it;
   for(it=a_vds.begin();it!=a_vds.end();++it) {
     if(rcmp((*it).first,name)) {found=true;break;}
@@ -388,22 +388,26 @@ inline const geo_volume* find_by_name(const geo_volume& a_vol,const std::string&
   return 0;
 }
 
-inline void find_and_dump_volume(std::ostream& a_out,const geo_volume& a_master,const std::string& a_name) {
+inline bool find_and_dump_volume(std::ostream& a_out,const geo_volume& a_master,const std::string& a_name) {
   const geo_volume* vol = find_by_name(a_master,a_name);
   if(!vol) {
     a_out << "volume " << sout(a_name) << " not found." << std::endl;
-    return;
+    return false;
   }
   const geo_shape* shape = vol->shape();
   if(!shape) {
     a_out << "volume " << sout(a_name) << " has no shape." << std::endl;
-    return;
+    return false;
   }
-  a_out << "volume " << sout(a_name) << " :" << std::endl;
-  a_out << "shape class " << sout(shape->s_cls()) << std::endl;
+  a_out << "volume name : " << sout(vol->name()) << std::endl;
+  a_out << "volume title : " << sout(vol->title()) << std::endl;
+  a_out << "shape class : " << sout(shape->s_cls()) << std::endl;
+  a_out << "shape name : " << sout(shape->name()) << std::endl;
+  a_out << "shape title : " << sout(shape->title()) << std::endl;
   shape->dump(a_out);
+  return true;
 }
-  
+
 /* example :
    {const inlib::rroot::geo_volume* vol = inlib::rroot::find_by_name(*master,"wc");
     if(vol) {
@@ -411,7 +415,7 @@ inline void find_and_dump_volume(std::ostream& a_out,const geo_volume& a_master,
       ::printf("debug : wc shape %s\n",shape->s_cls().c_str());
       const inlib::rroot::geo_tube* tube = inlib::rroot::cast_shape<inlib::rroot::geo_tube>(*shape);
       if(tube) ::printf("debug : tube %g %g %g\n",tube->rmin(),tube->rmax(),tube->dz());
-      
+
     }}
 */
 

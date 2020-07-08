@@ -52,9 +52,9 @@ public:
   }
 public:
   std::ostream& out() const {return m_out;}
-  
+
   const std::vector<particle>& particles() const {return m_particles;}
-  
+
   const particle* find_particle(const std::string& a_name) const {return find_obj_named(m_particles,a_name);}
   particle* find_particle(const std::string& a_name) {return find_obj_named(m_particles,a_name);}
   const particle* find_particle(int a_pdg) const {
@@ -65,19 +65,19 @@ public:
     inlib_vforit(particle,m_particles,it) {if((*it).pdg_code()==a_pdg) return &(*it);}
     return 0;
   }
-  
+
   bool load_table_file(const std::string& a_pdg_table_file,bool a_clear = true) {
     if(a_clear) m_particles.clear();
-    
+
     // from root-6.16.00/TDatabasePDG::ReadPDGTable() function.
-  
+
     FILE* file = ::fopen(a_pdg_table_file.c_str(),"r");
     if(!file) {
       m_out << "inlib::hep::pdgs::load_table_file : could not open PDG particle file " << a_pdg_table_file << std::endl;
       return false;
     }
-  
-  
+
+
     char   c[512];
     int    class_number, anti, isospin, i3, spin, tracking_code;
     int    ich, kf, nch, charge;
@@ -85,7 +85,7 @@ public:
     double mass, width, branching_ratio;
     int    idecay, decay_type, flavor;
     bool   stable;
-    
+
     int input;
     while ( (input=::getc(file)) != EOF) {
       c[0] = input;
@@ -100,7 +100,7 @@ public:
          if (::fscanf(file,"%i",&kf   )) {;}
          // coverity [secure_coding : FALSE]
          if (::fscanf(file,"%i",&anti )) {;}
-  
+
          if (kf < 0) {
             add_anti_particle(name,kf);
             // nothing more on this line
@@ -132,10 +132,10 @@ public:
             if (::fgets(c,200,file)) {;}
             if (width > 1e-10) stable = false;
             else               stable = true;
-  
+
             // create particle
             particle* part = add_particle(name,mass,stable,width,charge,class_name,kf,anti,tracking_code);
-					     
+
             if(nch) {
                // read in decay channels
                ich = 0;
@@ -144,7 +144,7 @@ public:
                   c[0] = c_input;
                   if (c[0] != '#') {
                      ::ungetc(c[0],file);
-  
+
                      // coverity [secure_coding : FALSE]
                      if (::fscanf(file,"%i",&idecay)) {;}
                      // coverity [secure_coding : FALSE]
@@ -234,7 +234,7 @@ public:
     if(a_pos>=a_max) return EOF;
     char c = *a_pos;a_pos++;return c;
   }
-  
+
   void unget_char(char a_c,char*& a_pos) {a_pos--;*a_pos = a_c;}
 
   char* get_string(char* a_s,size_t a_size,char*& a_pos,char* a_max) {
@@ -279,7 +279,7 @@ public:
 
   bool load_table_buffer(const char* a_buffer,size_t a_size,bool a_clear = true) {
     if(a_clear) m_particles.clear();
-    
+
     // from root-6.16.00/TDatabasePDG::ReadPDGTable() function.
     if(!a_size) return false;
 
@@ -292,10 +292,10 @@ public:
     bool   stable;
 
     char* olcn = beg_LC_NUMERIC();
-    
+
     char* pos = (char*)a_buffer;
     char* pmax = (char*)a_buffer+a_size;
-    
+
     int input;
     while ( (input=get_char(pos,pmax)) != EOF) {
       c[0] = input;
@@ -310,9 +310,9 @@ public:
          read_int(pos,pmax,&kf);
          // coverity [secure_coding : FALSE]
          read_int(pos,pmax,&anti);
-	 
+
 	 //::printf("debug : ich %d, name %s, kf %d, anti %d\n",ich,name,kf,anti);
-  
+
          if (kf < 0) {
             add_anti_particle(name,kf);
             // nothing more on this line
@@ -344,10 +344,10 @@ public:
             if (get_string(c,200,pos,pmax)) {;}
             if (width > 1e-10) stable = false;
             else               stable = true;
-  
+
             // create particle
             particle* part = add_particle(name,mass,stable,width,charge,class_name,kf,anti,tracking_code);
-					     
+
             if(nch) {
                // read in decay channels
                ich = 0;
@@ -356,7 +356,7 @@ public:
                   c[0] = c_input;
                   if (c[0] != '#') {
                      unget_char(c[0],pos);
-  
+
                      // coverity [secure_coding : FALSE]
                      read_int(pos,pmax,&idecay);
                      // coverity [secure_coding : FALSE]
@@ -451,7 +451,7 @@ public:
              a_dc.matrix_element_code(),
              a_dc.branching_ratio(),
              int(a_dc.daughters().size()));
-    inlib_vforcit(int,a_dc.daughters(),it) {	     
+    inlib_vforcit(int,a_dc.daughters(),it) {
       int ic = *it;
       const particle* p = find_particle(ic);
       if(!p) {
@@ -475,7 +475,7 @@ public:
     if(a_particle.decay_channels().size()) {
       ::fprintf(a_FILE," Channel Code BranchingRatio Nd  ");
       ::fprintf(a_FILE," ...................Daughters.................... \n");
-    }      
+    }
     inlib_vforcit(decay_channel,a_particle.decay_channels(),it) print_decay_channel(a_FILE,*it);
   }
 

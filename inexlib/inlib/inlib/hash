@@ -95,7 +95,7 @@ inline unsigned int hash(const void* txt,int ntxt){
   static const unsigned int msk[] = {
     0x11111111, 0x33333333, 0x77777777, 0xffffffff
   };
-    
+
   const unsigned char* uc = (const unsigned char*) txt;
 
   unsigned int uu = 0;
@@ -107,14 +107,14 @@ inline unsigned int hash(const void* txt,int ntxt){
   u.u = 0;
 
   int i, idx;
-  
+
   for (i = 0; i < ntxt; i++) {
     idx = (uc[i] ^ i) & 255;
     uu  = (uu << 1) ^ (utab[idx] & msk[i & 3]);
     if ((i & 3) == 3) u.u ^= uu;
   }
   if (i & 3) u.u ^= uu;
-    
+
   u.u *= 1879048201;      // prime number
   u.s[0] += u.s[1];
   u.u *= 1979048191;      // prime number

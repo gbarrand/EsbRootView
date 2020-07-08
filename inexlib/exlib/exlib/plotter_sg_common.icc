@@ -16,7 +16,7 @@
       if(inlib::dir::is_a(path)) res_dir = path;}
     }
     inlib::env_append_path("EXLIB_FONT_PATH",res_dir);}
-    
+
     //////////////////////////////////////////////////////////
     /// scene graph //////////////////////////////////////////
     //////////////////////////////////////////////////////////
@@ -31,6 +31,7 @@
 
     m_plots.cols = a_cols;
     m_plots.rows = a_rows;
+    m_plots.border_scale = 1.001f; //cooking for offsreen to avoid seeing 1 pixel at left, or top from border.
     m_plots.adjust_size(a_width,a_height);
 
     m_sg.add(new inlib::sg::noderef(m_plots));

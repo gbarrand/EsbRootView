@@ -1,0 +1,56 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_sg_insh_plotarea
+#define inlib_sg_insh_plotarea
+
+#include "plotarea"
+
+namespace inlib {
+namespace sg {
+
+inline void insh_plots_set_layout_factors(plotarea& a_pa,const std::vector<std::string>& a_args) {
+  static const std::string s_header("inlib::sg::insh_plots_set_layout_factors :");
+  if(a_args.size()!=4) {
+    a_pa.gv().insh().warn(s_header+" four real argument expected.");
+    return;
+  }
+  float tx;
+  if(!a_pa.gv().insh().get_arg_float(s_header,a_args[0],tx)) return;
+  float ty;
+  if(!a_pa.gv().insh().get_arg_float(s_header,a_args[1],ty)) return;
+  float sx;
+  if(!a_pa.gv().insh().get_arg_float(s_header,a_args[2],sx)) return;
+  float sy;
+  if(!a_pa.gv().insh().get_arg_float(s_header,a_args[3],sy)) return;
+  a_pa.set_layout_factors(tx,ty,sx,sy);
+}
+
+inline const std::string& insh_plots_set_layout_factors_help() {
+  static const std::string s_help("\
+plots_set_layout_factors: plots_set_layout_factors x y scale_x scale_y\n\
+  Set the position and size of the first sg::plots node found in the scene.\n\
+  x, y, scale_x and scale_y are in normal window coordinates (in [0,1]).\n\
+  Example:\n\
+    plots_set_layout_factors 0.3   0.35 0.3 0.2  # up right.\n\
+    plots_set_layout_factors 0.28 -0.28 0.4 0.4  # defaults. down right.\n\
+");
+  return s_help;
+}
+
+}}
+
+#define INLIB_PLOTAREA_INSH_CLASSES(a__holder)\
+  INLIB_INSH_CLASS_CMD(a__holder,plots_show,m_holder.show_plots(),"plots_show: plots_show\n  Show the scene plotting area.\n")\
+  INLIB_INSH_CLASS_CMD(a__holder,plots_hide,m_holder.hide_plots(),"plots_hide: plots_hide\n  Hide the scene plotting area.\n")\
+  INLIB_INSH_CLASS_CMD(a__holder,plots_show_hide,m_holder.show_hide(),"plots_show_hide: plots_show_hide\n  Show/hide the scene plotting area.\n")\
+  INLIB_INSH_CLASS_CMD(a__holder,plots_set_layout_factors,insh_plots_set_layout_factors(m_holder,a_args),inlib::sg::insh_plots_set_layout_factors_help())
+
+#define INLIB_PLOTAREA_INSH_ADDS(a__insh,a__holder)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,plots_show)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,plots_hide)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,plots_show_hide)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,plots_set_layout_factors)
+
+#endif
+

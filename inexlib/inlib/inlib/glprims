@@ -387,7 +387,7 @@ inline void triangle_fan_to_triangles_2to3(size_t a_npt,const float* a_xys,
     *a_xyz_rgbas = a_g;a_xyz_rgbas++;
     *a_xyz_rgbas = a_b;a_xyz_rgbas++;
     *a_xyz_rgbas = a_a;a_xyz_rgbas++;
-    
+
     x2 = x3;
     y2 = y3;
   }
@@ -439,7 +439,7 @@ inline void triangle_fan_to_triangles(size_t a_npt,const float* a_xyzs,
     *a_xyz_rgbas = a_g;a_xyz_rgbas++;
     *a_xyz_rgbas = a_b;a_xyz_rgbas++;
     *a_xyz_rgbas = a_a;a_xyz_rgbas++;
-    
+
     x2 = x3;
     y2 = y3;
     z2 = z3;

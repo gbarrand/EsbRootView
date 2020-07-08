@@ -1,0 +1,225 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_sg_insh_view_evd
+#define inlib_sg_insh_view_evd
+
+#include "view_evd"
+#include "insh_node_to_bsg"
+
+namespace inlib {
+namespace sg {
+
+/*
+inline bool insh_vis_set_camera(sg::gui_viewer& a_gv,const std::vector<std::string>& a_args) {
+  view_evd* _evd = cast_view_evd(a_gv);
+  if(!_evd) {a_gv.insh().warn("inlib::sg::vis_set_camera : bad evd cast.");return false;}
+
+  ////////////////////////////////////////
+  /// args : /////////////////////////////
+  ////////////////////////////////////////
+  args _args(a_args);
+
+  std::string stype;
+  _args.find("-type",stype,"ortho");
+
+  float znear = 1;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,znear,false)
+  float zfar = 10;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,zfar,false)
+  float dx = 0.01f;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,dx,false)
+  float da = 0.017f;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,da,false)
+  float ds = 0.99f;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,ds,false)
+  float focal = 1;
+  INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,focal,false)
+
+  vec3f position(0,0,1);
+  INLIB_GUI_VIEWER_GET_ARG_VEC3F(inlib::sg::vis_set_camera,position,false)
+  vec4f orientation(0,0,1,0);
+  INLIB_GUI_VIEWER_GET_ARG_VEC4F(inlib::sg::vis_set_camera,orientation,false)
+  rotf _rot(vec3f(orientation.v0(),orientation.v1(),orientation.v2()),orientation.v3());
+
+  ////////////////////////////////////////
+  ////////////////////////////////////////
+  ////////////////////////////////////////
+  base_camera* _camera = 0;
+  if(stype=="ortho") {
+    float height = 2;
+    INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,height,false)
+
+    ortho* camera = new ortho();
+    camera->height = height;
+    _camera = camera;
+
+  } else if(stype=="perspective") {
+    float height_angle = fpi()/4.0f;
+    INLIB_GUI_VIEWER_GET_ARG_FLOAT(inlib::sg::vis_set_camera,height_angle,false)
+
+    perspective* camera = new perspective();
+    camera->height_angle = height_angle;
+    _camera = camera;
+
+  } else {
+    a_gv.insh().warn("inlib::sg::vis_set_camera : "+stype+" is an unknown camera type.");
+    return false;
+  }
+
+  _camera->znear = znear;
+  _camera->zfar = zfar;
+  _camera->focal = focal;
+  _camera->dx = dx;
+  _camera->da = da;
+  _camera->ds = ds;
+  _camera->position = position;
+  _camera->orientation = _rot;
+
+  _evd->replace_camera(_camera);
+
+  return true;
+}
+*/
+
+inline void insh_camera_set_ortho(view_evd& a_evd,const std::vector<std::string>& a_args) {
+  if(a_args.empty()) {
+    a_evd.gv().insh().warn("inlib::insh_camera_set_ortho : one argument expected.");
+    return;
+  }
+  float height;
+  if(!a_evd.gv().insh().get_arg_float("inlib::insh_camera_set_ortho",a_args[0],height)) return;
+  ortho* camera = new ortho();
+  camera->height = height;
+  a_evd.replace_camera(camera);
+}
+
+inline const std::string& insh_camera_set_ortho_help() {
+  static const std::string s_help("\
+camera_set_ortho: camera_set_ortho height\n\
+  Replace the current camera by an orthographic camera of given height.\n\
+  Example:\n\
+    camera_set_ortho 4\n\
+");
+  return s_help;
+}
+
+inline void insh_camera_set_perspective(view_evd& a_evd,const std::vector<std::string>& a_args) {
+  if(a_args.empty()) {
+    a_evd.gv().insh().warn("inlib::sg::insh_camera_set_perspective : one argument expected.");
+    return;
+  }
+  float height_angle;
+  if(!a_evd.gv().insh().get_arg_float("inlib::sg::insh_camera_set_perspective",a_args[0],height_angle)) return;
+  perspective* camera = new perspective();
+  camera->height_angle = height_angle;
+  a_evd.replace_camera(camera);
+}
+
+inline const std::string& insh_camera_set_perspective_help() {
+  static const std::string s_help("\
+camera_set_perspective: camera_set_perspective angle\n\
+  Replace the current camera by a perspective camera with angle (in radians) height_angle.\n\
+  Example:\n\
+    camera_set_perspective 0.785  # pi/4.\n\
+");
+  return s_help;
+}
+
+inline const std::string& insh_scene_write_static_to_bsg_help() {
+  static const std::string s_help("\
+scene_write_static_to_bsg: scene_write_static_to_bsg [-out_dir] file\n\
+  Write the static scene graph to a bsg (binary file format) file.\n\
+  If no directory is given in file, the -out_dir option permits to prepend the\n\
+  application output directory to file.\n\
+  See also: app_dir -out_dir\n\
+  Example:\n\
+    scene_write_static_to_bsg -out_dir my_scene.bsg\n\
+");
+  return s_help;
+}
+
+inline const std::string& insh_scene_write_dynamic_to_bsg_help() {
+  static const std::string s_help("\
+scene_write_dynamic_to_bsg: scene_write_dynamic_to_bsg [-out_dir] file\n\
+  Write the dynamic scene graph to a bsg (binary file format) file.\n\
+  If no directory is given in file, the -out_dir option permits to prepend the\n\
+  application output directory to file.\n\
+  See also: app_dir -out_dir\n\
+  Example:\n\
+    scene_write_dynamic_to_bsg -out_dir my_scene.bsg\n\
+");
+  return s_help;
+}
+
+}}
+
+#include "view_sg_client"
+
+namespace inlib {
+namespace sg {
+
+inline void insh_scene_send_sg(gui_viewer& a_gv,const std::vector<std::string>&,node& a_sg) {
+  view_evd* _evd = cast_view_evd(a_gv);
+  if(!_evd) return;
+  view_sg_client* _view_sg_client = safe_cast<viewer,view_sg_client>(a_gv);
+  if(!_view_sg_client) return;
+  args opts;
+  _view_sg_client->send_sg(a_sg,opts);
+}
+
+inline const std::string& insh_scene_send_static_help() {
+  static const std::string s_help("\
+scene_send_static: scene_send_static\n\
+  Send static scene graph to a viewer.\n\
+  A connection must be first established between the app and a viewer.\n\
+");
+  return s_help;
+}
+
+inline const std::string& insh_scene_send_dynamic_help() {
+  static const std::string s_help("\
+scene_send_dynamic: scene_send_dynamic\n\
+  Send dynamic scene graph to a viewer.\n\
+  A connection must be first established between the app and a viewer.\n\
+");
+  return s_help;
+}
+
+}}
+
+#define INLIB_VIEW_EVD_INSH_CLASSES(a__holder)\
+  INLIB_INSH_CLASS_CMD(a__holder,camera_set_ortho,insh_camera_set_ortho(m_holder,a_args),inlib::sg::insh_camera_set_ortho_help())\
+  INLIB_INSH_CLASS_CMD(a__holder,camera_set_perspective,insh_camera_set_perspective(m_holder,a_args),inlib::sg::insh_camera_set_perspective_help())\
+  INLIB_INSH_CLASS_CMD(a__holder,scene_clear_static,m_holder.static_sg().clear(),"scene_clear_static: scene_clear_static\n  Clear the static scene graph.\n")\
+  INLIB_INSH_CLASS_CMD(a__holder,scene_clear_dynamic,m_holder.dynamic_sg().clear(),"scene_clear_dynamic: scene_clear_dynamic\n  Clear the dynamic scene graph.\n")\
+  INLIB_INSH_CLASS_CMD(a__holder,scene_clear_static_blend,m_holder.static_blend_sg().clear(),"scene_clear_static_blend: scene_clear_static_blend\n  Clear the static blend scene graph.\n")\
+/*INLIB_INSH_CLASS_CMD(a__holder,scene_clear_screen,m_holder.screen_sg().clear(),insh::no_help())*/\
+  INLIB_INSH_CLASS_CMD(a__holder,scene_write_static_to_bsg,insh_node_to_bsg(m_holder.gv(),a_args,m_holder.static_sg()),inlib::sg::insh_scene_write_static_to_bsg_help())\
+  INLIB_INSH_CLASS_CMD(a__holder,scene_write_dynamic_to_bsg,insh_node_to_bsg(m_holder.gv(),a_args,m_holder.dynamic_sg()),inlib::sg::insh_scene_write_dynamic_to_bsg_help())\
+  INLIB_INSH_CLASS_CMD(a__holder,scene_send_static,insh_scene_send_sg(m_holder.gv(),a_args,m_holder.static_sg()),inlib::sg::insh_scene_send_static_help())\
+  INLIB_INSH_CLASS_CMD(a__holder,scene_send_dynamic,insh_scene_send_sg(m_holder.gv(),a_args,m_holder.dynamic_sg()),inlib::sg::insh_scene_send_dynamic_help())
+
+#define INLIB_VIEW_EVD_INSH_ADDS(a__insh,a__holder)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,camera_set_ortho)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,camera_set_perspective)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,scene_clear_static)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,scene_clear_dynamic)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,scene_clear_static_blend)\
+  /*INLIB_INSH_ADD_CMD(a__insh,a__holder,scene_clear_screen)*/\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,scene_write_static_to_bsg)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,scene_write_dynamic_to_bsg)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,scene_send_static)\
+    INLIB_INSH_ADD_CMD(a__insh,a__holder,scene_send_dynamic)
+
+#define INLIB_VIEW_EVD_ADD_CAMENU_ITEMS\
+  create_main_button(m_out,m_res_dir,m_params,m_image_readers,m_ttf,\
+                     m_camenu_sep,a_wcw,a_wch,a_wb,a_hb,0,\
+                     0,m_camenu_items_0_row++,"clear stat","","clear_static.jpg",\
+                     new inlib::sg::gv_data_cbk<std::string>(*this,inlib::sg::action_insh_source_script,"scene_clear_static"));\
+  create_main_button(m_out,m_res_dir,m_params,m_image_readers,m_ttf,\
+                     m_camenu_sep,a_wcw,a_wch,a_wb,a_hb,0,\
+                     0,m_camenu_items_0_row++,"clear dyn","","clear_event.jpg",\
+                     new inlib::sg::gv_data_cbk<std::string>(*this,inlib::sg::action_insh_source_script,"scene_clear_dynamic"));
+    
+#endif

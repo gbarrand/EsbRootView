@@ -56,7 +56,7 @@ inline bool find_dir_with_dirs(std::ostream& a_out,
           << std::endl;
   }
 
-  return false;   
+  return false;
 }
 
 inline bool mkdirs(std::ostream& a_out,
@@ -76,7 +76,7 @@ inline bool mkdirs(std::ostream& a_out,
             << std::endl;
       return false;
     }
-  }  
+  }
   if(absolute) {
 #ifdef _WIN32
     if(!dir::cd(drive+":\\")) {
@@ -143,7 +143,7 @@ inline bool mkdirs_from(std::ostream& a_out,
           << " can't get current directory."
           << std::endl;
     return false;
-  }  
+  }
 
   if(!dir::cd(a_from)){
     a_out << "inlib::mkdirs_from :"

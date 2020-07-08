@@ -31,7 +31,7 @@ inline bool create_scenario_sg(
 ) {
   a_swarn.clear();
 
-  //a_gv.out() << "debug : create_scenario_sg : begin." << std::endl;        
+  //a_gv.out() << "debug : create_scenario_sg : begin." << std::endl;
   //std::ostream& out = a_gv.out();
 
   //////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ inline bool create_scenario_sg(
       //           << " solid_depth " << solid_depth << std::endl
       //           << " max_time " << max_time << std::endl
       //           << " max_shapes " << max_shapes << std::endl
-      //           << std::endl;        
+      //           << std::endl;
 
       TGEO* geo = new TGEO(a_master);
 
@@ -159,7 +159,7 @@ inline bool create_scenario_sg(
         if(!sg::find_color(a_cmaps,xvol.m_color,col)) {
           a_gv.warn("color "+xvol.m_color+" not found.");
           delete geos;
-          return false;    
+          return false;
         }
 
         geo->atb = sg::atb_single;
@@ -174,15 +174,15 @@ inline bool create_scenario_sg(
           if(!sg::find_color(a_cmaps,*it4,col)) {
             a_gv.warn("color "+(*it4)+" not found.");
             delete geos;
-            return false;    
+            return false;
           }
           cmap.add(sg::style_color(*it4,col));
-        }} 
-  
+        }}
+
         geo->atb = sg::atb_by_depth;
         geo->set_cmap(cmap);
       }
-  
+
       geo->max_time = max_time;
       geo->max_shapes = max_shapes;
 
@@ -204,7 +204,7 @@ inline bool create_scenario_sg(
 
         sg::separator* sep = new sg::separator;
         geos->add(sep);
-  
+
         sep->add(new sg::matrix()); //for manip.
         sep->add(geo);
 
@@ -221,7 +221,7 @@ inline bool create_scenario_sg(
   //a_gv.out() << s << std::endl;
 
   }
-  
+
   a_sep.add(geos);
 
   if(some_stopped_by_max_time)   a_swarn += "some stopped by max time.";

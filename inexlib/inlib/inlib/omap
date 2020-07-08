@@ -89,14 +89,14 @@ public: //operators
 
   T& operator[](const K& a_key){
 #ifdef inlib_stl_vector
-    element* pos = parent::m_data;    
+    element* pos = parent::m_data;
     for(unsigned int index=0;index<parent::m_number;index++,pos++) {
       if(a_key<pos->first) {
         _insert(index,element(a_key,T()));
         //can't use pos after the upper.
         return (parent::m_data+index)->second;
       } else if(a_key==pos->first) {
-        return pos->second; 
+        return pos->second;
       }
     }
     parent::push_back(element(a_key,T()));
@@ -106,9 +106,9 @@ public: //operators
     for(it=parent::begin();it!=parent::end();++it){
       if(a_key<(*it).first) {
         it = insert(it,element(a_key,T()));
-        return (*it).second; 
+        return (*it).second;
       } else if(a_key==(*it).first) {
-        return (*it).second; 
+        return (*it).second;
       }
     }
     parent::push_back(element(a_key,T()));

@@ -6,8 +6,24 @@
 
 #include "mail"
 
+#include "../sg/insh_gui_viewer"
+
 namespace inlib {
 namespace cbk {
+
+inline void choose_and_download_doc_file_script(std::string& a_s) {
+  a_s = std::string("\
+#!insh\n\
+doc_dir=`app_dir -doc`\n\
+items=`ls ${doc_dir}`\n\
+script='gui_push_list '\n\
+for item in ${items} ; do\n\
+  action=\"'ems_download_app_doc_file ${item}'\"\n\
+  script=\"${script} ${item} ${action} \"\n\
+done\n\
+eval ${script}\n\
+");
+}
 
 inline sg::return_action action_menu_export(sg::gui_viewer& a_gv,const sg::pos_data& a_data) {
   sg::list* list = new sg::list(a_gv.ttf());
@@ -30,11 +46,20 @@ inline sg::return_action action_menu_export(sg::gui_viewer& a_gv,const sg::pos_d
   sg::add_item_insh(a_gv,*list,"scene to out.bsg","scene_write_to_bsg -out_dir out.bsg");
   sg::add_item_insh(a_gv,*list,"static scene in out_static.bsg","scene_write_static_to_bsg -out_dir out_static.bsg");
   sg::add_item_insh(a_gv,*list,"dynamic scene in out_dynamic.bsg","scene_write_dynamic_to_bsg -out_dir out_dynamic.bsg");
+
+  if(device::is_emscripten()) {
+   {std::string script;
+    choose_and_download_doc_file_script(script);
+    sg::add_item_insh(a_gv,*list,"download doc file",script);}
+    sg::add_item_insh(a_gv,*list,"upload in app doc dir","ems 'open_file_chooser();'");
+    sg::add_item_insh(a_gv,*list,"upload in app doc dir and open","ems 'open_file_chooser_open();'");
+  }
+
   if(a_gv.has_mail_panel()) {
     sg::add_item(a_gv,*list,"mail...",cbk::action_mail,a_data);
   }
   a_gv.show_widget(a_data,list);
-  return sg::return_to_render;     
+  return sg::return_to_render;
 }
 
 }}

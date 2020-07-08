@@ -29,7 +29,7 @@ public: //iro
   virtual iro* copy() const {return new geo_bool_node(*this);}
   virtual bool stream(buffer& a_buffer) {
     _clear();
-    
+
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
@@ -351,7 +351,7 @@ public: //iro
   virtual iro* copy() const {return new geo_composite_shape(*this);}
   virtual bool stream(buffer& a_buffer) {
     _clear();
-    
+
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
@@ -400,7 +400,7 @@ public:
 protected:
 private:
   geo_composite_shape(const geo_composite_shape& a_from)
-  :iro(a_from) 
+  :iro(a_from)
   ,geo_bbox(a_from)
   ,m_node(a_from.m_node)
   ,m_node_created(a_from.m_node_created)
@@ -432,7 +432,7 @@ template <class T>
 inline T* cast_bool_node(geo_bool_node& a_bool_node) {
   return id_cast<geo_bool_node,T>(a_bool_node);
 }
-  
+
 }}
 
 #endif

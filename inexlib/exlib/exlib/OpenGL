@@ -18,15 +18,15 @@
 #include <OpenGLES/ES1/gl.h>
 #elif defined(ANDROID)
 #include <GLES/gl.h>
-#elif defined(EMSCRIPTEN)
-#include <GLES/gl.h>
-//#include <GLES2/gl2.h>
-#define EXLIB_GL_GLES
 #elif _WIN32
 #include <windows.h>
 #include <GL/gl.h>
-#elif __APPLE__	
+#elif __APPLE__
+#ifdef BUSH_USE_AGL
 #include <OpenGL/gl.h> //Cocoa
+#else
+#include <GL/gl.h>  //Macports X11 GL.
+#endif
 #else
 #include <GL/gl.h>
 #endif

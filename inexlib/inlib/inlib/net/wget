@@ -6,13 +6,7 @@
 
 #include "../wget"
 
-#ifdef EMSCRIPTEN
-#include <emscripten.h>
-#include "../num2s"
-#define INLIB_EMSCRIPTEN_ASYNC
-#else
 #include "http"
-#endif
 
 #ifdef INLIB_MEM
 #include "../mem"
@@ -29,52 +23,6 @@ public:
   virtual bool get(const std::string& a_host,unsigned int a_port,const std::string& a_request,
                    char*& a_doc,uint64& a_ldoc,const std::string& a_icookie,std::string& a_ocookie) const {
     //a_doc should be deleted with delete []
-#ifdef EMSCRIPTEN
-    a_doc = 0;
-    a_ldoc = 0;
-    return false;
-    
-    std::string url = "http://"+a_host+":";
-    inlib::numas(a_port,url);
-    if(a_request.size()&&(a_request[0]!='/')) url += "/";
-    url += a_request;
-#ifdef INLIB_EMSCRIPTEN_ASYNC
-    ::printf("debug : inlib::net::wget::get : url : async : 006 : \"%s\" ...\n",url.c_str());
-    wget& _self = const_cast<wget&>(*this);
-    _self.m_done = false;
-    _self.m_doc = 0;
-    _self.m_ldoc = 0;
-    ::emscripten_async_wget_data(url.c_str(),&_self,on_load,on_error); //thread safe ?
-    /*
-    unsigned int count = 0;
-    while(!_self.m_done) {
-      ::printf("debug : xxxx : %d\n",count);count++;
-      ::emscripten_sleep_with_yield(1); //msec.
-    //::emscripten_sleep(10); //msec.
-    }
-    */
-    ::printf("debug : inlib::net::wget::get : url \"%s\" : done %d\n",url.c_str(),(unsigned int)m_ldoc);
-    a_doc = _self.m_doc;
-    a_ldoc = _self.m_ldoc;
-    return a_doc?true:false;
-#else
-    ::printf("debug : inlib::net::wget::get : url : sync : \"%s\" ...\n",url.c_str());
-    void* pbuffer;
-    int pnum,perror;
-    ::emscripten_wget_data(url.c_str(),&pbuffer,&pnum,&perror);
-    ::printf("debug : inlib::net::wget::get : url \"%s\" : %d %d\n",url.c_str(),pnum,perror);
-    if(!pnum) return false;
-    if(perror) return false;
-    a_doc = new char[pnum+1];
-    if(!a_doc) {::free(pbuffer);return false;}
-    ::memcpy(a_doc,pbuffer,pnum);
-    ::free(pbuffer);
-    a_doc[pnum] = 0;
-    a_ldoc = pnum;
-    return true;
-#endif
-#else
-    //a_doc should be deleted with delete []
     net::http http(m_out,false);
     if(!http.start(a_host,a_port)) {a_ocookie.clear();return false;}
     if(!http.GET(a_request,a_icookie,a_doc,a_ldoc,a_ocookie)) return false;
@@ -82,14 +30,10 @@ public:
     mem::decrement(s_new().c_str());
 #endif
     return true;
-#endif    
   }
 
   virtual bool post(const std::string& a_host,unsigned int a_port,const std::string& a_request,
                     char*& a_doc,uint64& a_ldoc,const std::string& a_icookie,std::string& a_ocookie) const {
-#ifdef EMSCRIPTEN
-    return false;
-#else
     //a_doc should be deleted with delete []
     net::http http(m_out,false);
     if(!http.start(a_host,a_port)) {a_ocookie.clear();return false;}
@@ -98,7 +42,6 @@ public:
     mem::decrement(s_new().c_str());
 #endif
     return true;
-#endif    
   }
 
   //virtual finder* copy() const {return new wget(*this);}
@@ -122,30 +65,6 @@ public:
   wget& operator=(const wget&){return *this;}
 public:
   std::ostream& out() const {return m_out;}
-#ifdef EMSCRIPTEN
-#ifdef INLIB_EMSCRIPTEN_ASYNC
-protected:  
-  static void on_load(void* a_tag,void* a_buffer,int a_size) {
-    ::printf("debug : inlib::net::wget::on_load : %d\n",a_size);
-    wget& _this = *((wget*)a_tag);
-    _this.m_done = true;
-    _this.m_doc = new char[a_size+1];
-    if(!_this.m_doc) {_this.m_ldoc = 0;return;}
-    ::memcpy(_this.m_doc,a_buffer,a_size);
-    _this.m_doc[a_size] = 0;
-    _this.m_ldoc = a_size;
-  }
-  static void on_error(void* a_tag) {
-    ::printf("debug : inlib::net::wget::on_error\n");
-    wget& _this = *((wget*)a_tag);
-    _this.m_doc = 0;
-    _this.m_ldoc = 0;
-  }
-  bool m_done;
-  char* m_doc;
-  uint64 m_ldoc;
-#endif
-#endif
 protected:
   std::ostream& m_out;
 };

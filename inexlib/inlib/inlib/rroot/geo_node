@@ -44,13 +44,13 @@ public:
   virtual iro* copy() const {return new geo_node(*this);}
   virtual bool stream(buffer& a_buffer) {
     _clear();
-    
+
     unsigned int s, c;
     short v;
     if(!a_buffer.read_version(v,s,c)) return false;
 
     std::string name;
-    std::string title;  
+    std::string title;
     if(!Named_stream(a_buffer,name,title)) return false;
 
     if(!GeoAtt_stream(a_buffer)) return false;
@@ -62,7 +62,7 @@ public:
       a_buffer.out() << "inlib::rroot::geo_node::stream : "
                      << "can't read fVolume."
                      << std::endl;
-      _clear();		      
+      _clear();
       return false;
     }
     //TGeoVolume* fMother;         // mother volume
@@ -70,7 +70,7 @@ public:
       a_buffer.out() << "inlib::rroot::geo_node::stream : "
                      << "can't read fMother."
                      << std::endl;
-      _clear();		      
+      _clear();
       return false;
     }
 

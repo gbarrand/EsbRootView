@@ -29,20 +29,20 @@ public:
   vec2d(const parent& a_from):parent(a_from){}
 
 public: //operators
-  vec2d operator*(double a_v) const {return vec2d(m_data[0]*a_v,m_data[1]*a_v);}    
-  vec2d operator+(const vec2d& a_v) const {return vec2d(m_data[0]+a_v.m_data[0],m_data[1]+a_v.m_data[1]);}    
-  vec2d operator-(const vec2d& a_v) const {return vec2d(m_data[0]-a_v.m_data[0],m_data[1]-a_v.m_data[1]);}    
+  vec2d operator*(double a_v) const {return vec2d(m_data[0]*a_v,m_data[1]*a_v);}
+  vec2d operator+(const vec2d& a_v) const {return vec2d(m_data[0]+a_v.m_data[0],m_data[1]+a_v.m_data[1]);}
+  vec2d operator-(const vec2d& a_v) const {return vec2d(m_data[0]-a_v.m_data[0],m_data[1]-a_v.m_data[1]);}
 
-  vec2d& operator+=(const vec2d& a_v) {   
+  vec2d& operator+=(const vec2d& a_v) {
     m_data[0] += a_v.m_data[0];
     m_data[1] += a_v.m_data[1];
     return *this;
-  }    
-  vec2d& operator*=(double a_v) {   
+  }
+  vec2d& operator*=(double a_v) {
     m_data[0] *= a_v;
     m_data[1] *= a_v;
     return *this;
-  }    
+  }
 
   vec2d operator-() const {return vec2d(-m_data[0],-m_data[1]);}
 
@@ -58,7 +58,7 @@ public: //iv2sg
   void negate() {
     m_data[0] = -m_data[0];
     m_data[1] = -m_data[1];
-  }    
+  }
 
 private:static void check_instantiation() {vec2d v(0,0);v.set_value(1,1);}
 };

@@ -52,7 +52,7 @@ public:
     mem::increment(s_class().c_str());
 #endif
   }
-  insh_opener& operator=(const insh_opener&){return *this;}  
+  insh_opener& operator=(const insh_opener&){return *this;}
 };
 
 }}

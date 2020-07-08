@@ -9,3 +9,4 @@ int main(int argc,char** argv) {return exlib_main<EXLIB_APP::context,EXLIB_APP::
 
 //exlib_build_use inlib expat
 //exlib_build_use exlib png jpeg zlib inlib_glutess freetype kernel
+//exlib_build_bigobj

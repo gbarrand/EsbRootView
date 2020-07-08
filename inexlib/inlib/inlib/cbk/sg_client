@@ -19,10 +19,10 @@ inline sg::return_action action_send_to_screen(sg::gui_viewer& a_gv,sg::entries&
     return sg::return_none;
   }
 
-  const std::string& what = a_node.values[0];  
+  const std::string& what = a_node.values[0];
 
   args opts(a_data);
-  opts.add(sg::s_send_scale(),a_node.values[1]);  
+  opts.add(sg::s_send_scale(),a_node.values[1]);
 
   //if(a_grid.back_selected())
 
@@ -254,7 +254,7 @@ inline sg::return_action action_send_static_sg(sg::gui_viewer& a_gv) {
     a_gv.map_warn_failed();
     return sg::return_to_render;
   }
-  return sg::return_none; 
+  return sg::return_none;
 }
 
 inline sg::return_action action_send_dynamic_sg(sg::gui_viewer& a_gv) {
@@ -276,7 +276,7 @@ inline sg::return_action action_send_dynamic_sg(sg::gui_viewer& a_gv) {
     a_gv.map_warn_failed();
     return sg::return_to_render;
   }
-  return sg::return_none; 
+  return sg::return_none;
 }
 
 inline sg::return_action action_disconnect(sg::gui_viewer& a_gv) {

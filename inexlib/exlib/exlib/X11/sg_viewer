@@ -105,7 +105,7 @@ protected:
 
 }}
 
-//exlib_build_use inlib X11 GLX GL inlib_glutess freetype
+//exlib_build_use inlib X11 GLX freetype
 
 #endif
 

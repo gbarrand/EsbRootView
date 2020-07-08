@@ -29,7 +29,7 @@ public:
 #endif
   }
 public:
-  star(const star& a_from) {
+  star(const star& a_from):m_name(a_from.m_name) {
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
 #endif
@@ -37,6 +37,7 @@ public:
   }
   star& operator=(const star& a_from){
     for(unsigned int i=0;i<36;i++) m_vals[i] = a_from.m_vals[i];
+    m_name = a_from.m_name;
     return *this;
   }
 public:
@@ -44,8 +45,10 @@ public:
     a_ra = m_vals[0];
     a_dec = m_vals[1];
   }
+  const std::string& name() const {return m_name;}
 protected:
   double m_vals[36];
+  std::string m_name;
 };
 
 class catalog : public std::vector<star> {

@@ -39,20 +39,20 @@ inline void file_to_mail(sg::gui_viewer& a_gv,const std::string& a_file,const st
     unsigned int port;
     if(!to(sport,port)) {
       m_gv.map_warn("port not an uint");
-      return sg::return_to_render;     
+      return sg::return_to_render;
     }
 
     bool auth;
     if(!to(sauth,auth)) {
       m_gv.map_warn("auth not a bool");
-      return sg::return_to_render;     
+      return sg::return_to_render;
     }
 
     bool verbose = false;
-      
+
     if(!mail_file(m_gv.out(),_path,smtp,port,from,to,auth,user,pass,subject,msg,verbose)) {
       m_gv.map_warn_failed();
-      return sg::return_to_render;     
+      return sg::return_to_render;
     }
     m_gv.map_warn_done();
 */
@@ -72,7 +72,7 @@ inline sg::return_action action_send_mail(sg::gui_viewer& a_gv,sg::entries& a_en
   }
   _path += file;
   file_to_mail(a_gv,_path,vals[1],vals[2]);
-  return sg::return_to_render;     
+  return sg::return_to_render;
 }
 
 inline sg::return_action action_mail(sg::gui_viewer& a_gv,const sg::pos_data& a_data) {
@@ -114,7 +114,7 @@ inline sg::return_action action_mail(sg::gui_viewer& a_gv,const sg::pos_data& a_
   }
 
   a_gv.show_widget(a_data,_entries);
-  return sg::return_to_render;     
+  return sg::return_to_render;
 }
 
 class mail_cbk : public sg::acbk {

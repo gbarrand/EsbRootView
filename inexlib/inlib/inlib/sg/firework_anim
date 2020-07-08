@@ -1,0 +1,161 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_inlib_firework_anim
+#define inlib_inlib_firework_anim
+
+#include "slice_anim"
+
+#include "noderef"
+#include "vertices"
+//#include "markers"
+//#include "rgba"
+
+namespace inlib {
+namespace sg {
+
+class firework_anim : public slice_anim {
+  INLIB_NODE(firework_anim,inlib::sg::firework_anim,slice_anim)
+public:
+  virtual bool cut(float,float,float,float,float,float,float&,float&,float&) {return false;}
+  virtual void end_persistent(float,float,float,float,float,float) {}
+public:
+  virtual void begin_anim() {
+    m_group.clear();
+    m_group.add(new noderef(m_vtxs));
+    m_group.add(new noderef(m_cut_vtxs));    
+    m_vtxs.clear();
+    m_vtxs.mode = persistent.value()?gl::line_strip():gl::points();
+    m_cut_vtxs.clear();
+    m_cut_vtxs.mode = gl::points();
+    m_xyztn = xyztn.values();
+  }
+  virtual bool end_anim() {
+    m_xyztn.clear();
+    return true;
+  }
+  virtual bool slice_action(std::ostream&,double a_slice_begin,double a_slice_end) {
+    if(!persistent.value()) m_vtxs.clear();
+    size_t num = m_xyztn.size();
+    if(num<8) return true;
+    std::vector<float> _xyztn;
+    _xyztn.reserve(m_xyztn.size());
+    float* pos = vec_data(m_xyztn);
+    float dist,x0,y0,z0,nx,ny,nz,x,y,z,dc;
+    for(size_t i=0;i<num;i+=8,pos+=8) {
+      float t_beg = *(pos+3);
+      double time_track = a_slice_end-t_beg;
+      bool keep = true;
+      if(time_track>=0) {
+        dist = time_track*speed.value();
+        dc = *(pos+7);
+        if(dcut.value()&&(dist>dc)) {
+          //m_cut_vtxs.add(x,y,z);
+          keep = false;
+        } else {
+          x0 = *(pos+0);
+          y0 = *(pos+1);
+          z0 = *(pos+2);
+          nx = *(pos+4);
+          ny = *(pos+5);
+          nz = *(pos+6);
+          x = x0+dist*nx;
+          y = y0+dist*ny;
+          z = z0+dist*nz;
+          if(cut(x0,y0,z0,nx,ny,nz,x,y,z)) {
+            if(persistent.value()) end_persistent(x0,y0,z0,x,y,z);
+            m_cut_vtxs.add(x,y,z);
+            keep = false;
+          } else {
+            m_vtxs.add(x,y,z);
+          }
+        }
+      }
+      if(keep) {
+        _xyztn.push_back(*(pos+0));
+        _xyztn.push_back(*(pos+1));
+        _xyztn.push_back(*(pos+2));
+        _xyztn.push_back(*(pos+3));
+        _xyztn.push_back(*(pos+4));
+        _xyztn.push_back(*(pos+5));
+        _xyztn.push_back(*(pos+6));
+        _xyztn.push_back(*(pos+7));
+      }
+    }
+    m_xyztn = _xyztn;
+    return true;
+  }
+public:
+  mf<float> xyztn;
+  sf<double> speed;
+  sf<bool> persistent;
+  sf<bool> dcut;
+public:
+  virtual const desc_fields& node_desc_fields() const {
+    INLIB_FIELD_DESC_NODE_CLASS(slice_anim)
+    static const desc_fields s_v(parent::node_desc_fields(),4, //WARNING : take care of count.
+      INLIB_ARG_FIELD_DESC(xyztn),
+      INLIB_ARG_FIELD_DESC(speed),
+      INLIB_ARG_FIELD_DESC(persistent),
+      INLIB_ARG_FIELD_DESC(dcut)
+    );
+    return s_v;
+  }
+protected:
+  void add_fields(){
+    add_field(&xyztn);
+    add_field(&speed);
+    add_field(&persistent);
+    add_field(&dcut);
+  }
+public:
+  firework_anim()
+  :parent()
+  ,xyztn()
+  ,speed(1)
+  ,persistent(false)
+  ,dcut(false)
+  {
+    add_fields();
+  }
+  virtual ~firework_anim() {}
+protected:
+  firework_anim(const firework_anim& a_from)
+  :parent(a_from)
+  ,xyztn(a_from.xyztn)
+  ,speed(a_from.speed)
+  ,persistent(a_from.persistent)
+  ,dcut(a_from.dcut)
+  {
+    add_fields();
+  }
+  firework_anim& operator=(const firework_anim& a_from){
+    parent::operator=(a_from);
+    xyztn = a_from.xyztn;
+    speed = a_from.speed;
+    persistent = a_from.persistent;
+    dcut = a_from.dcut;
+    return *this;
+  }
+public:
+  void add(float a_x,float a_y,float a_z,float a_t,float a_nx,float a_ny,float a_nz) {
+    std::vector<float>& _v = xyztn.values();
+    _v.push_back(a_x);
+    _v.push_back(a_y);
+    _v.push_back(a_z);
+    _v.push_back(a_t);
+    _v.push_back(a_nx);
+    _v.push_back(a_ny);
+    _v.push_back(a_nz);
+    xyztn.touch();
+  }
+protected:
+  vertices m_vtxs;
+  vertices m_cut_vtxs;
+//markers m_cut_vtxs;
+  std::vector<float> m_xyztn;
+};
+
+}}
+
+#endif

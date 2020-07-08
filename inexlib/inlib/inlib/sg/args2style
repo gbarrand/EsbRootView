@@ -22,7 +22,7 @@ inline void args2style(std::ostream& a_out,const cmaps_t& a_cmaps,const args& a_
       a_style.color = _value;
     }
   }}
-  
+
  {std::string svalue;
   if(a_args.find("-point_size",svalue)) {
     float _value;
@@ -32,7 +32,37 @@ inline void args2style(std::ostream& a_out,const cmaps_t& a_cmaps,const args& a_
       a_style.point_size  = _value;
     }
   }}
-  
+
+ {std::string svalue;
+  if(a_args.find("-line_width",svalue)) {
+    float _value;
+    if(!to<float>(svalue,_value)) {
+      a_out << "inlib::sg::args2style : " << svalue << " is not a float." << std::endl;
+    } else {
+      a_style.line_width  = _value;
+    }
+  }}
+
+ {std::string svalue;
+  if(a_args.find("-marker_size",svalue)) {
+    float _value;
+    if(!to<float>(svalue,_value)) {
+      a_out << "inlib::sg::args2style : " << svalue << " is not a float." << std::endl;
+    } else {
+      a_style.marker_size  = _value;
+    }
+  }}
+
+ {std::string svalue;
+  if(a_args.find("-marker_style",svalue)) {
+    marker_style _value;
+    if(!smarker_style(svalue,_value)) {
+      a_out << "inlib::sg::args2style : " << svalue << " is not a marker_style." << std::endl;
+    } else {
+      a_style.marker_style = _value;
+    }
+  }}
+
  {std::string svalue;
   if(a_args.find("-painting",svalue)) {
     painting_policy _value;
@@ -52,7 +82,7 @@ inline void args2style(std::ostream& a_out,const cmaps_t& a_cmaps,const args& a_
       a_style.pickable = _value;
     }
   }}
-  
+
  {std::string svalue;
   if(a_args.find("-cut",svalue)) a_style.cut = svalue;}
 
@@ -61,19 +91,7 @@ inline void args2style(std::ostream& a_out,const cmaps_t& a_cmaps,const args& a_
 
  {std::string svalue;
   if(a_args.find("-coloring",svalue)) a_style.coloring = svalue;}
-  
- {std::string svalue;
-  if(a_args.find("-filling",svalue)) a_style.filling = svalue;}
-  
- {std::string svalue;
-  if(a_args.find("-filling_x",svalue)) a_style.filling_x = svalue;}
-  
- {std::string svalue;
-  if(a_args.find("-filling_y",svalue)) a_style.filling_y = svalue;}
-  
- {std::string svalue;
-  if(a_args.find("-filling_z",svalue)) a_style.filling_z = svalue;}
-  
+
  {std::string svalue;
   if(a_args.find("-modeling",svalue)) a_style.modeling = svalue;}
 
@@ -89,17 +107,11 @@ inline void args2style(std::ostream& a_out,const cmaps_t& a_cmaps,const args& a_
 namespace inlib {
 namespace sg {
 
-inline void get_style(xml::styles& a_styles,const std::string& a_name,const std::vector<std::string>& a_args,style& a_style) {
-  if(!a_styles.res_sg_style<style>(a_name,a_style)) {
-    a_styles.out() << "inlib::sg::get_style : warning : style " << sout(a_name) << " not found." << std::endl;
-  }
-  args _args(a_args);
-  args2style(a_styles.out(),a_styles.cmaps(),_args,a_style);
-}
-
 inline void get_style(xml::styles& a_styles,const std::string& a_name,args& a_args,style& a_style) {
-  if(!a_styles.res_sg_style<style>(a_name,a_style)) {
-    a_styles.out() << "inlib::sg::get_style(2) : warning : style " << sout(a_name) << " not found." << std::endl;
+  if(a_name.size()) {
+    if(!a_styles.res_sg_style<style>(a_name,a_style)) {
+      a_styles.out() << "inlib::sg::get_style(2) : warning : style " << sout(a_name) << " not found." << std::endl;
+    }
   }
   args2style(a_styles.out(),a_styles.cmaps(),a_args,a_style);
 }

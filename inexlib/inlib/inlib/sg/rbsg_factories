@@ -173,24 +173,24 @@ inline node* create_node_wget_catalog_ttf_marker(fac_args& a_args,bool& a_compos
     a_args.out() << "inlib::sg:create_node_wget_catalog_ttf_marker :"
                  << " a_args.get_simbad_wget() failed." << std::endl;
     return 0;
-  }    
+  }
   const wget* stars_wget = a_args.get_stars_wget();
   if(!stars_wget) {
     a_args.out() << "inlib::sg:create_node_wget_catalog_ttf_marker :"
                  << " a_args.get_stars_wget() failed." << std::endl;
     return 0;
-  }    
+  }
   SDSS::catalog* stars_catalog = a_args.get_stars_catalog();
   if(!stars_catalog) {
     a_args.out() << "inlib::sg:create_node_wget_catalog_ttf_marker :"
                  << " a_args.get_stars_catalog() failed." << std::endl;
     return 0;
-  }    
+  }
   std::string stars_host;
   a_args.get_stars_host(stars_host);
   std::string stars_dir;
   a_args.get_stars_dir(stars_dir);
-  a_composite = false;  
+  a_composite = false;
   return new T(a_args.ttf_marker(),
                *simbad_wget,
                a_args.get_stars_local(),*stars_wget,stars_host,a_args.get_stars_port(),stars_dir,

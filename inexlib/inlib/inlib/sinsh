@@ -148,7 +148,7 @@ public:
 public:
   string_type m_type;
 };
-  
+
 inline bool get_strings(const std::string& a_string,std::vector<sh_string>& a_args,std::string& a_error) {
   a_args.clear();
   std::string::size_type _size = a_string.size();
@@ -224,7 +224,7 @@ inline bool get_strings(const std::string& a_string,std::vector<sh_string>& a_ar
             token.m_type = sh_string::string_none;
           }
         }
-        
+
       } else {
         token += *p;
       }

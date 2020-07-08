@@ -13,6 +13,15 @@
 #include "plotter_style"
 #include "dummy_freetype"
 
+#include "plotarea"
+
+#include "../histo/insh"
+
+#include "../val_func"
+#include "plot_func"
+#include "../yacc/scripted"
+#include "f2plot"
+
 namespace inlib {
 namespace sg {
 
@@ -20,7 +29,7 @@ enum adjust_type {
   adjust_none = 0,
   adjust_view = 1,
   adjust_PAW = 2
-};  
+};
 
 class plots_cbk : public ecbk {
   INLIB_CBK(plots_cbk,inlib::sg::plots_cbk,ecbk)
@@ -39,7 +48,7 @@ public:
           if(aspect>=1) { //w>h
             float scale = hcam/m_plots.height.value();
             m_matrix.set_scale(scale,scale,scale);
-          } else { 
+          } else {
             float scale = wcam/m_plots.width.value();
             m_matrix.set_scale(scale,scale,scale);
           }
@@ -69,9 +78,10 @@ protected:
   adjust_type m_adjust_type;
 };
 
-inline plots* create_evd_sg_plots(gui_viewer& a_gv,adjust_type a_adjust_type) {
+inline bool create_evd_sg_plots(gui_viewer& a_gv,adjust_type a_adjust_type,
+                                plots*& a_plots,matrix*& a_matrix,event_dispatcher*& a_edp) {
   view_evd* _evd = cast_view_evd(a_gv);
-  if(!_evd) return 0;
+  if(!_evd) {a_plots=0;a_matrix=0;a_edp=0;return false;}
 
   if(!_evd->is_evd()) {
     _evd->create_sg_evd();
@@ -86,10 +96,10 @@ inline plots* create_evd_sg_plots(gui_viewer& a_gv,adjust_type a_adjust_type) {
 
   //float cam_height = a_gv.wanted_size();
   float cam_height = 2;
- 
+
   matrix* _matrix = new matrix;
   _matrix->set_scale(cam_height,cam_height,cam_height);
-  sep->add(_matrix);    
+  sep->add(_matrix);
 
   plots* _plots = new plots(a_gv.ttf());
   _plots->width = 1;
@@ -100,34 +110,83 @@ inline plots* create_evd_sg_plots(gui_viewer& a_gv,adjust_type a_adjust_type) {
   _plots->border_visible = true;
   _plots->border_width = 0.05f; //outside width,height square.
   _plots->border_height = 0.05f;
+  _plots->border_scale = 1.001f; //cooking for offsreen to avoid seeing 1 pixel at left, or top from border.
   sep->add(_plots);
 
   _plots->adjust_size(a_gv.width(),a_gv.height());
-  event_dispatcher* dpt = new event_dispatcher;
-  dpt->add_callback(new plots_cbk(*_plots,*_matrix,a_adjust_type));
-  sep->add(dpt);
+
+  event_dispatcher* _edp = new event_dispatcher;
+  _edp->add_callback(new plots_cbk(*_plots,*_matrix,a_adjust_type));
+  sep->add(_edp);
 
  {base_camera* cam = a_gv.create_2D_camera(cam_height);
   if(cam) _evd->replace_camera(cam);}
-   
-  return _plots;
+
+  a_plots = _plots;
+  a_matrix = _matrix;
+  a_edp = _edp;
+  return true;
 }
 
-inline plots* search_plots(gui_viewer& a_gv) {return search_selectable<plots>(a_gv.out(),a_gv.scene());}
-
-inline plots* get_sg_plots(gui_viewer& a_gv,adjust_type a_adjust_type,bool& a_created) {
-  plots* _plots = search_plots(a_gv); //we do not adjust size.
-  if(_plots) {a_created = false;return _plots;}
-  _plots = create_evd_sg_plots(a_gv,a_adjust_type);
-  if(!_plots) {a_created = false;return 0;}
-  a_created = true;
-  return _plots;  
+inline plots* search_plots_in_static_scene(gui_viewer& a_gv) {
+  view_evd* _evd = cast_view_evd(a_gv);
+  if(!_evd) return 0;
+  return search_selectable<plots>(a_gv.out(),_evd->static_sg());  //plots.border_visible must be true.
 }
 
-inline plots* get_sg_plots(gui_viewer& a_gv) {bool created;return get_sg_plots(a_gv,adjust_view,created);}
+inline plots* search_plots(gui_viewer& a_gv) {
+  return search_selectable<plots>(a_gv.out(),a_gv.scene());  //plots.border_visible must be true.
+}
 
 inline void style_from_res(const gui_viewer& a_gv,const std::string& a_path,plotter& a_plotter) { //backcomp for ioda/hrand.py.
   style_from_res(a_gv.styles(),a_path,a_plotter,a_gv.verbose());
+}
+
+inline bool get_sg_plots(gui_viewer& a_gv,adjust_type a_adjust_type,bool& a_created,
+                         plots*& a_plots,matrix*& a_matrix,event_dispatcher*& a_edp) {
+  plots* _plots = search_plots(a_gv);
+  if(_plots) {a_created = false;a_plots=_plots;a_matrix=0;a_edp=0;return true;}
+  if(!create_evd_sg_plots(a_gv,a_adjust_type,a_plots,a_matrix,a_edp)) {a_created = false;return false;}
+  a_created = true;
+  return true;
+}
+
+inline plots* get_sg_plots(gui_viewer& a_gv) {
+  bool created;
+  plots* _plots;matrix* _matrix;event_dispatcher* _edp;
+  get_sg_plots(a_gv,adjust_view,created,_plots,_matrix,_edp);
+  return _plots;
+}
+
+inline void paw_set_camera(gui_viewer& a_gv) {
+  view_evd* _evd = cast_view_evd(a_gv);
+  if(!_evd) return;
+  bool created;
+  plots* _plots;matrix* _matrix;event_dispatcher* _edp;
+  if(!get_sg_plots(a_gv,adjust_PAW,created,_plots,_matrix,_edp)) return;
+  if(created) {
+    _edp->clear_cbks();
+    _edp->add_callback(new plots_cbk(*_plots,*_matrix,adjust_PAW));
+  }
+
+  plotter& plotter = _plots->current_plotter();
+
+  ortho* camera = new ortho;
+  float YSIZ = 20;
+  YSIZ *= 2; // Have a factor two because of the matrix node scaling by two in create_evd_sg_plots().
+  float z = 10*plotter.depth.value(); //large to handle plotter::shape=xyz.
+//camera->height = YSIZ;
+  float aspect = float(a_gv.width())/float(a_gv.height());
+  if(aspect>=1) { //w>h
+    camera->height = YSIZ;
+  } else {
+    camera->height = YSIZ/aspect;
+  }
+  camera->position = inlib::vec3f(0,0,z);
+  camera->znear = 0.01f*z;
+  camera->zfar = 100*z;
+  camera->focal = z;
+  _evd->replace_camera(camera);
 }
 
 inline void plot(gui_viewer& a_gv,const histo::h1d& a_histo,bool a_cp = true) {
@@ -139,7 +198,7 @@ inline void plot(gui_viewer& a_gv,const histo::h1d& a_histo,bool a_cp = true) {
   } else {
     plotter.add_plottable(new h1d2plot(a_histo));
   }
-  style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);       
+  style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);
 }
 
 inline void plot(gui_viewer& a_gv,const histo::h2d& a_histo,bool a_cp = true) {
@@ -151,7 +210,7 @@ inline void plot(gui_viewer& a_gv,const histo::h2d& a_histo,bool a_cp = true) {
   } else {
     plotter.add_plottable(new h2d2plot(a_histo));
   }
-  style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);       
+  style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);
 }
 
 inline void plot(gui_viewer& a_gv,const histo::p1d& a_histo) {
@@ -160,7 +219,7 @@ inline void plot(gui_viewer& a_gv,const histo::p1d& a_histo) {
   plotter.clear();
   plottable* ptb = new p1d2plot_cp(a_histo);
   plotter.add_plottable(ptb);
-  style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);       
+  style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);
 }
 
 inline void plot(gui_viewer& a_gv,const histo::c2d& a_histo) {
@@ -169,7 +228,7 @@ inline void plot(gui_viewer& a_gv,const histo::c2d& a_histo) {
   plotter.clear();
   plottable* ptb = new c2d2plot_cp(a_histo);
   plotter.add_plottable(ptb);
-  style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);       
+  style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);
 }
 
 inline plotter* plot(gui_viewer& a_gv,const histo::c3d& a_histo,bool a_cp = true) {
@@ -183,238 +242,6 @@ inline plotter* plot(gui_viewer& a_gv,const histo::c3d& a_histo,bool a_cp = true
   }
   style_from_res(a_gv.styles(),guiv::s_default(),plotter,true);
   return &plotter;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-/// insh commands : /////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-inline void insh_plots_set_grid(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plots_set_grid :");
-  plots* _plots = search_plots(a_gv);
-  if(!_plots) {
-    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
-    return;
-  }
-  if((a_args.size()!=2)&&(a_args.size()!=3)) {
-    a_gv.insh().warn(s_header+" two or three arguments expected.");
-    return;
-  }
-  unsigned int cols;
-  if(!a_gv.insh().get_arg_uint(s_header,a_args[0],cols)) return;
-  unsigned int rows;
-  if(!a_gv.insh().get_arg_uint(s_header,a_args[1],rows)) return;
-  bool transfer = false;
-  if(a_args.size()==3) {
-    if(!a_gv.insh().get_arg_bool(s_header,a_args[2],transfer)) return;
-  }
-  _plots->set_regions(cols,rows,transfer);
-}
-
-inline const std::string& insh_plots_set_grid_help() {
-  static const std::string s_help("\
-plots_set_grid: plots_set_grid cols rows [transfer]\n\
-  Set the grid of inlib::sg::plotters in the first inlib::sg::plots node found in the scene.\n\
-  The optional boolean transfer argument (false by default) says if the content of\n\
-  previous plotters are transfered in the plotter in the new grid.\n\
-  Example:\n\
-    plots_set_grid 2 2  # then four plotters are created.\n\
-    plots_set_grid 2 3 true\n\
-");
-  return s_help;
-}
-
-inline void insh_plots_clear(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plots_clear :");
-  plots* _plots = search_plots(a_gv);
-  if(!_plots) {
-    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
-    return;
-  }
-  _plots->clear();
-}
-
-inline void insh_plots_current_to_one(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plots_current_to_one :");
-  plots* _plots = search_plots(a_gv);
-  if(!_plots) {
-    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
-    return;
-  }
-  _plots->current_to_one();
-}
-
-inline void insh_plots_set_current_plotter(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plots_set_current_plotter :");
-  plots* _plots = search_plots(a_gv);
-  if(!_plots) {
-    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
-    return;
-  }      
-  if(a_args.size()!=1) {
-    a_gv.insh().warn(s_header+" one arguments expected.");
-    return;
-  }
-  unsigned int index;
-  if(!a_gv.insh().get_arg_uint(s_header,a_args[0],index)) return;
-  _plots->set_current_plotter(index);
-}
-
-inline const std::string& insh_plots_set_current_plotter_help() {
-  static const std::string s_help("\
-plots_set_current_plotter: plots_set_current_plotter index\n\
-  Set the current plotter given its index in the grid of the first sg::plots node found in the scene.\n\
-  index is in [0,number of plotters[.\n\
-  Example:\n\
-    plots_set_grid 2 2           # then four plotters.\n\
-    plots_set_current_plotter 3  # then the bottom right plotter will be the current one.\n\
-");
-  return s_help;
-}
-
-inline void insh_plotter_set_field(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plotter_set_field :");
-  plots* _plots = search_plots(a_gv);
-  if(!_plots) {
-    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
-    return;
-  }      
-  if(a_args.size()!=2) {
-    a_gv.insh().warn(s_header+" two arguments expected.");
-    return;
-  }
-  plotter& plotter = _plots->current_plotter();
-  const std::string& field = a_args[0];
-  const std::string& value = a_args[1];
-  if(!plotter.set_from_string(a_gv.out(),a_gv.styles().cmaps(),field,value)) {
-    a_gv.insh().warn("plotter.set_from_field("+sout(field)+","+sout(value)+") failed.");
-    return;
-  }
-}
-inline const std::string& insh_plotter_set_field_help() {
-  static const std::string s_help("\
-plotter_set_field: plotter_set_field field value\n\
-  Set a field or style field in the current plotter.\n\
-  Field examples:\n\
-    title_automated, title, bins_style.0.color\n\
-    x_axis.divisions, x_axis.line_style.color\n\
-    background_style.back_color\n\
-  Example:\n\
-    plots_set_grid 2 2           # then four plotters.\n\
-    plots_set_current_plotter 3  # then the bottom right plotter will be the current one.\n\
-    plotter_set_field title_automated false\n\
-    plotter_set_field title 'my title'\n\
-    plotter_set_field bins_style.0.color blue\n\
-");
-  return s_help;
-}
-
-
-inline void insh_plotter_clear(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plotter_clear :");
-  plots* _plots = search_plots(a_gv);
-  if(!_plots) {
-    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
-    return;
-  }      
-  plotter& plotter = _plots->current_plotter();
-  plotter.clear();
-}
-inline const std::string& insh_plotter_clear_help() {
-  static const std::string s_help("\
-plotter_clear: plotter_clear\n\
-  Clear the current plotter.\n\
-");
-  return s_help;
-}
-
-inline void insh_plotter_reset_style(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plotter_reset_style :");
-  plots* _plots = search_plots(a_gv);
-  if(!_plots) {
-    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
-    return;
-  }
-  _plots->current_plotter().reset_style(true);
-  _plots->touch(); //to apply indirectly plots::set_plotter_layout() on the plotter.
-}
-
-inline void insh_plotter_set_style(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plotter_set_style :");
-  plots* _plots = search_plots(a_gv);
-  if(!_plots) {
-    a_gv.insh().warn(s_header+" no inlib::sg::plots node found.");
-    return;
-  }
-  if(a_args.size()!=1) {
-    a_gv.insh().warn(s_header+" one arguments expected.");
-    return;
-  }
-  style_from_res(a_gv.styles(),a_args[0],_plots->current_plotter(),false);
-}
-
-inline void insh_plotter_print_customization(gui_viewer& a_gv) {
-  dummy_freetype _ttf;
-  plotter _plotter(_ttf);
-  _plotter.print_available_customization(a_gv.out());
-}
-
-inline void insh_plotter_print_style(gui_viewer& a_gv,const std::vector<std::string>& a_args) {
-  static const std::string s_header("inlib::sg::insh_plotter_print_style :");
-  if(a_args.size()!=1) {
-    a_gv.insh().warn(s_header+" one arguments expected.");
-    return;
-  }
-  const std::string& arg0 = a_args[0];
-  if(!a_gv.styles().print_plotter_style(a_gv.out(),arg0)) {
-    a_gv.insh().warn("style "+arg0+" not found.");
-    return;
-  }
-}
-inline const std::string& insh_plotter_print_style_help() {
-  static const std::string s_help("\
-plotter_print_style: plotter_print_style\n\
-  Print a plotter style.\n\
-  Example:\n\
-    plotter_print_style ROOT_default\n\
-  See also: style_load_file.\n\
-");
-  return s_help;
-}
-
-INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_grid,insh_plots_set_grid(m_holder,a_args),insh_plots_set_grid_help())
-INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_current_plotter,insh_plots_set_current_plotter(m_holder,a_args),insh_plots_set_current_plotter_help())
-INLIB_INSH_CLASS_CMD(gui_viewer,plots_clear,insh_plots_clear(m_holder,a_args),"plots_clear: plots_clear\n  Clear all plotters.\n")
-INLIB_INSH_CLASS_CMD(gui_viewer,plots_current_to_one,insh_plots_current_to_one(m_holder,a_args),"plots_current_to_one: plots_current_to_one\n  Have the current plotter in a 1x1 grid.\n")
-INLIB_INSH_CLASS_CMD(gui_viewer,plotter_set_field,insh_plotter_set_field(m_holder,a_args),insh_plotter_set_field_help())
-INLIB_INSH_CLASS_CMD(gui_viewer,plotter_clear,insh_plotter_clear(m_holder,a_args),insh_plotter_clear_help())
-INLIB_INSH_CLASS_CMD(gui_viewer,plotter_reset_style,insh_plotter_reset_style(m_holder,a_args),"plotter_reset_style: plotter_reset_style\n  Reset the current plotter style.\n")
-INLIB_INSH_CLASS_CMD(gui_viewer,plotter_set_style,insh_plotter_set_style(m_holder,a_args),"plotter_set_style: plotter_set_style style\n  Set the current plotter style.\n  Example:\n    plotter_set_style ROOT_default\n    plotter_set_style hippodraw\n  See also: plotter_list_styles, style_load_file\n")
-
-INLIB_INSH_CLASS_CMD(gui_viewer,plotter_list_styles,m_holder.styles().list_plotter_styles(m_holder.out()),"plotter_list_styles: plotter_list_styles\n  List available plotter styles.\n  See also: style_load_file.\n")
-INLIB_INSH_CLASS_CMD(gui_viewer,plotter_print_customization,insh_plotter_print_customization(m_holder),"plotter_print_customization: plotter_print_customization\n  Print available plotter customization items.\n")
-INLIB_INSH_CLASS_CMD(gui_viewer,plotter_print_style,insh_plotter_print_style(m_holder,a_args),insh_plotter_print_style_help())
-
-// deprecated:
-INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_regions,insh_plots_set_grid(m_holder,a_args),"plots_set_regions: plots_set_regions\n  Deprecated, use plots_set_grid\n")
-INLIB_INSH_CLASS_CMD(gui_viewer,plots_set_current_region,insh_plots_set_current_plotter(m_holder,a_args),"plots_set_current_region: plots_set_current_region\n  Deprecated, use plots_set_current_plotter\n")
-
-inline void view_evd_insh_add_cmds(gui_viewer& a_gv) {
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_grid)
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_current_plotter)
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_clear)
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_current_to_one)
-  
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_set_field)
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_clear)
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_reset_style)
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_set_style)
-
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_list_styles)
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_print_customization)
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plotter_print_style)
-  //deprecated:
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_regions)
-  INLIB_INSH_ADD_CMD(a_gv.insh(),a_gv,plots_set_current_region)
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -551,27 +378,27 @@ inline return_action action_ok_regions(gui_viewer& a_gv,entries& a_widget,const 
   unsigned int cols;
   if(!to(vals[index_cols],cols)) {
     a_gv.pop_warn(a_data,"not an uint");
-    return return_to_render;     
+    return return_to_render;
   }
   if(!cols) {
     a_gv.pop_warn(a_data,"number of cols must be >=1");
-    return return_to_render;     
+    return return_to_render;
   }
 
   unsigned int rows;
   if(!to(vals[index_rows],rows)) {
     a_gv.pop_warn(a_data,"not an uint");
-    return return_to_render;     
+    return return_to_render;
   }
   if(!rows) {
     a_gv.pop_warn(a_data,"number of rows must be >=1");
-    return return_to_render;     
+    return return_to_render;
   }
 
   bool clear;
   if(!to(vals[index_clear],clear)) {
     a_gv.pop_warn(a_data,"not a bool");
-    return return_to_render;     
+    return return_to_render;
   }
 
   a_data.m_plots.set_regions(cols,rows,clear?false:true);
@@ -589,7 +416,7 @@ inline return_action action_regions(gui_viewer& a_gv,const plots_data& a_data) {
   node->add_bool("clear",false);
 
   add_callback(a_gv,*node,action_ok_regions,a_data);
-  
+
   a_gv.show_widget(a_data,node);
   return return_to_render;
 }
@@ -602,24 +429,24 @@ inline return_action action_menu_plots_layout(gui_viewer& a_gv,const pos_data& a
     return return_to_render;
   }
 
-  sg::list* list = new sg::list(a_gv.ttf());
-  a_gv.set_style(*list);
+  list* _list = new list(a_gv.ttf());
+  a_gv.set_style(*_list);
 
   plots_data data(*_plots,a_data.m_popup,a_data.m_ex,a_data.m_ey);
 
-  add_item(a_gv,*list,"set regions",action_regions,data);
-  add_item(a_gv,*list,"set current plotter",action_current,data);
-  add_item(a_gv,*list,"plotter to one",action_current_to_one,data);
-  add_item(a_gv,*list,"plotter border",action_toggle_view_border,data);
-  add_item(a_gv,*list,"clear bins",action_clear_bins,data);
-  add_item(a_gv,*list,"clear points",action_clear_points,data);
-  add_item(a_gv,*list,"clear functions",action_clear_functions,data);
-  add_item(a_gv,*list,"plotter clear",action_clear,data);
-  add_item(a_gv,*list,"clear all plotters",action_clear_plots,data);
-  add_item(a_gv,*list,"toggle border",action_toggle_border,data);
-//add_item(a_gv,*list,"adjust size",action_adjust_size,data);
+  add_item(a_gv,*_list,"set regions",action_regions,data);
+  add_item(a_gv,*_list,"set current plotter",action_current,data);
+  add_item(a_gv,*_list,"plotter to one",action_current_to_one,data);
+  add_item(a_gv,*_list,"plotter border",action_toggle_view_border,data);
+  add_item(a_gv,*_list,"clear bins",action_clear_bins,data);
+  add_item(a_gv,*_list,"clear points",action_clear_points,data);
+  add_item(a_gv,*_list,"clear functions",action_clear_functions,data);
+  add_item(a_gv,*_list,"plotter clear",action_clear,data);
+  add_item(a_gv,*_list,"clear all plotters",action_clear_plots,data);
+  add_item(a_gv,*_list,"toggle border",action_toggle_border,data);
+//add_item(a_gv,*_list,"adjust size",action_adjust_size,data);
 
-  a_gv.show_widget(a_data,list);
+  a_gv.show_widget(a_data,_list);
 
   return return_to_render;
 }
@@ -642,7 +469,7 @@ inline void add_plotter_entries(plotter& a_plotter,entries& a_entries){
     a_entries.add_bool ("grid.visible"   ,a_plotter.grid_style().visible);
     a_entries.add_color("grid.color"     ,a_plotter.grid_style().color.value());
     a_entries.add_float("grid.line_width",a_plotter.grid_style().line_width);
-    
+
     a_entries.add_bool ("inner_frame.visible"   ,a_plotter.inner_frame_style().visible);
     a_entries.add_color("inner_frame.color"     ,a_plotter.inner_frame_style().color.value());
     a_entries.add_float("inner_frame.line_width",a_plotter.inner_frame_style().line_width);
@@ -699,7 +526,7 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
   unsigned int index_grid_visible           = index_count;index_count++;
   unsigned int index_grid_color             = index_count;index_count++;
   unsigned int index_grid_line_width        = index_count;index_count++;
-  
+
   unsigned int index_inner_frame_visible    = index_count;index_count++;
   unsigned int index_inner_frame_color      = index_count;index_count++;
   unsigned int index_inner_frame_line_width = index_count;index_count++;
@@ -727,7 +554,7 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
   bool reset_style = true;
   if(!to(vals[index_reset_style],reset_style)) {
     a_gv.pop_warn(a_data,"not a bool");
-    return return_to_render;     
+    return return_to_render;
   }
 
  {const std::string& s = vals[index_style];
@@ -748,7 +575,7 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
     add_callback(a_gv,*node,action_set_style,a_data);
     a_gv.show_widget(a_data,node);}
 
-    return return_to_render; //change style override the rest.    
+    return return_to_render; //change style override the rest.
   }}
 
   /////////////////////////////////////////////////
@@ -762,9 +589,9 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
  {float r,g,b,a;
   if(!a_widget.get_color(index_grid_color,r,g,b,a)) {
     a_gv.pop_warn(a_data,"get color failed");
-    return return_to_render;     
+    return return_to_render;
   }
-  plotter.grid_style().color.value().set_value(r,g,b,a); 
+  plotter.grid_style().color.value().set_value(r,g,b,a);
   plotter.touch();}
 
  {float v;
@@ -783,9 +610,9 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
  {float r,g,b,a;
   if(!a_widget.get_color(index_inner_frame_color,r,g,b,a)) {
     a_gv.pop_warn(a_data,"get color failed");
-    return return_to_render;     
+    return return_to_render;
   }
-  plotter.inner_frame_style().color.value().set_value(r,g,b,a); 
+  plotter.inner_frame_style().color.value().set_value(r,g,b,a);
   plotter.touch();}
 
  {float v;
@@ -819,9 +646,9 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
  {float r,g,b,a;
   if(!a_widget.get_color(index_background_back_color,r,g,b,a)) {
     a_gv.pop_warn(a_data,"get color failed");
-    return return_to_render;     
+    return return_to_render;
   }
-  plotter.background_style().back_color.value().set_value(r,g,b,a); 
+  plotter.background_style().back_color.value().set_value(r,g,b,a);
   plotter.touch();}
 
   /////////////////////////////////////////////////
@@ -832,7 +659,7 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
 
  {float r,g,b,a;
   if(!a_widget.get_color(index_bins_0_color,r,g,b,a)) {a_gv.pop_warn(a_data,"get color failed");return return_to_render;}
-  plotter.bins_style(0).color.value().set_value(r,g,b,a); 
+  plotter.bins_style(0).color.value().set_value(r,g,b,a);
   plotter.touch();}
 
  {float v;
@@ -851,7 +678,7 @@ inline return_action action_set_style(gui_viewer& a_gv,entries& a_widget,const p
   /////////////////////////////////////////////////
  {float r,g,b,a;
   if(!a_widget.get_color(index_func_0_color,r,g,b,a)) {a_gv.pop_warn(a_data,"get color failed");return return_to_render;}
-  plotter.func_style(0).color.value().set_value(r,g,b,a); 
+  plotter.func_style(0).color.value().set_value(r,g,b,a);
   plotter.touch();}
 
  {float v;
@@ -879,7 +706,7 @@ inline return_action action_resedit(gui_viewer& a_gv,const plots_data& a_data) {
 
   entries* node = new entries(a_gv.ttf());
   a_gv.set_style(*node);
-   
+
   node->add_bool("overall->reset",true);
  {std::vector<std::string> opts;
   get_styles(a_gv,opts);
@@ -895,7 +722,7 @@ inline return_action action_resedit(gui_viewer& a_gv,const plots_data& a_data) {
   /////////////////////////////////////////////////
   /////////////////////////////////////////////////
   add_callback(a_gv,*node,action_set_style,a_data);
-  
+
   a_gv.show_widget(a_data,node);
   return return_to_render;
 }

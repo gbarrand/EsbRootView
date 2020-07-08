@@ -17,7 +17,7 @@ namespace inlib {
 inline void uprint(std::ostream& a_out,size_t a_term_cols,size_t a_spaces,const std::vector<std::string>& a_list) {
   if(a_list.empty()) return;
 
-  size_t _mx = a_list.front().size(); 
+  size_t _mx = a_list.front().size();
  {inlib_vforcit(std::string,a_list,it) _mx = mx(_mx,(*it).size());}
 
   _mx += a_spaces;

@@ -6,70 +6,15 @@
 
 #include "GL_action"
 
-#define EXLIB_GL_VIEWER_AFTER_RENDER \
-  void after_render() {\
-    /*WARNING : it does OpenGL. Under Android it should be executed in the OpenGL thread.*/\
-    /*WARNING : if having more m_produce_xxx, look exlib/app/iOS/GLView_mm.*/\
-    \
-    std::ostream& _out = parent::m_out;\
-    \
-    std::string path;\
-    if(parent::m_produce_out_jpeg || parent::m_produce_out_png) {\
-      if(parent::m_produce_out_file.empty()) {\
-        const std::string& _out_dir = parent::out_dir();\
-        if(_out_dir.size()) {\
-          if(!inlib::check_dir(_out,_out_dir)) {parent::map_warn_failed();return;}\
-          path = _out_dir+inlib::sep();\
-        }\
-        if(parent::m_produce_out_jpeg) path += "out.jpeg";\
-        else path += "out.png";\
-      } else {\
-        path = parent::m_produce_out_file;\
-        parent::m_produce_out_file.clear();\
-      }\
-    }\
-    \
-    if(parent::m_produce_out_jpeg) {\
-      parent::m_produce_out_jpeg = false;\
-      \
-      unsigned char* buffer = exlib::sg::GL_manager::get_rgbs(parent::m_ww,parent::m_wh); /*NOTE : jpeg wants bpp=3.*/\
-      if(!buffer) {\
-        _out << "EXLIB_GL_VIEWER_METHODS::after_render() : can't get image." << std::endl;\
-        parent::map_warn_failed();\
-        return;\
-      }\
-      unsigned int bpp = 3;\
-      if(!exlib::jpeg::write(_out,path,buffer,parent::m_ww,parent::m_wh,bpp,100)) parent::map_warn_failed();\
-      delete [] buffer;\
-    }\
-    \
-    if(parent::m_produce_out_png) {\
-      parent::m_produce_out_png = false;\
-      \
-      unsigned char* buffer = 0;\
-      if(parent::m_produce_out_bpp==4) {\
-        buffer = exlib::sg::GL_manager::get_rgbas(parent::m_ww,parent::m_wh);\
-      } else if(parent::m_produce_out_bpp==3) {\
-        buffer = exlib::sg::GL_manager::get_rgbs(parent::m_ww,parent::m_wh);\
-      } else {\
-        _out << "EXLIB_GL_VIEWER_METHODS::after_render() : bad bpp " << parent::m_produce_out_bpp << "." << std::endl;\
-        parent::map_warn_failed();\
-        return;\
-      }\
-      if(!buffer) {\
-        _out << "EXLIB_GL_VIEWER_METHODS::after_render() : can't get image." << std::endl;\
-        parent::map_warn_failed();\
-        return;\
-      }\
-      unsigned int bpp = parent::m_produce_out_bpp;\
-      if(!exlib::png::write(_out,path,buffer,parent::m_ww,parent::m_wh,bpp)) parent::map_warn_failed();\
-      delete [] buffer;\
-    }\
-  }
-
 #define EXLIB_GL_VIEWER_METHODS \
 public:/*public for iOS*/\
-  EXLIB_GL_VIEWER_AFTER_RENDER \
+  virtual unsigned char* get_pixels(unsigned int a_w,unsigned int a_h,bool a_rgbas = true) {\
+    if(a_rgbas) {\
+      return exlib::sg::GL_manager::get_rgbas(a_w,a_h);\
+    } else {\
+      return exlib::sg::GL_manager::get_rgbs(a_w,a_h);\
+    }\
+  }\
 public:\
   virtual void render() {\
     parent::check_gui_cursor();\
@@ -107,8 +52,8 @@ public:\
         action.state().m_use_gsto = parent::m_use_gsto;\
         parent::m_sg.render(action);\
         if(!action.end()) parent::m_out << "EXLIB_GL_VIEWER_METHODS::render() : bad gl_action end." << std::endl;\
-        after_render();\
         m_mgr_gra.end_render();\
+        parent::after_render();\
       }\
     }\
   }\

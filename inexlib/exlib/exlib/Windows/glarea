@@ -85,13 +85,13 @@ public:
                              NULL);
     if(!m_hwnd) return;
     ::SetWindowLongPtr(m_hwnd,GWLP_USERDATA,LONG_PTR(this));
-  
+
     // initialize OpenGL rendering :
     m_HDC = ::GetDC(m_hwnd);
     if(m_HDC && SetWindowPixelFormat(m_HDC) ) {
       m_context = ::wglCreateContext(m_HDC);
     }
-    
+
 #ifdef EXLIB_WINDOWS_TOUCH
    {BYTE digitizer_status = (BYTE)::GetSystemMetrics(SM_DIGITIZER);
     if((digitizer_status & (0x80 + 0x40)) == 0) {
@@ -101,7 +101,7 @@ public:
       m_touch_available = true;
       if(!::RegisterTouchWindow(m_hwnd,0)) m_touch_available = false;
     }}
-#endif    
+#endif
 
   }
   virtual ~glarea(){
@@ -140,18 +140,18 @@ public:
                              NULL);
     if(!m_hwnd) return;
     ::SetWindowLongPtr(m_hwnd,GWLP_USERDATA,LONG_PTR(this));
-  
+
     // initialize OpenGL rendering :
     m_HDC = ::GetDC(m_hwnd);
     if(m_HDC && SetWindowPixelFormat(m_HDC) ) {
       m_context = ::wglCreateContext(m_HDC);
     }
-    
+
 #ifdef EXLIB_WINDOWS_TOUCH
     if(a_from.m_touch_available) {
       if(!::RegisterTouchWindow(m_hwnd,0)) m_touch_available = false;
     }
-#endif    
+#endif
   }
 protected:
   glarea& operator=(const glarea&){return *this;}
@@ -179,12 +179,12 @@ public:
       ::GetClientRect(m_hwnd,&rect);
       unsigned int w = rect.right-rect.left;
       unsigned int h = rect.bottom-rect.top;
-  
+
       //printf("debug : glarea : paint : %d %d\n",w,h);
       //inlib::log_file::get().writef("debug : glarea : paint : %d %d\n",w,h);
 
       paint(w,h);
-  
+
       ::SwapBuffers(m_HDC);
       ::wglMakeCurrent(m_HDC,0);
     }
@@ -195,13 +195,13 @@ protected:
 #ifdef EXLIB_WINDOWS_TOUCH
     if(!m_touch_available) return false;
     return is_message_touch_event();
-#else	
+#else
     return false;
 #endif
   }
 protected:
   static LRESULT CALLBACK proc(HWND a_hwnd,UINT a_msg,WPARAM a_wparam,LPARAM a_lparam) {
-    switch (a_msg) { 
+    switch (a_msg) {
     case WM_SIZE:{
       int width = LOWORD(a_lparam);
       int height = HIWORD(a_lparam);
@@ -216,7 +216,7 @@ protected:
       glarea* _this = (glarea*)::GetWindowLongPtr(a_hwnd,GWLP_USERDATA);
       if(_this) {
         _this->wm_paint();
-      }	
+      }
     }return 0;
     case WM_LBUTTONDOWN:{
       glarea* _this = (glarea*)::GetWindowLongPtr(a_hwnd,GWLP_USERDATA);
@@ -261,11 +261,11 @@ protected:
         //::GetWindowRect(hwnd,&rect); ???
         ::GetClientRect(a_hwnd,&rect);
         unsigned int h = rect.bottom-rect.top;
-	
+
         unsigned int num_inputs = (int)a_wparam;
         //::printf("debug : WM_TOUCH : 001 : %d\n",num_inputs);
         TOUCHINPUT* ti = new TOUCHINPUT[num_inputs];
-        POINT p;  
+        POINT p;
         if(::GetTouchInputInfo((HTOUCHINPUT)a_lparam,num_inputs,ti,sizeof(TOUCHINPUT))) {
           for(unsigned int i=0;i<num_inputs; ++i) {
             p.x = TOUCH_COORD_TO_PIXEL(ti[i].x);
@@ -297,11 +297,11 @@ protected:
     PIXELFORMATDESCRIPTOR pfd;
     pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
     pfd.nVersion = 1;
-    pfd.dwFlags = 
-      PFD_DRAW_TO_WINDOW | 
-      PFD_SUPPORT_OPENGL | 
-      PFD_DOUBLEBUFFER | 
-      PFD_STEREO_DONTCARE;  
+    pfd.dwFlags =
+      PFD_DRAW_TO_WINDOW |
+      PFD_SUPPORT_OPENGL |
+      PFD_DOUBLEBUFFER |
+      PFD_STEREO_DONTCARE;
     pfd.iPixelType = PFD_TYPE_RGBA;
     pfd.cColorBits = 32;
     pfd.cRedBits = 8;
@@ -312,7 +312,7 @@ protected:
     pfd.cBlueShift = 0;
     pfd.cAlphaBits = 0;
     pfd.cAlphaShift = 0;
-    pfd.cAccumBits = 64;        
+    pfd.cAccumBits = 64;
     pfd.cAccumRedBits = 16;
     pfd.cAccumGreenBits = 16;
     pfd.cAccumBlueBits = 16;
@@ -325,24 +325,24 @@ protected:
     pfd.dwLayerMask = 0;
     pfd.dwVisibleMask = 0;
     pfd.dwDamageMask = 0;
-    
+
     int pixelIndex = ::ChoosePixelFormat(a_HDC,&pfd);
     if (pixelIndex==0) {
       // Let's choose a default index.
-      pixelIndex = 1;        
-      if (::DescribePixelFormat(a_HDC, 
-                                pixelIndex, 
-                                sizeof(PIXELFORMATDESCRIPTOR), 
+      pixelIndex = 1;
+      if (::DescribePixelFormat(a_HDC,
+                                pixelIndex,
+                                sizeof(PIXELFORMATDESCRIPTOR),
                                 &pfd)==0) {
         return false;
       }
     }
-  
+
     if (::SetPixelFormat(a_HDC,pixelIndex,&pfd)==FALSE) return false;
-  
+
     return true;
   }
-  static void wm__destroy(HWND a_hwnd) { 
+  static void wm__destroy(HWND a_hwnd) {
     glarea* _this = (glarea*)::GetWindowLongPtr(a_hwnd,GWLP_USERDATA);
     if(_this) { //How to be sure that we have a glarea* ???
       _this->close();

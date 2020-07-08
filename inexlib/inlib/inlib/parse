@@ -156,7 +156,7 @@ inline bool name_args(const std::string& a_string,std::string& a_name,std::vecto
   std::string s = a_string.substr(lb+1,rb-lb-1);
   words(s,",",true,a_args);
   a_name = a_string.substr(0,lb);
-  return true; 
+  return true;
 }
 
 inline bool cmd_arg(const std::string& a_string,std::string& a_arg,std::string& a_value) {
@@ -168,7 +168,7 @@ inline bool cmd_arg(const std::string& a_string,std::string& a_arg,std::string& 
   if(pos==std::string::npos) return false;
   a_arg = a_string.substr(1,pos-1);
   a_value = a_string.substr(pos+1,a_string.size()-(pos+1));
-  return true; 
+  return true;
 }
 
 inline bool parse_array(const std::string& a_string,std::string& a_name,int& a_index){
@@ -204,7 +204,7 @@ inline bool parse_array(const std::string& a_string,std::string& a_name,int& a_i
     return false;
   }
   a_name = a_string.substr(0,lb);
-  return true; 
+  return true;
 }
 
 inline bool to_doubles(const std::string& a_string,std::vector<double>& a_values,const std::string& a_sep){
@@ -251,7 +251,7 @@ inline bool to_doubles(const std::string& a_string,std::vector<double>& a_values
       }
       a_values[valuei] = value;
       valuei++;
-    }    
+    }
   }
   return true;
 }
@@ -272,7 +272,7 @@ inline size_t cstring_strtods(const char* a_cstr,std::vector<double>& a_vals,boo
   double d;
   size_t index = 0;
   std::vector<double>::iterator it = a_vals.begin();
-  while(true) {  
+  while(true) {
     d = ::strtod(begin,&end);
     if(end==begin) {
       if(a_fixed) {

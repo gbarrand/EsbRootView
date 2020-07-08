@@ -46,7 +46,7 @@ inline int exlib_main(const std::string& a_app_name,int argc,char** argv) {
 #ifdef INLIB_MEM
   #ifdef INLIB_MEM_ATEXIT
   ::atexit(at_exit);
-  #endif  
+  #endif
   inlib::mem::set_check_by_class(true);{
 #endif
 
@@ -107,7 +107,7 @@ options are :\n\
   if(home_dir.empty()) {
     std::cout << "exlib_main : can't get home directory." << std::endl;
     return EXIT_FAILURE;
-  }  
+  }
   std::string doc_app_dir = "Documents";
   doc_app_dir += inlib::sep();
   doc_app_dir += a_app_name;
@@ -140,7 +140,7 @@ options are :\n\
   app_Windows::main<APP_MAIN> _main(std::cout,doc_dir,res_dir,out_dir,tmp_dir,ww,wh,verbose);
 #endif
 
-  _main.set_argcv(args);  
+  _main.set_argcv(args);
   if(args.is_arg(inlib::s_arg_black())) _main.m_params.m_scene_screen_color = inlib::colorf_black();
 
   wdoz.show_window(_main.window::hwnd());
@@ -166,7 +166,7 @@ options are :\n\
   //////////////////////////////////////////////////////////////////
  {std::string DOCUMENT;
   args.files_at_end(); //take care of the upper -land.
-  if(!args.file(DOCUMENT)) args.find(inlib::s_arg_document(),DOCUMENT);  
+  if(!args.file(DOCUMENT)) args.find(inlib::s_arg_document(),DOCUMENT);
   if(verbose) {
     std::cout << "exlib_main :"
               << " document is " << inlib::sout(DOCUMENT) << "."
@@ -200,7 +200,7 @@ options are :\n\
               << std::endl;
   }
 
-  while(!_main.to_exit()) { 
+  while(!_main.to_exit()) {
 
     if(_main.num_cbks()) _main.do_works();
     if(_term_timer && _term_timer->active()) _term_timer->check_time_out();
@@ -220,7 +220,7 @@ options are :\n\
       ::TranslateMessage(&event);
       ::DispatchMessage(&event);
     }}
-    
+
     if(_view_sg_client && _view_sg_client->is_connected()) {
       if(!_view_sg_client->sg_client().poll()) {}
       if(!_view_sg_client->is_connected()) {
@@ -264,7 +264,7 @@ options are :\n\
         ::TranslateMessage(&event);
         ::DispatchMessage(&event);
       }
-      
+
     } else if(_term_timer && _term_timer->active()) {
       _term_timer->check_time_out();
 
@@ -273,7 +273,7 @@ options are :\n\
         ::TranslateMessage(&event);
         ::DispatchMessage(&event);
       }
-      
+
     } else {
       MSG event;
       BOOL status = ::GetMessage(&event,NULL,0,0);
@@ -289,7 +289,7 @@ options are :\n\
       }
     }
 
-  } 
+  }
 
   } //extra_sockets
 
@@ -297,14 +297,14 @@ options are :\n\
 
   if(_view_sg_serv) _view_sg_serv->set_params(0,0,0,0,0,0);
   if(_view_sg_client) _view_sg_client->set_params(0,0,0,0);
-  
+
 #ifdef INLIB_MEM
   }
   #ifndef INLIB_MEM_ATEXIT
   inlib::mem::balance(std::cout);
   #endif
   std::cout << a_app_name << "_Windows : exit(mem) ..." << std::endl;
-#else  
+#else
   if(verbose) std::cout << a_app_name << "_Windows : exit ..." << std::endl;
 #endif
 
@@ -312,7 +312,7 @@ options are :\n\
 }
 
 //exlib_build_use inlib inlib_glutess freetype png jpeg zlib expat
-//exlib_build_use GL Windows kernel
+//exlib_build_use WGL Windows kernel
 
 #endif
 

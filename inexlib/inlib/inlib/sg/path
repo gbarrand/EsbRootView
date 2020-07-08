@@ -33,7 +33,7 @@ template <class NODE>
 inline NODE* tail(const path_t& a_path) {
   if(a_path.empty()) return 0;
   node* _node = a_path[a_path.size()-1];
-  return safe_cast<node,NODE>(*_node);      
+  return safe_cast<node,NODE>(*_node);
 }
 
 inline bool remove_tail(path_t& a_path) {
@@ -46,14 +46,14 @@ template <class CONTAINER>
 inline CONTAINER* container(const path_t& a_path) {
   if(a_path.size()<2) return 0;
   node* parent = a_path[a_path.size()-2];
-  return safe_cast<node,CONTAINER>(*parent);      
+  return safe_cast<node,CONTAINER>(*parent);
 }
 
 template <class CONTAINER>
 inline CONTAINER* container_container(const path_t& a_path) {
   if(a_path.size()<3) return 0;
   node* parent = a_path[a_path.size()-3];
-  return safe_cast<node,CONTAINER>(*parent);      
+  return safe_cast<node,CONTAINER>(*parent);
 }
 
 inline void dump(std::ostream& a_out,const path_t& a_path) {
@@ -78,21 +78,21 @@ inline bool rfind(const path_t& a_path,const node& a_from,
                   CONTAINER*& a_container,WHAT*& a_what,
                   int& a_container_index){
   node* from = (node*)&a_from;
-  path_t::size_type sz = a_path.size();    
+  path_t::size_type sz = a_path.size();
 #ifdef INLIB_RFIND_DEBUG
   ::printf("debug : rfind : from %s, a_path.size() %d\n",a_from.s_cls().c_str(),sz);
   //::printf("debug : rfind : search node of class %s\n",typename WHAT::s_cls().c_str());
-#endif  
+#endif
   for(size_t index=1;index<sz;index++) {
     node* _node = a_path[sz-index-1];
 #ifdef INLIB_RFIND_DEBUG
-    ::printf("debug : rfind : index %d, node %s\n",index,_node->s_cls().c_str());		    
+    ::printf("debug : rfind : index %d, node %s\n",index,_node->s_cls().c_str());
 #endif
-    a_container = safe_cast<node,CONTAINER>(*_node);      
-    if(a_container) {            
+    a_container = safe_cast<node,CONTAINER>(*_node);
+    if(a_container) {
 #ifdef INLIB_RFIND_DEBUG
       ::printf("debug : rfind : node is a container of size %d\n",a_container->size());
-#endif      
+#endif
       //the below does not compile.
       //a_what = a_container->rsearch_from<WHAT>(from);
       //if(a_what) return true;
@@ -111,18 +111,18 @@ inline bool rfind(const path_t& a_path,const node& a_from,
     } else if(noderef* _ref = safe_cast<node,noderef>(*_node)) {
 #ifdef INLIB_RFIND_DEBUG
       ::printf("debug : rfind : node is a noderef with a %s\n",_ref->node().s_cls().c_str());
-#endif      
+#endif
       from = _ref;
     } else { // weird case :
 #ifdef INLIB_RFIND_DEBUG
-      ::printf("debug : rfind : weird case\n");		    
+      ::printf("debug : rfind : weird case\n");
 #endif
       break;
     }
   }
 #ifdef INLIB_RFIND_DEBUG
   ::printf("debug : rfind : failed\n");
-#endif  
+#endif
   a_what = 0;
   a_container = 0;
   a_container_index = -1;
@@ -130,7 +130,7 @@ inline bool rfind(const path_t& a_path,const node& a_from,
 }
 #ifdef INLIB_RFIND_DEBUG
 #undef INLIB_RFIND_DEBUG
-#endif  
+#endif
 
 template <class WHAT,class CONTAINER>
 inline bool find_top(const path_t& a_path,const node& a_from,

@@ -56,7 +56,7 @@ public:
     m_hwnd = ::CreateWindow(s_class().c_str(),
                               NULL,
                               a_mask,
-                              CW_USEDEFAULT,CW_USEDEFAULT, 
+                              CW_USEDEFAULT,CW_USEDEFAULT,
                               a_w,a_h,
                               NULL,NULL,
                               ::GetModuleHandle(NULL),
@@ -84,7 +84,7 @@ public:
     m_hwnd = ::CreateWindow(s_class().c_str(),
                               NULL,
                               WS_OVERLAPPEDWINDOW,
-                              CW_USEDEFAULT,CW_USEDEFAULT, 
+                              CW_USEDEFAULT,CW_USEDEFAULT,
                               w,h,
                               NULL,NULL,
                               ::GetModuleHandle(NULL),
@@ -128,7 +128,7 @@ public:
   }
 protected:
   static LRESULT CALLBACK proc(HWND a_hwnd,UINT a_msg,WPARAM a_wparam,LPARAM a_lparam) {
-    switch (a_msg) { 
+    switch (a_msg) {
     // Else :
     case WM_SIZE:{ // Assume one child window ! FIXME : have a message if not.
       int width = LOWORD(a_lparam);
@@ -138,7 +138,7 @@ protected:
         ::MoveWindow(hwnd,0,0,width,height,TRUE);
       }
     }return 0;
-    
+
     case WM_KEYDOWN:{
       switch(a_wparam){
       case VK_SHIFT:{
@@ -203,7 +203,7 @@ protected:
     }
     return (DefWindowProc(a_hwnd,a_msg,a_wparam,a_lparam));
   }
-  static void wm__destroy(HWND a_hwnd) { 
+  static void wm__destroy(HWND a_hwnd) {
     window* _this = (window*)::GetWindowLongPtr(a_hwnd,GWLP_USERDATA);
     if(_this) { //How to be sure that we have a window* ???
       if(_this->m_hwnd!=a_hwnd) {

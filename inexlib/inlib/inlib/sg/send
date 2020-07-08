@@ -29,10 +29,10 @@ inline bool send(net::sg_client& a_dc,sg::node& a_node,compress_func a_compress_
   if(!a_node.write(action)) return false;
   if(!action.close_buffer()) return false;
 
-  unsigned int uc_length = (unsigned int)action.buffer().length(); 
+  unsigned int uc_length = (unsigned int)action.buffer().length();
   if(!uc_length) return true; //nothing to send.
 
-  unsigned int cp_length = 0; 
+  unsigned int cp_length = 0;
   char* cp_buffer = 0;
   if(a_compress_func) {
     cp_buffer = new char[uc_length];

@@ -40,7 +40,7 @@ inline inlib::sg::return_action action_sg_serv_init(inlib::sg::gui_viewer& a_gv)
   entries->label = "initialize";
 
   const args& _args = a_gv.argcv();
-  
+
  {std::string host;
   if(_args.find("-host",host)) {
     entries->add_ip("arg ip",host);

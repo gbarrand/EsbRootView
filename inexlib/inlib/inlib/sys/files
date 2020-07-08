@@ -54,7 +54,7 @@ inline bool unicode_to_ansi(BSTR a_unicode,std::string& a_ansi) {
 }
 #endif //_UNICODE
 
-inline bool find_first_file(const std::string& a_entry,HANDLE& a_dir,WIN32_FIND_DATA& a_findFileData) {  
+inline bool find_first_file(const std::string& a_entry,HANDLE& a_dir,WIN32_FIND_DATA& a_findFileData) {
 #ifdef _UNICODE
   BSTR wentry;
   if(!ansi_to_unicode(a_entry,wentry)) {
@@ -98,7 +98,7 @@ inline bool is_empty(const std::string& a_path,bool& a_is_empty){
     if(name=="..") continue;
     a_is_empty = false;
     ::FindClose(dir);
-    return true;  
+    return true;
   }
   ::FindClose(dir);
 #else
@@ -119,7 +119,7 @@ inline bool is_empty(const std::string& a_path,bool& a_is_empty){
       if(name=="..") continue;
       a_is_empty = false;
       ::closedir(dir);
-      return true;  
+      return true;
     }
   }
   ::closedir(dir);
@@ -290,7 +290,7 @@ inline bool rmdir(const std::string& a_path){
   entries(a_path,files);
   size_t filen = files.size();
   for(size_t count=0;count<filen;count++) {
-    const std::string& entry = files[count];     
+    const std::string& entry = files[count];
 
    {std::string name;
     path_base_name(entry,name);
@@ -329,7 +329,7 @@ inline bool dirs(const std::string& a_path,std::vector<std::string>& a_dirs,bool
   entries(a_path,files,false);
   size_t filen = files.size();
   for(size_t count=0;count<filen;count++) {
-    const std::string& name = files[count];     
+    const std::string& name = files[count];
     if((name==".")||(name=="..")) continue;
 #ifdef _WIN32
     std::string fname = a_path+"\\"+name;
@@ -356,7 +356,7 @@ inline bool files(const std::string& a_path,std::vector<std::string>& a_files,bo
   entries(a_path,files,false);
   size_t filen = files.size();
   for(size_t count=0;count<filen;count++) {
-    const std::string& name = files[count];     
+    const std::string& name = files[count];
     if((name==".")||(name=="..")) continue;
 #ifdef _WIN32
     std::string fname = a_path+"\\"+name;
@@ -430,7 +430,7 @@ public:
     m_dirs.clear();}
   }
 public:
-  tree(const tree& a_from):m_out(a_from.m_out) {    
+  tree(const tree& a_from):m_out(a_from.m_out) {
     m_path = a_from.m_path;
     m_files = a_from.m_files;
    {std::vector<tree*>::const_iterator it;
@@ -438,7 +438,7 @@ public:
       m_dirs.push_back(new tree(*(*it)));
     }}
   }
-  tree& operator=(const tree& a_from) {    
+  tree& operator=(const tree& a_from) {
     if(&a_from==this) return *this;
 
     m_path = a_from.m_path;
@@ -447,7 +447,7 @@ public:
    {std::vector<tree*>::iterator it;
     for(it=m_dirs.begin();it!=m_dirs.end();++it) delete *it;
     m_dirs.clear();}
-    
+
    {std::vector<tree*>::const_iterator it;
     for(it=a_from.m_dirs.begin();it!=a_from.m_dirs.end();++it) {
       m_dirs.push_back(new tree(*(*it)));

@@ -17,12 +17,12 @@ class sg_serv_thread : public sg_serv {
   typedef sg_serv parent;
 public:
   INLIB_SCLASS(inlib::net::sg_serv_thread)
-public:  
+public:
   virtual void stop_sg_client() {
     if(m_args.m_disconnect_func) {
       //m_out << "debug : inlib::net::sg_serv_thread::stop_sg_client : call disconnect_func()..." << std::endl;
       m_args.m_disconnect_func(m_args);
-    }      
+    }
     m_sg_client_sock.disconnect();
     m_data_server_sock.disconnect();
 

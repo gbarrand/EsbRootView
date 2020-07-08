@@ -88,7 +88,7 @@ public:
       //float tp = float(atime::diff(m_prev,m_start).value());
 
       float cycle = m_cycle?float(m_cycle):10.0f; //secs
-      float anim_rate = 1.0f/60.f; 
+      float anim_rate = 1.0f/60.f;
 
       float r = t-int(t/cycle)*cycle; //[0,cycle]
 
@@ -112,7 +112,7 @@ public:
       float tp = float(atime::diff(m_prev,m_start).value());
 
       float cycle = m_cycle?float(m_cycle):10.0f; //secs
-      float anim_rate = 1.0f/60.f; 
+      float anim_rate = 1.0f/60.f;
 
       float r = t-int(t/cycle)*cycle; //[0,cycle]
 
@@ -130,7 +130,7 @@ public:
         CAMERA::operator=(*m_zoom_save); //restore begin_anim() camera. It will copy fields.
         CAMERA::zoom(zoom_factor);
       } else {
-        _da = (t-tp)*3*fhalf_pi()/cycle;        
+        _da = (t-tp)*3*fhalf_pi()/cycle;
         CAMERA::rotate_around_y_at_focal(-_da);
         m_zoom_save->rotate_around_y_at_focal(-_da);
       }
@@ -150,7 +150,7 @@ public:
         if(!_curve->pos_tan_nor(_s,pos,tan,nor)) {}
 
         CAMERA::position = pos;
-        
+
         CAMERA::orientation.value().set_value(vec3f(0,0,-1),tan);
 
         vec3f up;
@@ -230,7 +230,7 @@ protected:
 
 #endif
 
-/* trash : 
+/* trash :
 
     } else if(m_what==move_forback) {
       float t = float(atime::diff(a_now,m_start).value());
@@ -245,7 +245,7 @@ protected:
 
       vec3f pos = m_start_pos;
       pos += dir * travel * (1.0f+fcos(fpi()+omega*t))*0.5f;
-      
+
       CAMERA::position = pos;
 
 */

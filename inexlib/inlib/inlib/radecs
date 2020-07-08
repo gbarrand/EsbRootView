@@ -35,7 +35,7 @@ inline void search_stars(const std::vector<STAR>& a_cata,const double a_radecs[8
 
   plane<vec3d> _plane(cs3[0],cs3[1],cs3[2]);
   const vec3d& _normal = _plane.normal();
-    
+
   std::vector<vec2d> cs2(5);
 
   rotd r;r.set_value(_normal,vec3d(0,0,1));

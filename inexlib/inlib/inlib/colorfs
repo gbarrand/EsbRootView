@@ -25,7 +25,7 @@ INLIB_COLORFS_STAT(darkslateblue)
 INLIB_COLORFS_STAT(lightblue)
 INLIB_COLORFS_STAT(lightsteelblue)
 INLIB_COLORFS_STAT(mediumblue)
- 
+
 //10-19
 INLIB_COLORFS_STAT(mediumslateblue)
 INLIB_COLORFS_STAT(midnightblue)
@@ -37,7 +37,7 @@ INLIB_COLORFS_STAT(steelblue)
 INLIB_COLORFS_STAT(coral)
 INLIB_COLORFS_STAT(cyan)
 INLIB_COLORFS_STAT(firebrick)
-      
+
 //20-29
 INLIB_COLORFS_STAT(brown)
 INLIB_COLORFS_STAT(gold)
@@ -49,7 +49,7 @@ INLIB_COLORFS_STAT(forestgreen)
 INLIB_COLORFS_STAT(limegreen)
 INLIB_COLORFS_STAT(mediumseagreen)
 INLIB_COLORFS_STAT(mediumspringgreen)
-      
+
 //30-39
 INLIB_COLORFS_STAT(palegreen)
 INLIB_COLORFS_STAT(seagreen)
@@ -73,7 +73,7 @@ INLIB_COLORFS_STAT(plum)
 INLIB_COLORFS_STAT(red)
 INLIB_COLORFS_STAT(indianred)
 INLIB_COLORFS_STAT(mediumvioletred)
-      
+
 //50-59
 INLIB_COLORFS_STAT(orangered)
 INLIB_COLORFS_STAT(violetred)

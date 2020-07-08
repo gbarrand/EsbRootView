@@ -37,14 +37,14 @@
   }
 
   [pixelFormat release];
-    
+
   NSTrackingAreaOptions _options = NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect;
   NSTrackingArea* tracking_area =
     [[NSTrackingArea alloc] initWithRect:NSZeroRect
 				 options:_options
 				   owner:self userInfo:nil];
   [self addTrackingArea:tracking_area];
-  
+
   m_main = 0;
   m_cursor_default = [NSCursor arrowCursor];
   m_cursor_target = [NSCursor crosshairCursor];
@@ -58,10 +58,17 @@
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 
-- (void)drawRect:(NSRect)rect {
+- (void)drawRect:(NSRect)a_rect {
   [[self openGLContext] makeCurrentContext];
-  int w = rect.size.width;
-  int h = rect.size.height;
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 101500
+  int w = a_rect.size.width;
+  int h = a_rect.size.height;
+#else
+  NSRect backing_rect = [self convertRectToBacking:a_rect];
+  int w  = (int)(backing_rect.size.width);
+  int h = (int)(backing_rect.size.height);
+#endif
 
   if(m_main) {
     m_main->set_size(w,h);
@@ -70,9 +77,14 @@
 
   [[self openGLContext] flushBuffer];
 }
-- (void)mouseDown:(NSEvent*)a_event {  
+- (void)mouseDown:(NSEvent*)a_event {
   [super mouseDown:a_event];
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 101500
   NSPoint p = [a_event locationInWindow];
+#else
+  NSPoint _p = [a_event locationInWindow];
+  NSPoint p = [self convertPointToBacking:_p];
+#endif
   //(0,0) = bottom left of window.
   //NSLog(@"debug : GLView::mouseDown %g %g",p.x,p.y);
   if(m_main) {
@@ -83,9 +95,14 @@
   }
 }
 
-- (void)mouseUp:(NSEvent*)a_event {  
+- (void)mouseUp:(NSEvent*)a_event {
   [super mouseUp:a_event];
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 101500
   NSPoint p = [a_event locationInWindow];
+#else
+  NSPoint _p = [a_event locationInWindow];
+  NSPoint p = [self convertPointToBacking:_p];
+#endif
   //(0,0) = bottom left of window.
   //NSLog(@"debug : GLView::mouseUp %g %g",p.x,p.y);
   if(m_main) {
@@ -97,9 +114,14 @@
   }
 }
 
-- (void)mouseDragged:(NSEvent*)a_event {  
+- (void)mouseDragged:(NSEvent*)a_event {
   [super mouseDragged:a_event];
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 101500
   NSPoint p = [a_event locationInWindow];
+#else
+  NSPoint _p = [a_event locationInWindow];
+  NSPoint p = [self convertPointToBacking:_p];
+#endif
   //(0,0) = bottom left of window.
   //NSLog(@"debug : GLView::mouseDragged %g %g",p.x,p.y);
   if(m_main) {
@@ -123,7 +145,7 @@
 
 - (BOOL)acceptsFirstResponder {return YES;} //so that keyDown be called.
 
-- (void)keyDown:(NSEvent*)a_event {  
+- (void)keyDown:(NSEvent*)a_event {
   [super keyDown:a_event];
   //NSLog(@"debug : GLView::keyDown");
 
@@ -178,7 +200,7 @@
   } else if(a_cursor==inlib::sg::cursor_target) {
     [m_cursor_target set];
     m_cursor_current = m_cursor_target;
-  }    
+  }
 }
 
 @end

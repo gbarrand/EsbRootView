@@ -32,7 +32,7 @@ public:
       a_dirs.clear();
       return false;
     }
- 
+
     char* buffer;
     uint64 length;
     if(!_ftp.fetch_dir(a_path,buffer,length,m_ftp.active())) {
@@ -42,7 +42,7 @@ public:
 
     std::vector<std::string> lines;
     buf2lines(buffer,lines);
-    delete [] buffer;      
+    delete [] buffer;
 #ifdef INLIB_MEM
     mem::decrement(s_new().c_str());
 #endif
@@ -80,7 +80,7 @@ public:
       a_paths.clear();
       return false;
     }
- 
+
     char* buffer;
     uint64 length;
     if(!_ftp.fetch_dir(a_path,buffer,length,m_ftp.active())) {
@@ -90,7 +90,7 @@ public:
 
     std::vector<std::string> lines;
     buf2lines(buffer,lines);
-    delete [] buffer;      
+    delete [] buffer;
 #ifdef INLIB_MEM
     mem::decrement(s_new().c_str());
 #endif
@@ -147,7 +147,7 @@ protected:
   std::ostream& m_out;
   ftp::client m_ftp;
 };
-  
+
 }}
 
 //inlib_build_use kernel

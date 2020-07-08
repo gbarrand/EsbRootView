@@ -32,13 +32,14 @@ protected: //gstos
   virtual unsigned int create_gsto(std::ostream&,sg::render_manager& a_mgr) {
     //unsigned int npt = xyzs.values().size()/3;
     //::printf("debug : colored_sized_points : %lu : create_gsto : %u\n",this,npt);
-    std::vector<float> gsto_data;  
+    std::vector<float> gsto_data;
     append(gsto_data,xyzs.values());
     append(gsto_data,rgbas.values());
     return a_mgr.create_gsto_from_data(gsto_data);
   }
 public:
   virtual void render(render_action& a_action) {
+    if(touched()) {clean_gstos();reset_touched();}
     if(xyzs.empty()) return;
     size_t npt = xyzs.values().size()/3;
     if(rgbas.size()!=(npt*4)) return;
@@ -47,17 +48,17 @@ public:
     //::printf("debug : colored_sized_points %lu %lu %lu\n",npt,rgbas.size(),sizes.size());
 
     const state& state = a_action.state();
-    
+
     if(state.m_use_gsto) {
       unsigned int _id = get_gsto_id(a_action.out(),a_action.render_manager());
       if(_id) {
         a_action.begin_gsto(_id);
-	
+
         a_action.set_point_smooth(true);
-	
+
         bufpos pos_xyzs = 0;
         bufpos pos_rgbas = npt*3*sizeof(float);
-	
+
         bufpos _xyzs = pos_xyzs;
         bufpos _rgbas = pos_rgbas;
         float* _sizes = vec_data<float>(sizes.values());
@@ -65,9 +66,9 @@ public:
         bufpos start_xyzs = _xyzs;
         bufpos start_rgbas = _rgbas;
         float* start_sizes = _sizes;
-    
+
         size_t elems = 0;
-    
+
         for(size_t index=1;;index++) {
           if( ((*_sizes)!=(*start_sizes)) || (index>npt) ) {
             //::printf("debug : draw %lu : size %g\n",elems,*start_sizes);
@@ -84,13 +85,13 @@ public:
           _rgbas += 4*sizeof(float);
           _sizes += 1;
         }
-    
+
         a_action.point_size(state.m_point_size);
         a_action.set_point_smooth(state.m_GL_POINT_SMOOTH);
-	
+
         a_action.end_gsto();
         return;
-  
+
       } else { //!_id
         // use immediate rendering.
       }
@@ -101,7 +102,7 @@ public:
 
     // immediate rendering :
     a_action.set_point_smooth(true);
-    
+
     float* _xyzs = vec_data<float>(xyzs.values());
     float* _rgbas = vec_data<float>(rgbas.values());
     float* _sizes = vec_data<float>(sizes.values());
@@ -109,9 +110,9 @@ public:
     float* start_xyzs = _xyzs;
     float* start_rgbas = _rgbas;
     float* start_sizes = _sizes;
-    
+
     size_t number = 0;
-    
+
     for(size_t index=1;;index++) {
       if( ((*_sizes)!=(*start_sizes)) || (index>npt) ) {
         //::printf("debug : draw %lu : size %g\n",number/3,*start_sizes);
@@ -128,7 +129,7 @@ public:
       _rgbas += 4;
       _sizes += 1;
     }
-    
+
     a_action.point_size(state.m_point_size);
     a_action.set_point_smooth(state.m_GL_POINT_SMOOTH);
 
@@ -187,7 +188,7 @@ public:
     rgbas.add(a_col.a());
     sizes.add(a_size);
   }
-  
+
   void clear() {
     parent::clear();
     rgbas.clear();

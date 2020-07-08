@@ -26,7 +26,7 @@ public:
     return true;
   }
 public:
-  xyzt_anim(const std::vector<vec4f>& a_xyzts)  // we are not owner of tracks.
+  xyzt_anim(const std::vector<vec4f>& a_xyzts)
   :parent()
   ,m_xyzts(a_xyzts)
   {

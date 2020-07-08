@@ -26,7 +26,7 @@ inline bool get_files_with_exts(std::ostream& a_out,
     bool is_dir;
     if(!dir::is_a(dir,is_dir)) continue;
     if(!is_dir) continue;
-        
+
     std::vector<std::string> ls;
     if(!dir::entries(dir,ls,false)){
       a_out << "inlib::get_files :"
@@ -43,7 +43,7 @@ inline bool get_files_with_exts(std::ostream& a_out,
       //  a_out << *it << std::endl;
       //}
     }
-    
+
     std::vector<std::string> files;
    {inlib_vforcit(std::string,ls,it) {
       if((*it)==".") continue;
@@ -56,7 +56,7 @@ inline bool get_files_with_exts(std::ostream& a_out,
         }
       }
     }}
-      
+
     inlib_vforcit(std::string,files,it) {
       std::string path = dir+sep()+(*it);
       a_paths.push_back(path);
@@ -64,7 +64,7 @@ inline bool get_files_with_exts(std::ostream& a_out,
   }
 
   unique(a_paths);
-  
+
   return status;
 }
 
@@ -82,7 +82,7 @@ inline bool get_files_with_names(std::ostream& a_out,
     bool is_dir;
     if(!dir::is_a(dir,is_dir)) continue;
     if(!is_dir) continue;
-        
+
     std::vector<std::string> ls;
     if(!dir::entries(dir,ls,false)){
       a_out << "inlib::get_files :"
@@ -99,7 +99,7 @@ inline bool get_files_with_names(std::ostream& a_out,
       //  a_out << *it << std::endl;
       //}
     }
-    
+
     std::vector<std::string> files;
    {inlib_vforcit(std::string,ls,it) {
       if((*it)==".") continue;
@@ -110,7 +110,7 @@ inline bool get_files_with_names(std::ostream& a_out,
         }
       }
     }}
-      
+
     inlib_vforcit(std::string,files,it) {
       std::string path = dir+sep()+(*it);
       a_paths.push_back(path);
@@ -118,7 +118,7 @@ inline bool get_files_with_names(std::ostream& a_out,
   }
 
   unique(a_paths);
-  
+
   return status;
 }
 

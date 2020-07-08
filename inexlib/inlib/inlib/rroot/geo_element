@@ -43,7 +43,7 @@ public:
     //::printf("debug : geo_element::stream : v %d\n",v);
 
     std::string name;
-    std::string title;  
+    std::string title;
     if(!Named_stream(a_buffer,name,title)) return false;
 
     int fZ;          // Z of element
@@ -70,10 +70,10 @@ public:
                        << std::endl;
         return false;
       }
-      
+
       //Double_t* fAbundances; //[fNisotopes] Array of relative isotope abundances
       if(!dummy_array_stream<double>(a_buffer,fNisotopes)) return false;
-      
+
       double fCoulomb;          // Coulomb correction factor
       if(!a_buffer.read(fCoulomb)) return false;
 
@@ -100,7 +100,7 @@ public:
 protected:
   geo_element(const geo_element& a_from):iro(a_from),m_fac(a_from.m_fac){}
   geo_element& operator=(const geo_element&){return *this;}
-protected:  
+protected:
   ifac& m_fac;
 };
 

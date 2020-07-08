@@ -17,9 +17,35 @@
 
 namespace inlib {
 
+inline sg::base_camera* camera_in_file(sg::gui_viewer& a_gv,sg::node& a_node) {
+  sg::base_camera* cam_in_file = 0;
+ {sg::search_action action(a_gv.out());
+  action.set_class(sg::base_camera::s_class());
+  a_node.search(action);
+  const std::vector<void*>& objs = action.objs();
+  std::vector<void*>::const_iterator it;
+  for(it=objs.begin();it!=objs.end();++it) {
+    cam_in_file = (sg::base_camera*)(*it);
+    break;
+  }}
+  if(!cam_in_file) return 0;
+  // have to remove cam_in_file from within a_node :
+  sg::group* grp = sg::find_container<sg::group>(a_gv.out(),a_node,*cam_in_file,a_gv.verbose());
+  if(!grp) {
+    a_gv.map_warn("search of camera parent failed.");
+    return 0;
+  }
+  if(!grp->remove(cam_in_file)) {
+    a_gv.map_warn("remove camera in container failed.");
+    return 0;
+  }
+  return cam_in_file;
+}
+
 inline void load_node(sg::gui_viewer& a_gv,sg::node* a_node,const args& a_args) {
   sg::view_evd* _evd = cast_view_evd(a_gv);
   if(!_evd) {delete a_node;return;}
+  if(!_evd->is_evd()) _evd->create_sg_evd();
 
   bool enable_anim = false;
  {sg::search_action action(a_gv.out());
@@ -33,34 +59,9 @@ inline void load_node(sg::gui_viewer& a_gv,sg::node* a_node,const args& a_args) 
 
   if(a_gv.verbose()) a_gv.out() << "inlib::sg::load_node : placement : " << sout(placement) << "." << std::endl;
 
-  if(placement.empty()) {
-
-    sg::base_camera* cam_in_file = 0;
-
-   {sg::search_action action(a_gv.out());
-    action.set_class(sg::base_camera::s_class());
-    a_node->search(action);
-    const std::vector<void*>& objs = action.objs();
-    std::vector<void*>::const_iterator it;
-    for(it=objs.begin();it!=objs.end();++it) {
-      cam_in_file = (sg::base_camera*)(*it);
-      break;
-    }}      
-  
-    if(!_evd->is_evd()) _evd->create_sg_evd();
-
-    if(cam_in_file) {
-      // have to remove cam_in_file from within a_node :
-      sg::group* grp = sg::find_container<sg::group>(a_gv.out(),*a_node,*cam_in_file,a_gv.verbose());
-      if(!grp) {
-        a_gv.map_warn("search of camera parent failed.");
-        return;     
-      }
-      if(!grp->remove(cam_in_file)) {
-        a_gv.map_warn("bad camera parent failed.");
-        return;     
-      }
-
+  if(!a_args.is_arg("ignore_camera_in_file")) {
+    sg::base_camera* cam_in_file = camera_in_file(a_gv,*a_node);
+    if(cam_in_file) { //we are owner.
       if(a_gv.is_wall_screen_app()) {
         sg::base_camera* camera = a_gv.create_camera(*cam_in_file);
         if(camera) _evd->replace_camera(camera);
@@ -69,6 +70,9 @@ inline void load_node(sg::gui_viewer& a_gv,sg::node* a_node,const args& a_args) 
         _evd->replace_camera(cam_in_file);
       }
     }
+  }
+
+  if(placement.empty()) {
 
     sg::separator& dsep = _evd->static_sg();
 
@@ -114,19 +118,17 @@ inline void load_node(sg::gui_viewer& a_gv,sg::node* a_node,const args& a_args) 
     } else {
       dsep.add(a_node);
     }
-  
+
     //if(!a_args.is_arg(sg::s_no_hide_menu())) a_gv.hide_main_menu();
     a_gv.hide_main_menu();
 
     //if(a_args.is_arg(sg::s_adapt_camera_sg_was_empty()) && was_empty) a_gv.adapt_camera(dsep);
 
   } else {
-    // case of wall : 
+    // case of wall :
     // could be a sg (det,event,plots) coming from exlib/geant4/session
     // or plots from ioda.
-  
-    if(!_evd->is_evd()) _evd->create_sg_evd();
-  
+
     //must reflect the exlib/geant/session logic.
     if(placement==sg::s_placement_static()) {
       float radius;

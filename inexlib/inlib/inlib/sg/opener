@@ -66,8 +66,8 @@ public:
         if(counter_inited) {
           if(mem_counter!=old_counter) {
             ::printf("debug : load_exsg : balance %d\n",
-              mem_counter-old_counter);     
-          }        
+              mem_counter-old_counter);
+          }
         } else {
           counter_inited = true;
           old_counter = mem_counter;
@@ -197,7 +197,7 @@ public:
       if(!(*it).second->is(a_path,is)) return false;
       if(is) {
         a_done = true;
-        return true;        
+        return true;
       }
     }
     return true;
@@ -264,7 +264,7 @@ protected:
   std::vector<std::string> m_exts;
   unsigned int m_mem_limit;
   //have a vector (and not a map) since the order is important.
-  std::vector<named_opener_t> m_openers;  
+  std::vector<named_opener_t> m_openers;
   std::string m_preferred_format; //for Wt upload.
   bool m_verbose;
 };

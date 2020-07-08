@@ -140,13 +140,31 @@ inline const std::string& modeling_markers() { //used in sg::plotter.
 }
 
 ///////////////////////////////////////////////////////////////
+/// EsbRootView : /////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
-inline const std::string& modeling_arrow() { //used in EsbRootView.
+
+inline const std::string& modeling_arrow() {
   static const std::string s_v("arrow");
+  return s_v;
+}
+inline const std::string& modeling_cube() {
+  static const std::string s_v("cube");
   return s_v;
 }
 inline const std::string& modeling_cone() { //used in EsbRootView.
   static const std::string s_v("cone");
+  return s_v;
+}
+inline const std::string& modeling_cone_detector() { //used in EsbRootView.
+  static const std::string s_v("cone_detector");
+  return s_v;
+}
+inline const std::string& modeling_detector() { //used in EsbRootView.
+  static const std::string s_v("detector");
+  return s_v;
+}
+inline const std::string& modeling_firework() { //used in EsbRootView.
+  static const std::string s_v("firework");
   return s_v;
 }
 
@@ -274,6 +292,7 @@ INLIB_GLOBAL_STRING(camera_height)
 
 INLIB_GLOBAL_STRING(none)
 
+INLIB_GLOBAL_STRING(placement)
 // send sg options :
 INLIB_GLOBAL_STRING_VALUE(send_placement,placement)
 INLIB_GLOBAL_STRING_VALUE(placement_static,static)
