@@ -20,7 +20,6 @@ bush_home=../../bush
 
 use_GLX=yes
 use_X11=yes
-use_GL=yes
 
 use_exlib=yes
 use_inlib=yes
@@ -28,7 +27,6 @@ use_freetype=yes
 use_expat=yes
 use_zlib=yes
 
-. ${bush_home}/use/GL
 . ${bush_home}/use/GLX
 . ${bush_home}/use/X11
 
