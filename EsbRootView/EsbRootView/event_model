@@ -16,6 +16,7 @@
 #include <inlib/hep/pdg>
 #include <inlib/hep/spdg>
 #include <inlib/num2s>
+#include <inlib/mat4d>
 
 class EsbMCTrack {
 #ifdef INLIB_MEM
@@ -34,16 +35,19 @@ public:
   ,fNPoints(a_npoints)
   ,m_container_index(a_container_index)
   ,m_inited(false)
-  ,m_mass(0),m_energy(0),m_rapidity(0),m_name()
+  ,m_mass(0),m_energy(0)
+  ,m_rapidity(0)
+  ,m_name()
+  ,m_det_point(false)
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   virtual ~EsbMCTrack() {
 #ifdef INLIB_MEM
     inlib::mem::decrement(s_class().c_str());
-#endif    
+#endif
   }
 public:
 protected:
@@ -54,11 +58,14 @@ protected:
   ,fNPoints(a_from.fNPoints)
   ,m_container_index(-1)
   ,m_inited(false)
-  ,m_mass(0),m_energy(0),m_rapidity(0),m_name()
+  ,m_mass(0),m_energy(0)
+  ,m_rapidity(0)
+  ,m_name()
+  ,m_det_point(a_from.m_det_point)
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   EsbMCTrack& operator=(const EsbMCTrack& a_from) {
     fPdgCode = a_from.fPdgCode;
@@ -77,6 +84,7 @@ protected:
     m_energy = 0;
     m_rapidity = 0;
     m_name.clear();
+    m_det_point = a_from.m_det_point;
     return *this;
   }
 public:
@@ -96,17 +104,17 @@ public:
 public:
   double GetPt() const {return ::sqrt(fPx*fPx+fPy*fPy);}
   double GetP() const {return ::sqrt(fPx*fPx+fPy*fPy+fPz*fPz);}
-public:  
-  void initialize(const inlib::hep::pdgs& a_pdgs) {
-    if(m_inited) return;    
+public:
+  void initialize(const inlib::hep::pdgs& a_pdgs,const inlib::mat4d& a_wc_matrix) {
+    if(m_inited) return;
     const inlib::hep::particle* pdef = a_pdgs.find_particle(fPdgCode);
     if(pdef) {
       m_mass = pdef->mass();
-      set_energy_and_rapidity();
+      set_energy_and_rapidity(a_wc_matrix);
       m_name = pdef->name();
     } else if(fPdgCode==inlib::pdg::cherenkov()) {
       m_mass = 0;
-      set_energy_and_rapidity();
+      set_energy_and_rapidity(a_wc_matrix);
       m_name = inlib::hep::s_opticalphoton();
     } else {
       int ion_s,ion_z,ion_a;
@@ -126,7 +134,7 @@ public:
           m_name = "??";
 	} else {
           m_mass = (ion_a-ion_z)*neutron->mass()+ion_z*proton->mass();
-          set_energy_and_rapidity();
+          set_energy_and_rapidity(a_wc_matrix);
           inlib::num2s(fPdgCode,m_name);
 	}
       } else {
@@ -144,6 +152,8 @@ public:
   double GetEnergy() const {return m_energy;}
   double GetRapidity() const {return m_rapidity;}
   const std::string& name() const {return m_name;}
+  bool det_point() const {return m_det_point;}
+  void set_det_point(bool a_value) {m_det_point = a_value;}
 protected:
   static bool pdg_is_ion(int a_pdg,int& a_s,int& a_z,int& a_a) {
     // in FairParticle ion cstor, we have : fpdg(1000000000+10000000*s+10000*z+10*a).
@@ -155,14 +165,18 @@ protected:
     div = rest/10;rest = rest-div*10;a_a = div;
     return (1000000000+10000000*a_s+10000*a_z+10*a_a==a_pdg?true:false);
   }
-  void set_energy_and_rapidity() {
+  void set_energy_and_rapidity(const inlib::mat4d& a_wc_matrix) {
     m_energy = ::sqrt(m_mass*m_mass + fPx*fPx + fPy*fPy + fPz*fPz);
-    if(m_energy==fPz) {
+    double px = fPx;
+    double py = fPy;
+    double pz = fPz;
+    a_wc_matrix.mul_dir_3(px,py,pz);
+    if(m_energy==pz) {
       m_rapidity = DBL_MAX;
     } else {
-      m_rapidity = 0.5 * ::log( (m_energy+fPz) / (m_energy-fPz) );
+      m_rapidity = 0.5 * ::log( (m_energy+pz) / (m_energy-pz) );
     }
-  }  
+  }
 protected:
   int fPdgCode;
   int fMotherId;  // Index of mother track. -1 for primary particles.
@@ -176,12 +190,13 @@ protected:
   double m_energy;
   double m_rapidity;
   std::string m_name;
+  bool m_det_point;
 };
 
 class EsbDetectorPoint {
 #ifdef INLIB_MEM
   INLIB_SCLASS(EsbDetectorPoint)
-#endif  
+#endif
 public:
   typedef double double32; //ROOT stuff, a double, but stored in file as float (!).
 public:
@@ -199,12 +214,12 @@ public:
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   virtual ~EsbDetectorPoint() {
 #ifdef INLIB_MEM
     inlib::mem::decrement(s_class().c_str());
-#endif    
+#endif
   }
 protected:
   EsbDetectorPoint(const EsbDetectorPoint&)
@@ -212,7 +227,7 @@ protected:
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   EsbDetectorPoint& operator=(const EsbDetectorPoint&) {
     m_container_index = -1;
@@ -232,35 +247,18 @@ public:
   double GetEnergyLoss() const {return fELoss;}
   int GetDetectorID() const {return fDetectorID;}
   int container_index() const {return m_container_index;}
-public:  
+public:
   double GetP() const {return ::sqrt(fPx*fPx+fPy*fPy+fPz*fPz);}
-  bool get_location(bool a_neard,double a_radius,double a_length,int& a_location) const {
-    double x,y,z,r;
-    if(a_neard) {
-      x = GetX();
-      y = GetY();
-      z = GetZ();
-      r = ::sqrt(x*x + y*y);
-    } else {
-      x =  GetX();
-      y = -GetZ();
-      z =  GetY();
-      r = ::sqrt(x*x + y*y);
-    }
-    if(::fabs(z - a_length/2.0) < 1) { // front
-      a_location = 1;
-      return true;
-    }
-    if(::fabs(z + a_length/2) < 1) { // back
-      a_location = 3;
-      return true;
-    }
-    if (::fabs(r - a_radius) < 1) { // side
-      a_location = 2;
-      return true;
-    }
-    a_location = -1;
-    return false;
+  void dump(std::ostream& a_out) const {
+    a_out << "track_id " << fTrackID << std::endl;
+    a_out << "event_id " << fEventId << std::endl;
+    a_out << "px " << fPx << ", py " << fPy << ", pz " << fPz << std::endl;
+    a_out << "time " << fTime << std::endl;
+    a_out << "x " << fX << ", y " << fY << ", z " << fZ << std::endl;
+    a_out << "length " << fLength << std::endl;
+    a_out << "Eloss " << fELoss << std::endl;
+    a_out << "detector_id " << fDetectorID << std::endl;
+    a_out << "index " << m_container_index << std::endl;
   }
 protected:
   int fTrackID;            ///< Track index
@@ -277,7 +275,7 @@ protected:
 class EsbHit {
 #ifdef INLIB_MEM
   INLIB_SCLASS(EsbHit)
-#endif  
+#endif
 public:
   typedef double double32; //ROOT stuff, a double, but stored in file as float (!).
 public:
@@ -293,12 +291,12 @@ public:
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   virtual ~EsbHit() {
 #ifdef INLIB_MEM
     inlib::mem::decrement(s_class().c_str());
-#endif    
+#endif
   }
 public:
   EsbHit(const EsbHit& a_from)
@@ -315,7 +313,7 @@ public:
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   EsbHit& operator=(const EsbHit& a_from) {
     fDx = a_from.fDx;
@@ -354,7 +352,7 @@ class EsbFgdHit : public EsbHit {
   typedef EsbHit parent;
 #ifdef INLIB_MEM
   INLIB_SCLASS(EsbFgdHit)
-#endif  
+#endif
 public:
   EsbFgdHit(double a_dx,double a_dy,double a_dz,
             int a_ref_index,int a_detector_id,
@@ -370,12 +368,12 @@ public:
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   virtual ~EsbFgdHit() {
 #ifdef INLIB_MEM
     inlib::mem::decrement(s_class().c_str());
-#endif    
+#endif
   }
 public:
   EsbFgdHit(const EsbFgdHit& a_from)
@@ -391,7 +389,7 @@ public:
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   EsbFgdHit& operator=(const EsbFgdHit& a_from) {
     parent::operator=(a_from);
@@ -405,7 +403,7 @@ public:
     m_added = a_from.m_added;
     return *this;
   }
-public:  
+public:
   double mppc_x() const {return m_mppc_x;}
   double mppc_y() const {return m_mppc_y;}
   double mppc_z() const {return m_mppc_z;}
@@ -413,7 +411,7 @@ public:
   double photoE_y() const {return m_photoE_y;}
   double photoE_z() const {return m_photoE_z;}
   int container_index() const {return m_container_index;}
-public:  
+public:
   double photoE() const {return m_photoE_x+m_photoE_y+m_photoE_z;}
   bool absorbed() const {return m_added==0?true:false;}
 public:
@@ -444,13 +442,13 @@ public:
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   virtual ~one_event() {
     clear();
 #ifdef INLIB_MEM
     inlib::mem::decrement(s_class().c_str());
-#endif    
+#endif
   }
 public:
 protected:
@@ -465,7 +463,7 @@ protected:
   {
 #ifdef INLIB_MEM
     inlib::mem::increment(s_class().c_str());
-#endif    
+#endif
   }
   one_event& operator=(const one_event& a_from) {
     m_mc_tracks = a_from.m_mc_tracks;
@@ -512,7 +510,7 @@ public:
   std::vector<EsbDetectorPoint*>& fgd_points() {return m_fgd_points;}
   std::vector<EsbFgdHit*>& fgd_hits() {return m_fgd_hits;}
   void set_event_index(unsigned int a_index) {m_event_index = a_index;}
-  
+
   void initialize() {
     m_time_min = DBL_MAX;
     m_time_max = -DBL_MAX;
@@ -548,7 +546,7 @@ inline bool FgdHits_unique_at_pos(std::ostream& a_out,
 
   double aphotoE = 0;
  {inlib_vforcit(EsbFgdHit*,a_hits,it) aphotoE += (*it)->photoE();}
- 
+
   inlib_vforcit(EsbFgdHit*,a_hits,it) {
     EsbFgdHit* hit = *it;
     bool found = false;

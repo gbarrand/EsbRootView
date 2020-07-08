@@ -55,9 +55,9 @@ public:
     }
 
     if(!_dac->read_one_event(_evd->event_index())) {stop();return;}
-    
+
     if(!source_event_insh(m_gv)) {stop();return;}
-    
+
     _evd->event_index()++;
     m_event_count++;
   }

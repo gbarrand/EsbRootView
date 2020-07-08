@@ -31,7 +31,7 @@ namespace EsbRootView {
 
 inline bool read_MCTracks(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::vector<EsbMCTrack*>& a_tracks,bool a_verbose) {
   inlib::raw_clear(a_tracks);
-  
+
   std::ostream& out = a_tree.out();
 
   inlib::rroot::branch_element* be_MCTrack = a_tree.find_branch_element("MCTrack");
@@ -48,16 +48,16 @@ inline bool read_MCTracks(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::
 
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fPdgCode,int)
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fMotherId,int)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fPx,double)
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fPy,double)
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fPz,double)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fStartX,double)
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fStartY,double)
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fStartZ,double)
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fStartT,double)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(MCTrack,fNPoints,int)
 
   size_t number = vec_MCTrack_fPdgCode->size();
@@ -91,7 +91,7 @@ inline bool read_MCTracks(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::
 
 inline bool read_WCDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::vector<EsbDetectorPoint*>& a_points,bool a_verbose) {
   inlib::raw_clear(a_points);
-  
+
   std::ostream& out = a_tree.out();
 
   inlib::rroot::branch_element* be_EsbWCDetectorPoint = a_tree.find_branch_element("EsbWCDetectorPoint");
@@ -108,13 +108,13 @@ inline bool read_WCDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_eve
 
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fEventId,inlib::uint32)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fTrackID,int)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fX,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fY,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fZ,double)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fTime,double)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fPx,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fPy,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fPz,double)
@@ -122,7 +122,7 @@ inline bool read_WCDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_eve
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fLength,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fELoss,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbWCDetectorPoint,fDetectorID,int)
-  
+
   size_t number = vec_EsbWCDetectorPoint_fX->size();
 
   if( (vec_EsbWCDetectorPoint_fEventId->size() != number)
@@ -156,7 +156,7 @@ inline bool read_WCDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_eve
 
 inline bool read_FgdDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::vector<EsbDetectorPoint*>& a_points,bool a_verbose) {
   inlib::raw_clear(a_points);
-  
+
   std::ostream& out = a_tree.out();
 
   inlib::rroot::branch_element* be_EsbFgdDetectorPoint = a_tree.find_branch_element("EsbFgdDetectorPoint");
@@ -173,13 +173,13 @@ inline bool read_FgdDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_ev
 
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fEventId,inlib::uint32)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fTrackID,int)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fX,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fY,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fZ,double)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fTime,double)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fPx,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fPy,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fPz,double)
@@ -187,7 +187,7 @@ inline bool read_FgdDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_ev
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fLength,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fELoss,double)
   ESBROOTVIEW_GET_BRANCH_VEC(EsbFgdDetectorPoint,fDetectorID,int)
-  
+
   size_t number = vec_EsbFgdDetectorPoint_fX->size();
 
   if( (vec_EsbFgdDetectorPoint_fEventId->size() != number)
@@ -223,7 +223,7 @@ inline bool read_FgdDetectorPoints(inlib::rroot::tree& a_tree,inlib::uint64 a_ev
 
 inline bool read_FgdHits(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::vector<EsbFgdHit*>& a_hits,bool a_verbose) {
   inlib::raw_clear(a_hits);
-  
+
   std::ostream& out = a_tree.out();
 
   inlib::rroot::branch_element* be_EsbFgdHit = a_tree.find_branch_element("FgdHit");
@@ -241,14 +241,14 @@ inline bool read_FgdHits(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::v
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fDx,double)
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fDy,double)
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fDz,double)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fRefIndex,int)
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fDetectorID,int)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fX,double)
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fY,double)
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fZ,double)
-  
+
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fTimeStamp,double)
   ESBROOTVIEW_GET_BRANCH_VEC(FgdHit,fTimeStampError,double)
 
@@ -268,10 +268,10 @@ inline bool read_FgdHits(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::v
 
    || (vec_FgdHit_fTimeStamp->size() != number)
    || (vec_FgdHit_fTimeStampError->size() != number)
-   
+
    || (vec_FgdHit_fmppcLoc->size() != number)
    || (vec_FgdHit_fphotoE->size() != number)
-  
+
    ){
     if(a_verbose) out << "inlib::esb::read_FgdHits : not consistent vector sizes for EsbFgdHit." << std::endl;
     return false;
@@ -308,7 +308,7 @@ inline bool read_FgdHits(inlib::rroot::tree& a_tree,inlib::uint64 a_event,std::v
 inline void unique_FgdHits(std::ostream& a_out,std::vector<EsbFgdHit*>& a_hits,bool a_verbose) { // find and add hits at same position.
   double aphotoE = 0;
  {inlib_vforcit(EsbFgdHit*,a_hits,it) aphotoE += (*it)->photoE();}
- 
+
   std::vector<EsbFgdHit*> uhits;
   inlib_vforit(EsbFgdHit*,a_hits,it) {
     EsbFgdHit* hit = *it;
@@ -356,18 +356,32 @@ inline void unique_FgdHits(std::ostream& a_out,std::vector<EsbFgdHit*>& a_hits,b
 }
 */
 
-inline void init_MCTracks(std::vector<EsbMCTrack*>& a_tracks,const inlib::hep::pdgs& a_pdgs) {
-  inlib_vforit(EsbMCTrack*,a_tracks,it) (*it)->initialize(a_pdgs);
-}
-
-inline void read_event(inlib::rroot::tree& a_tree,inlib::uint64 a_event_index,one_event& a_event,const inlib::hep::pdgs& a_pdgs,bool a_verbose) {
+inline void read_event(inlib::rroot::tree& a_tree,inlib::uint64 a_event_index,one_event& a_event,
+                       const inlib::hep::pdgs& a_pdgs,const inlib::mat4d& a_wc_matrix,
+                       bool a_verbose) {
   if(!read_MCTracks(a_tree,a_event_index,a_event.mc_tracks(),a_verbose)) {}
-  init_MCTracks(a_event.mc_tracks(),a_pdgs);
+ {inlib_vforit(EsbMCTrack*,a_event.mc_tracks(),it) (*it)->initialize(a_pdgs,a_wc_matrix);}
+
   if(!read_WCDetectorPoints(a_tree,a_event_index,a_event.wc_points(),a_verbose)) {}
   if(!read_FgdDetectorPoints(a_tree,a_event_index,a_event.fgd_points(),a_verbose)) {}
   if(!read_FgdHits(a_tree,a_event_index,a_event.fgd_hits(),a_verbose)) {}
   //unique_FgdHits(a_tree.out(),a_event.fgd_hits(),a_verbose);
   a_event.initialize();
+  // set mc_tracks det_point:
+ {std::vector<EsbMCTrack*>& _mc_tracks = a_event.mc_tracks();
+  std::vector<EsbDetectorPoint*> _wc_points = a_event.wc_points(); //have a copy.
+  size_t _mc_tracks_size = _mc_tracks.size();
+  for(size_t index=0;index<_mc_tracks_size;index++) {
+    bool found = false;
+    inlib_vforit(EsbDetectorPoint*,_wc_points,it) {
+      if((*it)->GetTrackID()==int(index)) {
+        found = true;
+        _wc_points.erase(it);
+        break;
+      }
+    }
+    _mc_tracks[index]->set_det_point(found);
+  }}
 }
 
 #undef ESBROOTVIEW_GET_BRANCH_VEC

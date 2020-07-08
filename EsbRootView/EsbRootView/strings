@@ -8,8 +8,11 @@
 
 namespace EsbRootView {
 
-INLIB_GLOBAL_STRING_VALUE(modeling_neard,neard)
-INLIB_GLOBAL_STRING_VALUE(modeling_fard,fard)
+INLIB_GLOBAL_STRING_VALUE(modeling_mc_track,mc_track)
+
+//INLIB_GLOBAL_STRING_VALUE(modeling_detector,detector)
+//INLIB_GLOBAL_STRING_VALUE(modeling_firework,firework)
+//INLIB_GLOBAL_STRING_VALUE(modeling_cone_detector,cone_detector)
 
 }
 

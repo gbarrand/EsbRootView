@@ -23,16 +23,18 @@ protected:
     m_value_py.set(a_data.GetPy());
     m_value_pz.set(a_data.GetPz());
     m_value_p.set(a_data.GetP());
-    m_value_m.set(a_data.GetMass());    
-    m_value_E.set(a_data.GetEnergy());    
-    m_value_rapidity.set(a_data.GetRapidity());    
+    m_value_m.set(a_data.GetMass());
+    m_value_E.set(a_data.GetEnergy());
+    m_value_rapidity.set(a_data.GetRapidity());
     m_value_name.set(a_data.name());
-    
+
     m_value_mother_id.set(a_data.GetMotherId());
 
    {bool is_secondary;
     if(!m_event.is_secondary(a_data,is_secondary)) {}
     m_value_is_secondary.set(is_secondary);}
+
+    m_value_det_point.set(a_data.det_point());
 
     m_value_container_index.set(a_data.container_index());
     parent::get_variables();
@@ -57,6 +59,7 @@ public:
     add_named_value_ref("m",m_value_m);
     add_named_value_ref("mother_id",m_value_mother_id);
     add_named_value_ref("is_secondary",m_value_is_secondary);
+    add_named_value_ref("det_point",m_value_det_point);
     add_named_value_ref("index",m_value_container_index);
     m_is_valid = initialize();
   }
@@ -82,11 +85,12 @@ protected:
   inlib::value m_value_py;
   inlib::value m_value_pz;
   inlib::value m_value_mother_id;
-  inlib::value m_value_is_secondary;
   inlib::value m_value_p;
   inlib::value m_value_E;
   inlib::value m_value_rapidity;
   inlib::value m_value_m;
+  inlib::value m_value_is_secondary;
+  inlib::value m_value_det_point;
   inlib::value m_value_container_index;
 };
 
@@ -104,7 +108,8 @@ protected:
     m_value_length.set(a_data.GetLength());
     m_value_Eloss.set(a_data.GetEnergyLoss());
     m_value_detector_id.set(a_data.GetDetectorID());
-    
+    m_value_event_id.set(a_data.GetEventID());
+
    {int track_id = a_data.GetTrackID();
     if((track_id<0)||(track_id>=int(m_event.mc_tracks().size())))  {
       // it should not happen, but well.
@@ -119,7 +124,7 @@ protected:
       if(!m_event.is_secondary(_track,is_secondary)) {}
       m_value_is_secondary.set(is_secondary);
     }}
-    
+
     m_value_track_id.set(a_data.GetTrackID());
     m_value_p.set(a_data.GetP());
 
@@ -145,6 +150,7 @@ public:
     add_named_value_ref("pdg",m_value_pdg);
     add_named_value_ref("track_id",m_value_track_id);
     add_named_value_ref("is_secondary",m_value_is_secondary);
+    add_named_value_ref("event_id",m_value_event_id);
     add_named_value_ref("index",m_value_container_index);
     m_is_valid = initialize();
   }
@@ -170,6 +176,7 @@ protected:
   inlib::value m_value_length;
   inlib::value m_value_Eloss;
   inlib::value m_value_detector_id;
+  inlib::value m_value_event_id;
   inlib::value m_value_pdg;
   inlib::value m_value_track_id;
   inlib::value m_value_is_secondary;

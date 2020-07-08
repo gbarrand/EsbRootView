@@ -38,7 +38,7 @@ public:
       _evd->event_index() = 0;
       if(!_dac->open_event_file(a_path)) return false;
     }
- 
+
     a_done = true;
     return true;
   }
@@ -79,7 +79,7 @@ public:
     inlib::mem::decrement(s_class().c_str());
 #endif
   }
-  opener& operator=(const opener&){return *this;}  
+  opener& operator=(const opener&){return *this;}
 };
 
 }

@@ -10,6 +10,7 @@
 #include "vis_plots"
 
 #include <exlib/rroot/opener>
+#include <inlib/sg/insh_gui_viewer>
 
 namespace EsbRootView {
 
@@ -31,12 +32,12 @@ inline inlib::sg::return_action action_start_events(inlib::sg::gui_viewer& a_gv,
   inlib::uint64 number = _dac->number_of_events();
   if(!number) {
     a_gv.insh().warn("EsbRootView::action_start_event","no event in file.");
-    return inlib::sg::return_to_render;     
+    return inlib::sg::return_to_render;
   }
 
   if(!wanted_nevent) {
     a_gv.insh().warn("EsbRootView::action_start_event","nothing to do.");
-    return inlib::sg::return_to_render;     
+    return inlib::sg::return_to_render;
   }
 
   _evd->event_index() = start_event;
@@ -83,9 +84,10 @@ inline inlib::sg::return_action action_start_scene_anims(inlib::sg::gui_viewer& 
   if(clear_scene) _evd->dynamic_sg().clear();
 
   if(a_gv.is_doc_res_file("anim.insh")) a_gv.insh().exec_line_reset_to_stop(". anim.insh");
-  
+
   std::string script;
   script += "scene_start_anim";
+  script +=  " -dynamic";
   script +=  " -time_min="+a_widget.values[0];
   script +=  " -time_max="+a_widget.values[1];
   script +=     " -delay="+a_widget.values[2];
@@ -130,91 +132,6 @@ inline inlib::sg::return_action action_menu_scene_anims(inlib::sg::gui_viewer& a
 ///////////////////////////////////////////////////////////////
 /// neard/fard : //////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////
-/*
-inline inlib::sg::return_action action_setup_neard(inlib::sg::gui_viewer& a_gv) {
-
- {std::string from = a_gv.res_dir()+inlib::sep()+"neard_startup.insh";
-  std::string to = a_gv.doc_dir()+inlib::sep()+"startup.insh";
-  if(!inlib::file::copy_bytes(from,to)) {
-    a_gv.insh().warn("can't copy "+inlib::sout(from)+" to "+inlib::sout(to));
-    return inlib::sg::return_to_render;
-  }}
-
- {std::string from = a_gv.res_dir()+inlib::sep()+"neard_event.insh";
-  std::string to = a_gv.doc_dir()+inlib::sep()+"event.insh";
-  if(!inlib::file::copy_bytes(from,to)) {
-    a_gv.insh().warn("can't copy "+inlib::sout(from)+" to "+inlib::sout(to));
-    return inlib::sg::return_to_render;
-  }}
-
-  a_gv.show_console("res_dir/neard_[startup,event].insh copied to doc_dir/[startup,event].insh");
-
-  return inlib::sg::return_to_render;
-}
-
-inline inlib::sg::return_action action_setup_fard(inlib::sg::gui_viewer& a_gv) {
-
- {std::string from = a_gv.res_dir()+inlib::sep()+"fard_startup.insh";
-  std::string to = a_gv.doc_dir()+inlib::sep()+"startup.insh";
-  if(!inlib::file::copy_bytes(from,to)) {
-    a_gv.insh().warn("can't copy "+inlib::sout(from)+" to "+inlib::sout(to));
-    return inlib::sg::return_to_render;
-  }}
-
- {std::string from = a_gv.res_dir()+inlib::sep()+"fard_event.insh";
-  std::string to = a_gv.doc_dir()+inlib::sep()+"event.insh";
-  if(!inlib::file::copy_bytes(from,to)) {
-    a_gv.insh().warn("can't copy "+inlib::sout(from)+" to "+inlib::sout(to));
-    return inlib::sg::return_to_render;
-  }}
-
-  a_gv.show_console("res_dir/fard_[startup,event].insh copied to doc_dir/[startup,event].insh");
-
-  return inlib::sg::return_to_render;
-}
-
-inline inlib::sg::return_action action_setup_fgd(inlib::sg::gui_viewer& a_gv) {
-
- {std::string from = a_gv.res_dir()+inlib::sep()+"fgd_startup.insh";
-  std::string to = a_gv.doc_dir()+inlib::sep()+"startup.insh";
-  if(!inlib::file::copy_bytes(from,to)) {
-    a_gv.insh().warn("can't copy "+inlib::sout(from)+" to "+inlib::sout(to));
-    return inlib::sg::return_to_render;
-  }}
-
- {std::string from = a_gv.res_dir()+inlib::sep()+"fgd_event.insh";
-  std::string to = a_gv.doc_dir()+inlib::sep()+"event.insh";
-  if(!inlib::file::copy_bytes(from,to)) {
-    a_gv.insh().warn("can't copy "+inlib::sout(from)+" to "+inlib::sout(to));
-    return inlib::sg::return_to_render;
-  }}
-
-  a_gv.show_console("res_dir/fgd_[startup,event].insh copied to doc_dir/[startup,event].insh");
-
-  return inlib::sg::return_to_render;
-}
-
-inline inlib::sg::return_action action_setup_fgd_hit(inlib::sg::gui_viewer& a_gv) {
-
- {std::string from = a_gv.res_dir()+inlib::sep()+"fgd_hit_startup.insh";
-  std::string to = a_gv.doc_dir()+inlib::sep()+"startup.insh";
-  if(!inlib::file::copy_bytes(from,to)) {
-    a_gv.insh().warn("can't copy "+inlib::sout(from)+" to "+inlib::sout(to));
-    return inlib::sg::return_to_render;
-  }}
-
- {std::string from = a_gv.res_dir()+inlib::sep()+"fgd_hit_event.insh";
-  std::string to = a_gv.doc_dir()+inlib::sep()+"event.insh";
-  if(!inlib::file::copy_bytes(from,to)) {
-    a_gv.insh().warn("can't copy "+inlib::sout(from)+" to "+inlib::sout(to));
-    return inlib::sg::return_to_render;
-  }}
-
-  a_gv.show_console("res_dir/fgd_hit_[startup,event].insh copied to doc_dir/[startup,event].insh");
-
-  return inlib::sg::return_to_render;
-}
-*/
 
 inline inlib::sg::return_action action_menu_setups(inlib::sg::gui_viewer& a_gv) {
   inlib::sg::list* list = new inlib::sg::list(a_gv.ttf());
@@ -225,40 +142,46 @@ res_dir=`app_dir -res`\n\
 doc_dir=`app_dir -doc`\n\
 sep=`sys_file_sep`  # it handles UNIX and Windows/DOS cases.\n\
 mkdir -p ${doc_dir}\n\
-cp ${res_dir}${sep}neard_startup.insh     ${doc_dir}${sep}startup.insh\n\
-cp ${res_dir}${sep}neard_event.insh       ${doc_dir}${sep}event.insh\n\
-cp ${res_dir}${sep}neard_anim.insh        ${doc_dir}${sep}anim.insh\n\
+cp ${res_dir}${sep}neard_startup.insh  ${doc_dir}${sep}startup.insh\n\
+cp ${res_dir}${sep}event.insh          ${doc_dir}${sep}event.insh\n\
+cp ${res_dir}${sep}anim.insh           ${doc_dir}${sep}anim.insh\n\
+cp ${res_dir}${sep}neard_geo_full.root ${doc_dir}${sep}geo_full.root\n\
+cp ${res_dir}${sep}neard_evetest.root  ${doc_dir}${sep}evetest.root\n\
 . ${doc_dir}${sep}startup.insh\n\
 #show_console res_dir/neard_[startup,event].insh copied to doc_dir/[startup,event].insh\n\
 ";
   inlib::sg::add_white_item_insh(a_gv,*list,"neard",script);}
-  
+
  {std::string script = "\
 res_dir=`app_dir -res`\n\
 doc_dir=`app_dir -doc`\n\
 sep=`sys_file_sep`  # it handles UNIX and Windows/DOS cases.\n\
 mkdir -p ${doc_dir}\n\
-cp ${res_dir}${sep}fard_startup.insh ${doc_dir}${sep}startup.insh\n\
-cp ${res_dir}${sep}fard_event.insh   ${doc_dir}${sep}event.insh\n\
-cp ${res_dir}${sep}fard_anim.insh    ${doc_dir}${sep}anim.insh\n\
+cp ${res_dir}${sep}fard_startup.insh  ${doc_dir}${sep}startup.insh\n\
+cp ${res_dir}${sep}event.insh         ${doc_dir}${sep}event.insh\n\
+cp ${res_dir}${sep}anim.insh          ${doc_dir}${sep}anim.insh\n\
+cp ${res_dir}${sep}fard_geo_full.root ${doc_dir}${sep}geo_full.root\n\
+cp ${res_dir}${sep}fard_evetest.root  ${doc_dir}${sep}evetest.root\n\
 . ${doc_dir}${sep}startup.insh\n\
 #show_console res_dir/fard_[startup,event].insh copied to doc_dir/[startup,event].insh\n\
 ";
   inlib::sg::add_white_item_insh(a_gv,*list,"fard",script);}
-  
+
  {std::string script = "\
 res_dir=`app_dir -res`\n\
 doc_dir=`app_dir -doc`\n\
 sep=`sys_file_sep`  # it handles UNIX and Windows/DOS cases.\n\
 mkdir -p ${doc_dir}\n\
-cp ${res_dir}${sep}fgd_startup.insh ${doc_dir}${sep}startup.insh\n\
-cp ${res_dir}${sep}fgd_event.insh   ${doc_dir}${sep}event.insh\n\
-cp ${res_dir}${sep}fgd_anim.insh    ${doc_dir}${sep}anim.insh\n\
+cp ${res_dir}${sep}fgd_startup.insh  ${doc_dir}${sep}startup.insh\n\
+cp ${res_dir}${sep}fgd_event.insh    ${doc_dir}${sep}event.insh\n\
+cp ${res_dir}${sep}fgd_anim.insh     ${doc_dir}${sep}anim.insh\n\
+cp ${res_dir}${sep}fgd_geo_full.root ${doc_dir}${sep}geo_full.root\n\
+cp ${res_dir}${sep}fgd_evetest.root  ${doc_dir}${sep}evetest.root\n\
 . ${doc_dir}${sep}startup.insh\n\
 #show_console res_dir/fgd_[startup,event].insh copied to doc_dir/[startup,event].insh\n\
 ";
   inlib::sg::add_white_item_insh(a_gv,*list,"fgd",script);}
-  
+
  {std::string script = "\
 res_dir=`app_dir -res`\n\
 doc_dir=`app_dir -doc`\n\
@@ -267,6 +190,8 @@ mkdir -p ${doc_dir}\n\
 cp ${res_dir}${sep}fgd_hit_startup.insh ${doc_dir}${sep}startup.insh\n\
 cp ${res_dir}${sep}fgd_hit_event.insh   ${doc_dir}${sep}event.insh\n\
 cp ${res_dir}${sep}fgd_hit_anim.insh    ${doc_dir}${sep}anim.insh\n\
+cp ${res_dir}${sep}fgd_geo_full.root    ${doc_dir}${sep}geo_full.root\n\
+cp ${res_dir}${sep}fgd_dig.root         ${doc_dir}${sep}digi.root\n\
 . ${doc_dir}${sep}startup.insh\n\
 #show_console res_dir/fgd_hit_[startup,event].insh copied to doc_dir/[startup,event].insh\n\
 ";
@@ -275,8 +200,12 @@ cp ${res_dir}${sep}fgd_hit_anim.insh    ${doc_dir}${sep}anim.insh\n\
  {std::string script = "\
 doc_dir=`app_dir -doc`\n\
 sep=`sys_file_sep`  # it handles UNIX and Windows/DOS cases.\n\
-rm ${doc_dir}${sep}startup.insh\n\
-rm ${doc_dir}${sep}event.insh\n\
+rm -f ${doc_dir}${sep}startup.insh\n\
+rm -f ${doc_dir}${sep}event.insh\n\
+rm -f ${doc_dir}${sep}anim.insh\n\
+rm -f ${doc_dir}${sep}geo_full.root\n\
+rm -f ${doc_dir}${sep}evetest.root\n\
+rm -f ${doc_dir}${sep}digi.root\n\
 ";
   inlib::sg::add_white_item_insh(a_gv,*list,"reset",script);}
 
@@ -292,12 +221,11 @@ inline inlib::sg::return_action action_menu_neard(inlib::sg::gui_viewer& a_gv) {
   inlib::sg::list* list = new inlib::sg::list(a_gv.ttf());
   a_gv.set_style(*list);
 
-  inlib::sg::add_white_item_insh(a_gv,*list,"geometry"  ,"app_open_geometry_file -doc_res neard_geo_full.root\nneard_vis_geometry\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,"set camera","neard_set_camera\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,"floor"     ,"neard_vis_floor\ngui_hide_main_menu");  
-  inlib::sg::add_white_item_insh(a_gv,*list,"sarah"     ,"neard_vis_sarah\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,"axes"      ,"scene_add_axes -color=green -translate='-300 -300 0' -rotate='1 0 0 0' -scale=600 -x_title='x(cm)' -x_width=1 -x_min=0 -x_max=600 -y_title='y(cm)' -y_width=1 -y_min=0 -y_max=600 -z_title='z(cm)' -z_width=1 -z_min=0 -z_max=600\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,"infos"     ,"gui_text 'cylinder radius 3 m' 'cylinder length 10 m'\ngui_show_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"geometry"  ,"app_open_geometry_file -doc_res neard_geo_full.root\n. neard_add_geometry.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"set camera",". neard_set_camera.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"floor"     ,". neard_add_floor.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"avatars"   ,". neard_add_avatars.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"axes"      ,". neard_add_axes.insh\ngui_hide_main_menu");
 
   a_gv.push_list(list);
   return inlib::sg::return_to_render;
@@ -307,12 +235,11 @@ inline inlib::sg::return_action action_menu_fard(inlib::sg::gui_viewer& a_gv) {
   inlib::sg::list* list = new inlib::sg::list(a_gv.ttf());
   a_gv.set_style(*list);
 
-  inlib::sg::add_white_item_insh(a_gv,*list,"geometry"  ,"app_open_geometry_file -doc_res fard_geo_full.root\nfard_vis_geometry\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,"set camera","fard_set_camera\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,"floor"     ,"fard_vis_floor\ngui_hide_main_menu");  
-  inlib::sg::add_white_item_insh(a_gv,*list,"sarah"     ,"fard_vis_sarah\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,"axes"      ,"scene_add_axes -color=green -translate='0 -2740 0' -rotate='1 0 0 0' -scale=5480 -x_title='x(cm)' -x_width=1 -x_min=0 -x_max=5480 -y_title='y(cm)' -y_width=1 -y_min=0 -y_max=5480 -z_title='z(cm)' -z_width=1 -z_min=0 -z_max=5480\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,"infos"     ,"gui_text 'cylinder radius 35.4 m' 'cylinder height 54.8 m'\ngui_show_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"geometry"  ,"app_open_geometry_file -doc_res fard_geo_full.root\n. fard_add_geometry.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"set camera",". fard_set_camera.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"floor"     ,". fard_add_floor.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"avatars"   ,". fard_add_avatars.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,"axes"      ,". fard_add_axes.insh\ngui_hide_main_menu");
 
   a_gv.push_list(list);
   return inlib::sg::return_to_render;
@@ -333,20 +260,20 @@ inline inlib::sg::return_action action_menu_vis_event_items(inlib::sg::gui_viewe
   inlib::sg::add_white_item_insh(a_gv,*list,"event_vis WCDetectorPoint"  ,"event_vis WCDetectorPoint\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,"event_vis FgdDetectorPoint" ,"event_vis FgdDetectorPoint\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,"event_vis FgdHit"           ,"event_vis FgdHit\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,". mctrack_primaries.insh"      ,". mctrack_primaries.insh\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,". mctrack_cone.insh"           ,". mctrack_cone.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,". mctrack_cone_detector.insh"  ,". mctrack_cone_detector.insh\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,". mctrack_arrow.insh"          ,". mctrack_arrow.insh\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,". mctrack_mu_to_nu_mu.insh"    ,". mctrack_mu_to_nu_mu.insh\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,". fgdhit_duplicate.insh"       ,". fgdhit_duplicate.insh\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,". fgdhit_wire_frame.insh"      ,". fgdhit_wire_frame.insh\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,". fgdhit_wire_frame.insh"      ,". fgdhit_wire_frame.insh\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,". neard_wcpoint_hedgehog.insh" ,". neard_wcpoint_hedgehog.insh\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,". fard_wcpoint_hedgehog.insh"  ,". fard_wcpoint_hedgehog.insh\ngui_hide_main_menu");
-  
+  inlib::sg::add_white_item_insh(a_gv,*list,". wcpoint_hedgehog.insh"       ,". wcpoint_hedgehog.insh\ngui_hide_main_menu");
+
   inlib::sg::add_white_item_insh(a_gv,*list,". mctrack_wcpoint_anim.insh"  ,". mctrack_wcpoint_anim.insh\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,". neard_cone_anim.insh"       ,". neard_cone_anim.insh\ngui_hide_main_menu");
-  inlib::sg::add_white_item_insh(a_gv,*list,". fard_cone_anim.insh"        ,". fard_cone_anim.insh\ngui_hide_main_menu");
+  inlib::sg::add_white_item_insh(a_gv,*list,". cone_anim.insh"             ,". cone_anim.insh\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,". fgdpoint_anim.insh"         ,". fgdpoint_anim.insh\ngui_hide_main_menu");
-  
+  inlib::sg::add_white_item_insh(a_gv,*list,". mu_nu_e_nu_mu_anim.insh"    ,". mu_nu_e_nu_mu_anim.insh\ngui_hide_main_menu");
+
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////
@@ -360,28 +287,41 @@ inline inlib::sg::return_action action_menu_vis_event_items(inlib::sg::gui_viewe
 
 #define ACTION_PLOT_DATA(a__action,a__data,a__evaluator,a__cut,a__variable) \
 inline inlib::sg::return_action a__action##_##a__data##_2(inlib::sg::gui_viewer& a_gv,inlib::sg::entries& a_widget) {\
+  dac* _dac = cast_dac(a_gv);\
+  if(!_dac) inlib::sg::return_none;\
   const std::string& scut = a_widget.values[0];\
   const std::string& svar = a_widget.values[1];\
+  std::string histo_name = a_widget.values[2];\
+  if(histo_name=="auto") {\
+    histo_name.clear();\
+    histo_name += "evt_";\
+    inlib::numas(_dac->event().event_index(),histo_name);\
+    histo_name += "_";\
+    histo_name += std::string(#a__data);\
+    histo_name += "_";\
+    histo_name += std::string(svar);\
+  }\
   std::vector<std::string> lines;\
   std::string sargs;\
   if(scut.size()) sargs += " -cut="+scut;\
-  if(svar.size()) sargs += " -filling="+svar;\
+  if(svar.size()) sargs += " -xfill="+svar;\
+  if(histo_name.size()) sargs += " -histo_name="+histo_name;\
   lines.push_back("event_plot "+std::string(#a__data)+" "+sargs);\
   lines.push_back("gui_hide_main_menu");\
   a_gv.insh().exec_lines_reset_to_stop(lines);\
   return inlib::sg::return_to_render;\
 }\
 inline inlib::sg::return_action a__action##_##a__data##_1(inlib::sg::gui_viewer& a_gv) {\
+  dac* _dac = cast_dac(a_gv);\
+  if(!_dac) inlib::sg::return_none;\
   inlib::sg::entries* entries = new inlib::sg::entries(a_gv.ttf());\
   a_gv.set_style(*entries);\
   entries->add_string("cut",#a__cut);\
- {dac* _dac = cast_dac(a_gv);\
-  if(_dac) {\
-    Esb##a__evaluator##_evaluator _eval(a_gv.out(),"",_dac->event());\
-    std::vector<std::string> names;\
-    _eval.get_names(names);\
-    entries->add_opts("filling",#a__variable,names);\
-  }}\
+  Esb##a__evaluator##_evaluator _eval(a_gv.out(),"",_dac->event());\
+  std::vector<std::string> names;\
+  _eval.get_names(names);\
+  entries->add_opts("filling",#a__variable,names);\
+  entries->add_string("histo_name","auto");\
   inlib::sg::add_callback(a_gv,*entries,a__action##_##a__data##_2);\
   a_gv.push_list(entries);\
   return inlib::sg::return_to_render;\
@@ -413,7 +353,7 @@ inline inlib::sg::return_action action_menu_plot_items(inlib::sg::gui_viewer& a_
   inlib::sg::add_white_item_insh(a_gv,*list,". mctrack_not_secondary_plots.insh" ,". mctrack_not_secondary_plots.insh\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,". mctrack_wcpoint_plots.insh"       ,". mctrack_wcpoint_plots.insh\ngui_hide_main_menu");
   inlib::sg::add_white_item_insh(a_gv,*list,". wcpoint_plots.insh"               ,". wcpoint_plots.insh\ngui_hide_main_menu");
-  
+
   a_gv.push_list(list);
   return inlib::sg::return_to_render;
 }
