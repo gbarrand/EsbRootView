@@ -1,0 +1,16 @@
+# Copyright (C) 2010, Guy Barrand. All rights reserved.
+# See the file bush.license for terms.
+
+# to be sourced in <app>/mgr/build scripts.
+
+if [ "${use_SDL2_GL}" = "yes" ] ; then
+
+  if [ "${build_visual}" = "yes" ] ; then
+    use_WGL=yes
+  elif [ `uname` = Darwin ] ; then
+    use_AGL=yes
+  else
+    use_GLX=yes
+  fi
+
+fi
