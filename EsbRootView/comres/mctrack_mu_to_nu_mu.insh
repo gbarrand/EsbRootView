@@ -1,5 +1,8 @@
+#!insh
 
-cut_first="(pdg==50000050)&&(is_secondary==true)"
+. colors.insh
+. cuts.insh
+
 time_max=`event_stats MCTrack -cut=${cut_first} -max t`
 
 beg_x=`event_print MCTrack -cut=${cut_first}&&(t==${time_max}) x`
@@ -13,7 +16,10 @@ end_z=`event_print MCTrack -cut=pdg==14 z`
 #echo "muon end point : ${beg_x}, ${beg_y}, ${beg_z}, taken with last muon cherenkov at time ${time_max}."
 #echo "nu_mu start point : ${end_x}, ${end_y}, ${end_z}."
 
-scene_add_vertices -mode=lines ${beg_x} ${beg_y} ${beg_z} ${end_x} ${end_y} ${end_z} -color=coral -line_width=2
+scene_add_vertices -dynamic -mode=lines -color=${mu_to_nu_mu_color} -line_width=2 ${beg_x} ${beg_y} ${beg_z} ${end_x} ${end_y} ${end_z}
+
+scene_add_vertices -dynamic -mode=points -color=${mu_to_nu_mu_color} -point_size=20 ${end_x} ${end_y} ${end_z}
+#scene_add_markers -dynamic -style=star -color=${mu_to_nu_mu_color} -size=60 ${end_x} ${end_y} ${end_z}
 
 
 

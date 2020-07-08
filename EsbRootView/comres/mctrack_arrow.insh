@@ -1,14 +1,23 @@
+#!insh
 
+. colors.insh
+. cuts.insh
+
+# primaries :
+event_vis MCTrack -cut=(mother_id==-1) -color=${primary_color} -point_size=6 -modeling=arrow -arrow_text_scale=6
 #-arrow_radius=10
-event_vis MCTrack -cut=(mother_id==-1) -color=yellow -point_size=6 -modeling=arrow -arrow_text_scale=6
 
-event_vis MCTrack -cut=(pdg==50000050)&&(is_secondary==true)  -color=red
-event_vis MCTrack -cut=(pdg==50000050)&&(is_secondary==false) -color=pink
+event_vis MCTrack -cut=${cut_first}  -color=${mc_ophoton_first_color}
+event_vis MCTrack -cut=${cut_second} -color=${mc_ophoton_second_color}
 
-event_vis MCTrack -cut=(pdg!=50000050)&&(mother_id!=-1)&&(is_secondary==true)&&(pdg!=22) -color=orange -point_size=6 -modeling=arrow -arrow_length=eval(E*1000.0)
-event_vis MCTrack -cut=(pdg!=50000050)&&(mother_id!=-1)&&(is_secondary==true)&&(pdg==22) -color=orchid -point_size=6 -modeling=arrow -arrow_length=eval(E*1000.0)
+# secondary not optical(50000050) and not gamma(22) :
+event_vis MCTrack -cut=(is_secondary==true)&&(pdg!=50000050)&&(pdg!=22) -color=orange -point_size=6 -modeling=arrow -arrow_length=eval(E*1000.0)
 
-event_vis MCTrack -cut=(pdg!=50000050)&&(mother_id!=-1)&&(is_secondary==false) -color=cyan -point_size=6 -modeling=arrow
+# secondary gamma(22) :
+event_vis MCTrack -cut=(is_secondary==true)&&(pdg==22) -color=cyan -point_size=6 -modeling=arrow -arrow_length=eval(E*1000.0)
+
+# not primary (mid!=-1), not secondary and not optical :
+event_vis MCTrack -cut=(pdg!=50000050)&&(mother_id!=-1)&&(is_secondary==false) -color=red -point_size=6 -modeling=arrow
 
 return
 event_vis MCTrack -cut=name=="'opticalphoton'" -color=red

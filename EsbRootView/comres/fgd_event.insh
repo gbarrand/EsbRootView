@@ -1,4 +1,7 @@
+#!insh
 
-. neard_event.insh
+. mctrack_wcpoint.insh
+
+event_plot WCDetectorPoint -modeling=detector
 
 event_vis FgdDetectorPoint -pickable=true -color=skyblue

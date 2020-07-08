@@ -1,3 +1,4 @@
+#!insh
 
 scene_clear_static
 scene_clear_dynamic
@@ -9,17 +10,17 @@ scene_clear_static_blend
 plots_show
 gui_set_picking_mode
 
-fard_set_camera
+. fard_set_camera.insh
 plots_set_layout_factors 0.34 0.39 0.3 0.2
 
-app_open_geometry_file -doc_res fard_geo_full.root
-fard_vis_geometry
+app_open_geometry_file -doc geo_full.root
 
-fard_vis_floor
-fard_vis_sarah
+. fard_add_geometry.insh
 
-scene_add_axes -color=green -translate='0 -2740 0' -rotate='1 0 0 0' -scale=5480 -x_title='x(cm)' -x_width=1 -x_min=0 -x_max=5480 -y_title='y(cm)' -y_width=1 -y_min=0 -y_max=5480 -z_title='z(cm)' -z_width=1 -z_min=0 -z_max=5480
+. fard_add_floor.insh
+. fard_add_avatars.insh
+. fard_add_axes.insh
 
-app_open_event_file -doc_res fard_evetest.root
+app_open_event_file -doc evetest.root
 
 gui_hide_main_menu

@@ -1,3 +1,4 @@
+#!insh
 
 scene_clear_static
 scene_clear_dynamic
@@ -10,16 +11,17 @@ gui_set_picking_mode
 
 scene_blend_on
 
-neard_set_camera
+. neard_set_camera.insh
 
-app_open_geometry_file -doc_res fgd_geo_full.root
-neard_vis_geometry
-fgd_vis_geometry -placement=static_blend
+app_open_geometry_file -doc geo_full.root
 
-neard_vis_floor
-neard_vis_sarah
-scene_add_axes -color=green -translate='-300 -300 0' -rotate='1 0 0 0' -scale=600 -x_title='x(cm)' -x_width=1 -x_min=0 -x_max=600 -y_title='y(cm)' -y_width=1 -y_min=0 -y_max=600 -z_title='z(cm)' -z_width=1 -z_min=0 -z_max=600
+. neard_add_geometry.insh
+. fgd_add_geometry.insh
 
-app_open_event_file -doc_res fgd_evetest.root
+. neard_add_floor.insh
+. neard_add_avatars.insh
+. neard_add_axes.insh
+
+app_open_event_file -doc evetest.root
 
 gui_hide_main_menu

@@ -1,3 +1,4 @@
+#!insh
 
 scene_clear_static
 scene_clear_dynamic
@@ -10,15 +11,17 @@ gui_set_picking_mode
 
 scene_blend_on
 
-neard_set_camera
+. neard_set_camera.insh
 #camera_set_da 0.005
 camera_set_dx 1  # step when panning. Adapt it to fgd.
 
-app_open_geometry_file -doc_res fgd_geo_full.root
-neard_vis_geometry
-fgd_vis_geometry -placement=static_blend
+app_open_geometry_file -doc geo_full.root
 
-neard_vis_floor
-app_open_event_file -doc_res fgd_dig.root
+. neard_add_geometry.insh
+. fgd_add_geometry.insh
+
+. neard_add_floor.insh
+
+app_open_event_file -doc digi.root
 
 gui_hide_main_menu

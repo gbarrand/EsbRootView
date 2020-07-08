@@ -1,3 +1,4 @@
+#!insh
 
 items=`event_model -items`
 

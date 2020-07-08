@@ -1,13 +1,14 @@
+#!insh
 
-scene_add_show_time_anim
+. colors.insh
+. cuts.insh
+. consts.insh
 
-cut_first="(pdg==50000050)&&(is_secondary==true)"
-event_vis MCTrack -cut=${cut_first} -color=red -anim=true
-event_vis WCDetectorPoint -cut=${cut_first} -color=green -anim=true
+event_vis MCTrack -cut=${cut_first} -color=${mc_ophoton_first_color} -anim=true -speed=${c_light_water}
+event_vis WCDetectorPoint -cut=${cut_first} -color=${wc_ophoton_first_color} -anim=true -point_size=2
 
-cut_second="(pdg==50000050)&&(is_secondary==false)"
-event_vis MCTrack -cut=${cut_second} -color=pink -anim=true
-event_vis WCDetectorPoint -cut=${cut_second} -color=palegreen -anim=true
+event_vis MCTrack -cut=${cut_second} -color=${mc_ophoton_second_color} -anim=true -speed=${c_light_water}
+event_vis WCDetectorPoint -cut=${cut_second} -color=${wc_ophoton_second_color} -anim=true -point_size=2
 
 #event_vis WCDetectorPoint -cut=pdg==50000050 -color=green -anim=true
-#event_vis MCTrack -cut=pdg==50000050 -color=red -anim=true
+#event_vis MCTrack -cut=pdg==50000050 -color=red -anim=true -speed=${c_light_water}

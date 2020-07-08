@@ -1,4 +1,13 @@
+#!insh
 
-. neard_anim.insh
+. mctrack_wcpoint_anim.insh
+
+scene_add_show_time_anim -dynamic
+
+event_vis MCTrack -cut=${cut_first} -color=${mc_ophoton_first_color} -modeling=firework  # firework is an anim.
+event_vis MCTrack -cut=${cut_second} -color=${mc_ophoton_second_color} -modeling=firework
 
 . fgdpoint_anim.insh
+
+#. cone_anim.insh
+

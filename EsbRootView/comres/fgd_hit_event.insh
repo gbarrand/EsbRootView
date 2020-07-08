@@ -1,3 +1,4 @@
+#!insh
 
 event_index=`event_index`
 gui_show_console ${event_index}
@@ -8,7 +9,7 @@ event_vis FgdDetectorPoint -pickable=true -color=blue
 
 event_vis FgdHit -modeling=cube -color=skyblue    # FgdHits represented as cubes in solid.
 
-event_plot FgdHit -cut=photoE!=0 -filling=photoE
+event_plot FgdHit -cut=photoE!=0 -xfill=photoE
 
 return
 #/////////////////////////////////////////////////
@@ -40,5 +41,5 @@ event_vis FgdHit -cut=photoE!=0 -modeling=cube   # cubes will be in solid
 
 event_stats FgdHit -cut=photoE!=0 mppcx mppcy mppcz photoE
 
-event_plot FgdHit -filling=photoE
+event_plot FgdHit -xfill=photoE
 

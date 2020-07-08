@@ -1,3 +1,4 @@
+#!insh
 
 # EsbRoot is in cm.
 avatar_scale=`calc 100*324/2.66372`

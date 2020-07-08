@@ -1,3 +1,4 @@
+#!insh
 
 gui_hide_console
 gui_hide_camera_menu
@@ -12,7 +13,7 @@ cut_second="(pdg==50000050)&&(is_secondary==false)"
 #//////////////////////////////////////////////////////////////////////
 #//////////////////////////////////////////////////////////////////////
 plots_set_current_plotter 0
-event_plot MCTrack -cut=${cut_second} -filling=t
+event_plot MCTrack -cut=${cut_second} -xfill=t
 
 plotter_set_field title_box_width 0.5
 plotter_set_field title_box_height 0.08
@@ -21,7 +22,7 @@ plotter_set_field title_box_height 0.08
 #//////////////////////////////////////////////////////////////////////
 #//////////////////////////////////////////////////////////////////////
 plots_set_current_plotter 1
-event_plot MCTrack -cut=${cut_second} -filling=p
+event_plot MCTrack -cut=${cut_second} -xfill=p
 plotter_set_field title_box_width 0.5
 plotter_set_field title_box_height 0.08
 
@@ -29,7 +30,7 @@ plotter_set_field title_box_height 0.08
 #//////////////////////////////////////////////////////////////////////
 #//////////////////////////////////////////////////////////////////////
 plots_set_current_plotter 2
-event_plot MCTrack -cut=${cut_second} -filling_x=t -filling_y=p
+event_plot MCTrack -cut=${cut_second} -xfill=t -yfill=p
 plotter_set_field title_box_width 0.5
 plotter_set_field title_box_height 0.08
 
