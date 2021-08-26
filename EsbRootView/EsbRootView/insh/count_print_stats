@@ -1,0 +1,608 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_insh_count
+#define EsbRootView_insh_count
+
+#include "../dac"
+#include "../evaluators"
+#include "../cut"
+
+#include <inlib/insh/ishell>
+#include <inlib/args>
+
+namespace EsbRootView {
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// MCTrack : ////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline void insh_MCTrack_count(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  static const std::string s_cmd("MCTrack_count");
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+  
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+  
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  EsbMCTrack_evaluator _eval_cut(a_insh.out(),scut,a_dac.event());
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+
+  std::vector<EsbMCTrack*> cut_tracks;
+  MCTrack_cut(a_dac.event().mc_tracks(),scut,_eval_cut,cut_tracks);
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+  if(a_insh.in_backquote()) {
+    a_insh.out_size_t(cut_tracks.size());
+  } else {
+    a_insh.out () << "MCTrack with cut " << inlib::sout(scut) << " = " << cut_tracks.size() << std::endl;
+  }
+}
+
+inline void insh_MCTrack_print(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  static const std::string s_cmd("MCTrack_print");
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+  
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+
+  std::vector<std::string> names;
+  _args.not_hyphens(names);
+  _args.remove(names);
+  
+  INLIB_ISHELL_ARGS_UNEXPECTED
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  EsbMCTrack_evaluator _eval_cut(a_insh.out(),scut,a_dac.event());
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+
+  std::vector<EsbMCTrack*> cut_tracks;
+  MCTrack_cut(a_dac.event().mc_tracks(),scut,_eval_cut,cut_tracks);
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+  std::string sheader = "MCTrack (";
+  inlib::size_tas(cut_tracks.size(),sheader);
+  sheader += ") with cut ";
+  sheader += inlib::sout(scut)+" : ";
+
+ {std::vector<std::string> vout;
+  if(a_insh.in_backquote()) {
+    _eval_cut.dump(a_insh.out(),cut_tracks,names,sheader,true,vout);
+    a_insh.out_begin();
+    a_insh.out(vout,true);
+  } else {
+    _eval_cut.dump(a_insh.out(),cut_tracks,names,sheader,false,vout);
+  }}
+}
+
+inline void insh_MCTrack_stats(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  static const std::string s_cmd("MCTrack_stats");
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+  
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+
+  std::vector<std::string> names;
+  _args.not_hyphens(names);
+  _args.remove(names);
+
+  bool do_sum;
+  INLIB_ISHELL_IS_ARG_VARIABLE(sum,do_sum)
+  bool do_min;
+  INLIB_ISHELL_IS_ARG_VARIABLE(min,do_min)
+  bool do_max;
+  INLIB_ISHELL_IS_ARG_VARIABLE(max,do_max)
+  bool do_mean;
+  INLIB_ISHELL_IS_ARG_VARIABLE(mean,do_mean)
+  bool do_rms;
+  INLIB_ISHELL_IS_ARG_VARIABLE(rms,do_rms)
+
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  EsbMCTrack_evaluator _eval_cut(a_insh.out(),scut,a_dac.event());
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+
+  std::vector<EsbMCTrack*> cut_tracks;
+  MCTrack_cut(a_dac.event().mc_tracks(),scut,_eval_cut,cut_tracks);
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+  std::string sheader = "MCTrack (";
+  inlib::size_tas(cut_tracks.size(),sheader);
+  sheader += ") sum/min/max/mean/rms with cut ";
+  sheader += inlib::sout(scut)+" : ";
+
+  if(!do_sum && !do_min && !do_max && !do_mean && !do_rms) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_tracks,names,sheader,"",sout);
+    return;
+  }
+
+  a_insh.out_begin();
+  if(do_sum) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_tracks,names,sheader,"sum",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_min) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_tracks,names,sheader,"min",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_max) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_tracks,names,sheader,"max",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_mean) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_tracks,names,sheader,"mean",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_rms) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_tracks,names,sheader,"rms",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// DetectorPoints : /////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline void count_DetectorPoints(inlib::ishell& a_insh,const one_event& a_event,
+                                 const std::vector<EsbDetectorPoint*>& a_points,
+				 const std::string& a_emi,const std::vector<std::string>& a_args) {
+  static const std::string s_cmd(a_emi+"_count");
+  
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+  
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  //////////////////////////////////////
+  /// cut : ////////////////////////////
+  //////////////////////////////////////
+  EsbDetectorPoint_evaluator _eval_cut(a_insh.out(),scut,a_event);
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+  std::vector<EsbDetectorPoint*> cut_points;
+  DetectorPoint_cut(a_points,scut,_eval_cut,cut_points);
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  if(a_insh.in_backquote()) {
+    a_insh.out_size_t(cut_points.size());
+  } else {
+    a_insh.out () << a_emi << " with cut " << inlib::sout(scut) << " = " << cut_points.size() << std::endl;
+  }
+}
+
+inline void print_DetectorPoints(inlib::ishell& a_insh,const one_event& a_event,
+                                 const std::vector<EsbDetectorPoint*>& a_points,
+				 const std::string& a_emi,const std::vector<std::string>& a_args) {
+  static const std::string s_cmd(a_emi+"_print");
+  
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+  
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+
+  std::vector<std::string> names;
+  _args.not_hyphens(names);
+  _args.remove(names);
+  
+  INLIB_ISHELL_ARGS_UNEXPECTED
+
+  //////////////////////////////////////
+  /// cut : ////////////////////////////
+  //////////////////////////////////////
+  EsbDetectorPoint_evaluator _eval_cut(a_insh.out(),scut,a_event);
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+  std::vector<EsbDetectorPoint*> cut_points;
+  DetectorPoint_cut(a_points,scut,_eval_cut,cut_points);
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  std::string sheader = a_emi+" (";
+  inlib::size_tas(cut_points.size(),sheader);
+  sheader += ") with cut ";
+  sheader += inlib::sout(scut)+" : ";
+
+ {std::vector<std::string> vout;
+  if(a_insh.in_backquote()) {
+    _eval_cut.dump(a_insh.out(),cut_points,names,sheader,true,vout);
+    a_insh.out_begin();
+    a_insh.out(vout,true);
+  } else {
+    _eval_cut.dump(a_insh.out(),cut_points,names,sheader,false,vout);
+  }}
+}
+
+inline void stats_DetectorPoints(inlib::ishell& a_insh,const one_event& a_event,
+                                 const std::vector<EsbDetectorPoint*>& a_points,
+                                 const std::string& a_emi,const std::vector<std::string>& a_args) {
+  static const std::string s_cmd(a_emi+"_stats");
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+  
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+
+  std::vector<std::string> names;
+  _args.not_hyphens(names);
+  _args.remove(names);
+
+  bool do_sum;
+  INLIB_ISHELL_IS_ARG_VARIABLE(sum,do_sum)
+  bool do_min;
+  INLIB_ISHELL_IS_ARG_VARIABLE(min,do_min)
+  bool do_max;
+  INLIB_ISHELL_IS_ARG_VARIABLE(max,do_max)
+  bool do_mean;
+  INLIB_ISHELL_IS_ARG_VARIABLE(mean,do_mean)
+  bool do_rms;
+  INLIB_ISHELL_IS_ARG_VARIABLE(rms,do_rms)
+
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  //////////////////////////////////////
+  /// cut : ////////////////////////////
+  //////////////////////////////////////
+  EsbDetectorPoint_evaluator _eval_cut(a_insh.out(),scut,a_event);
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+  std::vector<EsbDetectorPoint*> cut_points;
+  DetectorPoint_cut(a_points,scut,_eval_cut,cut_points);
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  std::string sheader = a_emi+" (";
+  inlib::size_tas(cut_points.size(),sheader);
+  sheader += ") sum/min/max/mean/rms with cut ";
+  sheader += inlib::sout(scut)+" : ";
+
+  if(!do_sum && !do_min && !do_max && !do_mean && !do_rms) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_points,names,sheader,"",sout);
+    return;
+  }
+
+  a_insh.out_begin();
+  if(do_sum) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_points,names,sheader,"sum",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_min) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_points,names,sheader,"min",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_max) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_points,names,sheader,"max",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_mean) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_points,names,sheader,"mean",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_rms) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_points,names,sheader,"rms",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// WCDetectorPoint : ////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+inline void insh_WCDetectorPoint_count(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  count_DetectorPoints(a_insh,a_dac.event(),a_dac.event().wc_points(),"WCDetectorPoint",a_args);
+}
+
+inline void insh_WCDetectorPoint_print(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  print_DetectorPoints(a_insh,a_dac.event(),a_dac.event().wc_points(),"WCDetectorPoint",a_args);
+}
+inline void insh_WCDetectorPoint_stats(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  stats_DetectorPoints(a_insh,a_dac.event(),a_dac.event().wc_points(),"WCDetectorPoint",a_args);
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// FgdDetectorPoint : ////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+inline void insh_FgdDetectorPoint_count(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  count_DetectorPoints(a_insh,a_dac.event(),a_dac.event().fgd_points(),"FgdDetectorPoint",a_args);
+}
+inline void insh_FgdDetectorPoint_print(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  print_DetectorPoints(a_insh,a_dac.event(),a_dac.event().fgd_points(),"FgdDetectorPoint",a_args);
+}
+inline void insh_FgdDetectorPoint_stats(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  stats_DetectorPoints(a_insh,a_dac.event(),a_dac.event().fgd_points(),"FgdDetectorPoint",a_args);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// FgdHit : /////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline void insh_FgdHit_count(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  static const std::string s_cmd("FgdHit_count");
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+  
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+
+  bool unique_at_pos = false;
+  INLIB_ISHELL_GET_ARG_BOOL(unique_at_pos)
+  bool unique_verbose = false;
+  INLIB_ISHELL_GET_ARG_BOOL(unique_verbose)
+
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  //////////////////////////////////////
+  /// unique : /////////////////////////
+  //////////////////////////////////////
+  std::vector<EsbFgdHit*> unique_hits;
+  bool unique_to_clear = false;
+  if(unique_at_pos) {
+    FgdHits_unique_at_pos(a_insh.out(),a_dac.event().fgd_hits(),unique_hits,unique_verbose);
+    unique_to_clear = true;
+  } else {
+    unique_hits = a_dac.event().fgd_hits();
+  }
+
+  //////////////////////////////////////
+  /// cut : ////////////////////////////
+  //////////////////////////////////////
+  EsbFgdHit_evaluator _eval_cut(a_insh.out(),scut,a_dac.event());
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+  std::vector<EsbFgdHit*> cut_hits;
+  FgdHit_cut(unique_hits,scut,_eval_cut,cut_hits);
+
+  ///////////////////////////////////////////
+  ///////////////////////////////////////////
+  ///////////////////////////////////////////
+  if(a_insh.in_backquote()) {
+    a_insh.out_size_t(cut_hits.size());
+  } else {
+    a_insh.out () << "FgdHit with cut " << inlib::sout(scut) << " = " << cut_hits.size() << std::endl;
+  }
+
+  if(unique_to_clear) inlib::raw_clear(unique_hits);
+}
+
+inline void insh_FgdHit_print(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  static const std::string s_cmd("FgdHit_print");
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+  
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+
+  std::vector<std::string> names;
+  _args.not_hyphens(names);
+  _args.remove(names);
+  
+  INLIB_ISHELL_ARGS_UNEXPECTED
+
+  //////////////////////////////////////
+  /// unique : /////////////////////////
+  //////////////////////////////////////
+  bool unique_at_pos = false;
+  INLIB_ISHELL_GET_ARG_BOOL(unique_at_pos)
+  bool unique_verbose = false;
+  INLIB_ISHELL_GET_ARG_BOOL(unique_verbose)
+
+  std::vector<EsbFgdHit*> unique_hits;
+  bool unique_to_clear = false;
+  if(unique_at_pos) {
+    FgdHits_unique_at_pos(a_insh.out(),a_dac.event().fgd_hits(),unique_hits,unique_verbose);
+    unique_to_clear = true;
+  } else {
+    unique_hits = a_dac.event().fgd_hits();
+  }
+
+  //////////////////////////////////////
+  /// cut : ////////////////////////////
+  //////////////////////////////////////
+  EsbFgdHit_evaluator _eval_cut(a_insh.out(),scut,a_dac.event());
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+  std::vector<EsbFgdHit*> cut_hits;
+  FgdHit_cut(unique_hits,scut,_eval_cut,cut_hits);
+
+  ///////////////////////////////////////////
+  ///////////////////////////////////////////
+  ///////////////////////////////////////////
+  std::string sheader = "FgdHit (";
+  inlib::size_tas(cut_hits.size(),sheader);
+  sheader += ") with cut ";
+  sheader += inlib::sout(scut)+" : ";
+
+ {std::vector<std::string> vout;
+  if(a_insh.in_backquote()) {
+    _eval_cut.dump(a_insh.out(),cut_hits,names,sheader,true,vout);
+    a_insh.out_begin();
+    a_insh.out(vout,true);
+  } else {
+    _eval_cut.dump(a_insh.out(),cut_hits,names,sheader,false,vout);
+  }}
+
+  if(unique_to_clear) inlib::raw_clear(unique_hits);
+}
+
+inline void insh_FgdHit_stats(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {
+  static const std::string s_cmd("FgdHit_stats");
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+  
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+
+  std::vector<std::string> names;
+  _args.not_hyphens(names);
+  _args.remove(names);
+
+  bool do_sum;
+  INLIB_ISHELL_IS_ARG_VARIABLE(sum,do_sum)
+  bool do_min;
+  INLIB_ISHELL_IS_ARG_VARIABLE(min,do_min)
+  bool do_max;
+  INLIB_ISHELL_IS_ARG_VARIABLE(max,do_max)
+  bool do_mean;
+  INLIB_ISHELL_IS_ARG_VARIABLE(mean,do_mean)
+  bool do_rms;
+  INLIB_ISHELL_IS_ARG_VARIABLE(rms,do_rms)
+
+  bool unique_at_pos = false;
+  INLIB_ISHELL_GET_ARG_BOOL(unique_at_pos)
+  bool unique_verbose = false;
+  INLIB_ISHELL_GET_ARG_BOOL(unique_verbose)
+
+  INLIB_ISHELL_ARGS_UNEXPECTED
+
+  //////////////////////////////////////
+  /// unique : /////////////////////////
+  //////////////////////////////////////
+  std::vector<EsbFgdHit*> unique_hits;
+  bool unique_to_clear = false;
+  if(unique_at_pos) {
+    FgdHits_unique_at_pos(a_insh.out(),a_dac.event().fgd_hits(),unique_hits,unique_verbose);
+    unique_to_clear = true;
+  } else {
+    unique_hits = a_dac.event().fgd_hits();
+  }
+
+  //////////////////////////////////////
+  /// cut : ////////////////////////////
+  //////////////////////////////////////
+  EsbFgdHit_evaluator _eval_cut(a_insh.out(),scut,a_dac.event());
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+  std::vector<EsbFgdHit*> cut_hits;
+  FgdHit_cut(unique_hits,scut,_eval_cut,cut_hits);
+
+  ///////////////////////////////////////////
+  ///////////////////////////////////////////
+  ///////////////////////////////////////////
+
+  std::string sheader = "FgdHit (";
+  inlib::size_tas(cut_hits.size(),sheader);
+  sheader += ") sum/min/max/mean/rms with cut ";
+  sheader += inlib::sout(scut)+" : ";
+
+  if(!do_sum && !do_min && !do_max && !do_mean && !do_rms) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_hits,names,sheader,"",sout);
+    return;
+  }
+
+  a_insh.out_begin();
+  if(do_sum) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_hits,names,sheader,"sum",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_min) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_hits,names,sheader,"min",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_max) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_hits,names,sheader,"max",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_mean) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_hits,names,sheader,"mean",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+  if(do_rms) {
+    std::string sout;
+    _eval_cut.stats(a_insh.out(),cut_hits,names,sheader,"rms",sout);
+    if(sout.size()) a_insh.out(sout);
+  }
+
+  if(unique_to_clear) inlib::raw_clear(unique_hits);
+}
+
+}
+
+#endif
+

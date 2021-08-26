@@ -1,0 +1,62 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_cut
+#define EsbRootView_cut
+
+#include "evaluators"
+
+namespace EsbRootView {
+
+inline void MCTrack_cut(const std::vector<EsbMCTrack*>& a_tracks,
+                        const std::string& a_scut,
+                        EsbMCTrack_evaluator& a_eval_cut,
+                        std::vector<EsbMCTrack*>& a_cut_tracks) {
+  if(a_scut.empty()) {
+    a_cut_tracks = a_tracks;
+  } else {
+    a_cut_tracks.clear();
+    bool ok;
+    inlib_vforcit(EsbMCTrack*,a_tracks,it) {
+      if(!a_eval_cut.accept(*(*it),ok)) {a_cut_tracks.clear();break;}
+      if(ok) a_cut_tracks.push_back(*it);
+    }
+  }
+}
+
+inline void DetectorPoint_cut(const std::vector<EsbDetectorPoint*>& a_points,
+                              const std::string& a_scut,
+                              EsbDetectorPoint_evaluator& a_eval_cut,
+                              std::vector<EsbDetectorPoint*>& a_cut_points) {
+  if(a_scut.empty()) {
+    a_cut_points = a_points;
+  } else {
+    a_cut_points.clear();
+    bool ok;
+    inlib_vforcit(EsbDetectorPoint*,a_points,it) {
+      if(!a_eval_cut.accept(*(*it),ok)) {a_cut_points.clear();break;}
+      if(ok) a_cut_points.push_back(*it);
+    }
+  }
+}
+
+inline void FgdHit_cut(const std::vector<EsbFgdHit*>& a_hits,
+                       const std::string& a_scut,
+                       EsbFgdHit_evaluator& a_eval_cut,
+                       std::vector<EsbFgdHit*>& a_cut_hits) {
+  if(a_scut.empty()) {
+    a_cut_hits = a_hits;
+  } else {
+    a_cut_hits.clear();
+    bool ok;
+    inlib_vforcit(EsbFgdHit*,a_hits,it) {
+      if(!a_eval_cut.accept(*(*it),ok)) {a_cut_hits.clear();break;}
+      if(ok) a_cut_hits.push_back(*it);
+    }
+  }
+}
+
+}
+
+#endif
+

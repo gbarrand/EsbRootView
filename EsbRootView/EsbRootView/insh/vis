@@ -1,0 +1,1105 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_insh_vis
+#define EsbRootView_insh_vis
+
+#include "../dac"
+#include "../evaluators"
+#include "../cut"
+
+#include <exlib/sg/in_cylinder_firework>
+
+#include <inlib/insh/ishell>
+#include <inlib/sg/view_evd>
+#include <inlib/sg/view_sg_client>
+#include <inlib/sg/hep_arrow>
+#include <inlib/insh/args_to_style>
+#include <inlib/sg/cone_anim>
+#include <inlib/sg/hep_cone_anim>
+#include <inlib/sg/xyzt_anim>
+#include <inlib/sg/markers>
+
+#include <inlib/yacc/get_colormap>
+
+#include <inlib/rroot/geo>
+#include <inlib/randf>
+#include <inlib/sort>
+
+namespace EsbRootView {
+
+INLIB_GLOBAL_STRING_VALUE(modeling_mc_track,mc_track)
+
+inline int no_mother() {return -1;}
+
+class dumper : public inlib::sg::base_dumper {
+  typedef inlib::sg::base_dumper parent;
+public:
+  virtual void get_infos(const std::string& /*a_tag*/,std::vector<std::string>& a_v) const {a_v = m_infos;}
+  virtual base_dumper* copy() const {return new dumper(*this);}
+public:
+  dumper(inlib::sg::gui_viewer& a_gv,const std::vector<std::string>& a_infos)
+  :parent(a_gv)
+  ,m_infos(a_infos)
+  {}
+  virtual ~dumper(){}
+public:
+  dumper(const dumper& a_from)
+  :parent(a_from)
+  ,m_infos(a_from.m_infos)
+  {}
+  dumper& operator=(const dumper& a_from){
+    parent::operator=(a_from);
+    m_infos = a_from.m_infos;
+    return *this;
+  }
+public:
+  std::vector<std::string> m_infos;
+};
+
+template <class EVAL,class DATA>
+inline inlib::sg::infos* create_sg_infos(inlib::sg::gui_viewer& a_gv,EVAL& a_eval,const DATA& a_data) {
+  inlib::sg::infos* infos = new inlib::sg::infos;
+  std::string sobj;
+  inlib::p2s(infos,sobj);
+  infos->strings.add(sobj);
+  infos->strings.add("no_tag");
+  std::vector<std::string> vinfos;
+  a_eval.get_infos(a_data,vinfos);
+  a_gv.add_dumper(sobj,new dumper(a_gv,vinfos));
+  return infos;
+}
+
+template <class EVAL,class DATA,class VTXS>
+inline inlib::sg::separator* create_sg_pickable(inlib::sg::gui_viewer& a_gv,EVAL& a_eval,const DATA& a_data,VTXS*& a_vtxs) {
+  inlib::sg::separator* sep = new inlib::sg::separator;
+  sep->add(new inlib::sg::matrix);  //for move_manip.
+  sep->add(create_sg_infos(a_gv,a_eval,a_data));
+  a_vtxs = new VTXS;
+  a_vtxs->mode = inlib::gl::points();
+  sep->add(a_vtxs);
+  return sep;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// MCTrack : ////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline void insh_MCTrack_vis(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  static const std::string s_cmd("MCTrack_vis");
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_insh.warn(s_cmd+": bad dac cast.");return;}
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) {a_insh.warn(s_cmd+": bad evd cast.");return;}
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+
+  INLIB_ISHELL_SET_SG_STYLE
+
+  bool anim = false;
+  INLIB_ISHELL_GET_ARG_BOOL(anim)
+
+  static const double c_light_vacuum = 29.9792458;  //cm/nsec. Yes, it is const! :-)
+//static const double c_light_water = 22.5;  //cm/nsec.
+  static const float absorption_length_water = 1000.0f;
+
+  float speed = c_light_vacuum;
+  INLIB_ISHELL_GET_ARG_FLOAT(speed)
+  if(speed<0) speed = c_light_vacuum;
+
+  INLIB_ISHELL_GET_PLACEMENT_DYNAMIC
+  
+  //////////////////////////////////////
+  ///////////////////////1///////////////
+  //////////////////////////////////////
+  EsbMCTrack_evaluator _eval_cut(a_insh.out(),_style.cut.value(),_dac->event());
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(_style.cut.value())+" for cut evaluator.");
+    return;
+  }
+
+  std::vector<EsbMCTrack*> cut_tracks;
+  MCTrack_cut(_dac->event().mc_tracks(),_style.cut.value(),_eval_cut,cut_tracks);
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+  inlib::sg::base_colormap* _cmap = 0;
+  double _min_coloring,_max_coloring,_range_coloring;
+  EsbMCTrack_evaluator _eval_coloring(a_insh.out(),_style.coloring.value(),_dac->event());
+  if(_style.coloring.value().size()) {
+    if(!_eval_coloring.is_valid()) {
+      a_insh.warn(s_cmd+": bad script "+inlib::sout(_style.coloring.value())+" for coloring evaluator.");
+      return;
+    }
+    _cmap = inlib::get_colormap(a_insh.out(),_style,a_gv.styles().cmaps(),cut_tracks,_eval_coloring,_min_coloring,_max_coloring);
+    _range_coloring = _max_coloring-_min_coloring;
+  }
+
+  EsbMCTrack_evaluator* _eval_arrow_length = 0;
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+  inlib::sg::separator* sep = new inlib::sg::separator;
+  bool empty = true;
+
+  //////////////////////////////////////
+  /// rep arraw : //////////////////////
+  //////////////////////////////////////
+  if(_style.modeling.value()==inlib::sg::modeling_arrow()) {
+
+    sep->add(new inlib::sg::matrix);  //for move_manip.
+
+    /////////////////////////////////////
+    /////////////////////////////////////
+    /////////////////////////////////////
+    std::string sarrow_length;
+    INLIB_ISHELL_GET_ARG_STRING(arrow_length)
+    float arrow_radius = 0.05f;
+    INLIB_ISHELL_GET_ARG_FLOAT(arrow_radius)
+    float arrow_text_scale = 4;
+    INLIB_ISHELL_GET_ARG_FLOAT(arrow_text_scale)
+    float arrow_text_pos = 0.3f;
+    INLIB_ISHELL_GET_ARG_FLOAT(arrow_text_pos)
+    bool arrow_base_tube = false;
+    INLIB_ISHELL_GET_ARG_BOOL(arrow_base_tube)
+
+    float arrow_length = 10;
+    if(inlib::rm_eval_parenthesis(sarrow_length)) {
+      _eval_arrow_length = new EsbMCTrack_evaluator(a_insh.out(),sarrow_length,_dac->event());
+    } else {
+      if(!inlib::to<float>(sarrow_length,arrow_length,10.0f)) {}
+    }
+
+    /////////////////////////////////////
+    /////////////////////////////////////
+    /////////////////////////////////////
+
+    exlib::sg::text_freetype_marker ttf_marker;
+
+    inlib::colorf _color;
+
+    inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+      EsbMCTrack* track = *it;
+    //int pdg = track->GetPdgCode();
+    //int mother_id = track->GetMotherId();
+
+      //std::string mother_info("no mother");
+      //if((mother_id>=0)&&(mother_id<int(_dac->event().mc_tracks().size()))) {
+      //  const EsbMCTrack* mother_track = _dac->event().mc_tracks()[mother_id];
+      //  int mother_pdg = mother_track->GetPdgCode();
+      //  std::string smother_pdg;
+      //  inlib::num2s(mother_pdg,smother_pdg);
+      //  mother_info = mother_track->name()+" ("+smother_pdg+")";
+      //}
+
+      if(_eval_arrow_length) {
+        double darrow_length;
+        if(!_eval_arrow_length->evaluate_double(*track,darrow_length)) {}
+        arrow_length = float(darrow_length);
+      }
+
+      inlib::vec3f vtx(float(track->GetStartX()),float(track->GetStartY()),float(track->GetStartZ()));
+      inlib::vec3f dir(float(track->GetPx()),float(track->GetPy()),float(track->GetPz()));
+      dir.normalize();
+
+      //std::string name;
+      //if(pdef) name = pdef->name();
+      //else     inlib::num2s(pdg,name);
+      const std::string& name = (*it)->name();
+
+      inlib::vec3f beg(vtx);
+      //if(mother_id==no_mother()) beg = vtx-arrow_length*dir;
+
+      if(_cmap) {
+        double value;
+        if(!_eval_coloring.evaluate_double(*track,value)) {}
+        _cmap->get_color(float((value-_min_coloring)/_range_coloring),_color);
+      } else {
+        _color = _style.color.value();
+      }
+
+      inlib::sg::infos* infos = create_sg_infos(a_gv,_eval_cut,*(*it)); //picking infos.
+
+      //::printf("debug : pdg %d : %g %g %g\n",pdg,beg.x(),beg.y(),beg.z());
+      inlib::sg::separator* _sep_arrow =
+        inlib::sg::create_arrow(beg,dir,arrow_length,arrow_radius,arrow_base_tube,name,
+                                arrow_text_scale,arrow_text_pos,ttf_marker,_color,infos);
+      sep->add(_sep_arrow);
+      empty = false;
+    }
+
+  //////////////////////////////////////
+  /// rep cone : ///////////////////////
+  //////////////////////////////////////
+  } else if( (_style.modeling.value()==inlib::sg::modeling_cone()) ||
+             (_style.modeling.value()==inlib::sg::modeling_cone_detector()) ){
+
+    float cone_length = 1;
+    INLIB_ISHELL_GET_ARG_FLOAT(cone_length)
+
+    float time_cone_elapse;
+    INLIB_ISHELL_GET_ARG_FLOAT(time_cone_elapse)
+
+    if(cut_tracks.size()) {
+
+      inlib::vec3f mean_pos;
+      inlib::vec3f mean_p;
+     {inlib::vec3f pos;
+      inlib::vec3f p;
+      inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+        const EsbMCTrack& _track = *(*it);
+        pos.set_value(_track.GetStartX(),_track.GetStartY(),_track.GetStartZ());
+        mean_pos += pos;
+        p.set_value(_track.GetPx(),_track.GetPy(),_track.GetPz());
+        mean_p += p;
+      }
+      mean_pos.divide(float(cut_tracks.size()));
+      mean_p.divide(float(cut_tracks.size()));}
+
+      if(mean_p.length()<=0.0f) {
+        a_insh.warn(s_cmd+": mean_p.length()<=0.");
+      } else {
+
+      float mean_angle = 0;
+      float mean_time = 0;
+      float S_p = 0;
+      //size_t S_angle_num = 0;
+     {inlib::vec3f p;
+      inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+        const EsbMCTrack& _track = *(*it);
+        p.set_value(_track.GetPx(),_track.GetPy(),_track.GetPz());
+        float _p = _track.GetP();
+        float cos_angle;
+        if(!mean_p.cos_angle(p,cos_angle)) {
+          a_insh.warn(s_cmd+": mean_p.cos_angle(p) failed.");
+        } else {
+          float angle = inlib::facos(cos_angle);
+          mean_angle += angle*_p;
+          //S_angle_num++;
+          S_p += _p;
+          mean_time += _track.GetStartT()*_p;
+	}
+      }}
+
+    //if(S_angle_num) {
+      if(S_p) {
+
+    //S_angle /= float(S_angle_num);
+      mean_angle /= float(S_p);
+      mean_time /= float(S_p);
+
+    //::printf("debug : cone : 000 : p %g %g %g, mean angle %g, mean time %g\n",mean_p.x(),mean_p.y(),mean_p.z(),mean_angle,mean_time);
+
+      if(mean_angle>=inlib::fhalf_pi()) {
+        std::string smean_angle;
+	inlib::num2s(mean_angle,smean_angle);
+        a_insh.warn(s_cmd+" angle ("+smean_angle+") >pi/2.");
+      } else {
+        if(anim) {
+          inlib::sg::rgba* mat = new inlib::sg::rgba();
+          mat->color = _style.color.value();
+          sep->add(mat);
+
+          sep->add(new inlib::sg::matrix);  //for move_manip.
+
+	  float time_cone_begin = mean_time;
+
+          if(_style.modeling.value()==inlib::sg::modeling_cone_detector()) {
+            float det_diameter = 2*_dac->wc_radius();
+            float det_length = _dac->wc_length();
+            float det_max_time = inlib::fsqrt(det_diameter*det_diameter+det_length*det_length)/speed;  //nsecs.
+
+            inlib::sg::hep_cone_anim* _anim = new inlib::sg::hep_cone_anim();
+            _anim->position = mean_pos;
+            _anim->direction = mean_p;
+            _anim->angle = mean_angle;
+            _anim->time_cone_begin = time_cone_begin;
+            _anim->time_cone_elapse = det_max_time*10;
+            _anim->speed = speed;
+
+            inlib::hep::polyhedron_tube cylinder(0,det_diameter*0.5f,det_length*0.5f,48);
+
+            inlib::hep::tsf_polyhedron(cylinder,_dac->wc_matrix());
+
+            _anim->operand = cylinder;
+            _anim->operation = inlib::sg::solid_intersection;
+
+            sep->add(_anim);
+
+          } else {
+            inlib::sg::cone_anim* _anim = new inlib::sg::cone_anim();
+            _anim->position = mean_pos;
+            _anim->direction = mean_p;
+            _anim->angle = mean_angle;
+            _anim->time_cone_begin = time_cone_begin;
+            _anim->time_cone_elapse = time_cone_elapse;
+            _anim->speed = speed;
+            sep->add(_anim);
+	  }
+
+          empty = false;
+
+       } else {
+          inlib::sg::rgba* mat = new inlib::sg::rgba();
+          mat->color = _style.color.value();
+          sep->add(mat);
+
+          if(_style.modeling.value()==inlib::sg::modeling_cone_detector()) {
+            float det_diameter = 2*_dac->wc_radius();
+            float det_length = _dac->wc_length();
+            float det_max_length = inlib::fsqrt(det_diameter*det_diameter+det_length*det_length);
+
+            float height = det_max_length*10;
+            float rmax = inlib::ftan(mean_angle)*height;
+
+            inlib::hep::polyhedron_cone cone(0,rmax,0,0,height*0.5f,48);
+            cone.Translate(0,0,-height*0.5f); //applied first.
+            inlib::vec3d to(mean_p.x(),mean_p.y(),mean_p.z());
+            cone.Transform(inlib::rotd(inlib::vec3d(0,0,-1),to),mean_pos.x(),mean_pos.y(),mean_pos.z()); //rotate then translate.
+
+            inlib::hep::polyhedron_tube cylinder(0,det_diameter*0.5f,det_length*0.5f,48);
+
+            inlib::hep::tsf_polyhedron(cylinder,_dac->wc_matrix());
+
+            inlib::hep::polyhedron op = cone.intersect(cylinder);
+
+            inlib::sg::polyhedron* polyhedron = new inlib::sg::polyhedron;
+            polyhedron->ph = op;
+            sep->add(polyhedron);
+            empty = false;
+
+          } else if(cone_length>0.0f) {
+            float height = cone_length;
+            float rmax = inlib::ftan(mean_angle)*height;
+
+            inlib::sg::matrix* mtx = new inlib::sg::matrix;
+            mtx->set_translate(mean_pos);
+            mtx->mul_rotate(inlib::vec3f(0,0,-1),mean_p);
+            mtx->mul_translate(0,0,-height*0.5f); //applied first.
+            sep->add(mtx);
+
+            inlib::sg::cone_hat* cone = new inlib::sg::cone_hat;
+            cone->height = height;
+            cone->rmin = 0;
+            cone->rmax = rmax;
+            sep->add(cone);
+            empty = false;
+          }
+
+        }
+
+      } //mean_angle>pi/2
+      } //S_p
+      } //mean_p.length()
+    }
+
+  //////////////////////////////////////
+  /// rep firework : ///////////////////
+  //////////////////////////////////////
+  } else if(_style.modeling.value()==inlib::sg::modeling_firework()) {
+
+    float absorption_length = absorption_length_water;
+    INLIB_ISHELL_GET_ARG_FLOAT(absorption_length)
+    if(absorption_length<0) absorption_length = absorption_length_water;
+
+    bool persistent = false;
+    INLIB_ISHELL_GET_ARG_BOOL(persistent)
+
+    bool dcut = false;
+    INLIB_ISHELL_GET_ARG_BOOL(dcut)
+
+    inlib::sg::draw_style* ds = new inlib::sg::draw_style;
+    if(persistent) {
+      ds->style = inlib::sg::draw_lines;
+      ds->line_width = _style.line_width;
+    } else {
+      ds->style = inlib::sg::draw_points;
+      ds->point_size = _style.point_size;
+    }
+    sep->add(ds);
+
+    inlib::sg::rgba* mat = new inlib::sg::rgba();
+    mat->color = _style.color.value();
+    sep->add(mat);
+
+    sep->add(new inlib::sg::matrix);  //for move_manip.
+
+    const inlib::mat4d& dac_mtx = _dac->wc_matrix();
+    inlib::mat4f da_mtxf(
+      float(dac_mtx.v00()),float(dac_mtx.v01()),float(dac_mtx.v02()),float(dac_mtx.v03()),
+      float(dac_mtx.v10()),float(dac_mtx.v11()),float(dac_mtx.v12()),float(dac_mtx.v13()),
+      float(dac_mtx.v20()),float(dac_mtx.v21()),float(dac_mtx.v22()),float(dac_mtx.v23()),
+      float(dac_mtx.v30()),float(dac_mtx.v31()),float(dac_mtx.v32()),float(dac_mtx.v33()) );
+
+    float rate = 1.0f/absorption_length;
+    inlib::rexpf re(rate);
+
+    if(persistent) {
+      float text_scale = 4;
+      INLIB_ISHELL_GET_ARG_FLOAT(text_scale)
+
+      inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+        double p = (*it)->GetP();
+        if(!p) continue;
+
+        exlib::sg::in_cylinder_firework* _anim =
+          new exlib::sg::in_cylinder_firework
+	    (da_mtxf,_dac->wc_radius(),_dac->wc_length(),(*it)->name(),text_scale);
+        _anim->persistent = true;
+        _anim->dcut = dcut;
+        _anim->speed = speed;
+
+        //_anim->name = (*it)->name();
+        //_anim->text_scale = text_scale;
+
+        sep->add(_anim);
+
+        std::vector<float>& _v = _anim->xyztn.values();
+        _v.push_back(float((*it)->GetStartX()));
+        _v.push_back(float((*it)->GetStartY()));
+        _v.push_back(float((*it)->GetStartZ()));
+        _v.push_back(float((*it)->GetStartT()));
+        _v.push_back(float((*it)->GetPx()/p));
+        _v.push_back(float((*it)->GetPy()/p));
+        _v.push_back(float((*it)->GetPz()/p));
+        _v.push_back(re.shoot());
+
+        _anim->xyztn.touch();
+      }
+
+    } else {
+      exlib::sg::in_cylinder_firework* _anim =
+        new exlib::sg::in_cylinder_firework
+          (da_mtxf,_dac->wc_radius(),_dac->wc_length());
+      _anim->persistent = false;
+      _anim->dcut = dcut;
+      _anim->speed = speed;
+      sep->add(_anim);
+
+      std::vector<float>& _v = _anim->xyztn.values();
+      _v.reserve(7*cut_tracks.size());
+      inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+        double p = (*it)->GetP();
+        if(!p) continue;
+        _v.push_back(float((*it)->GetStartX()));
+        _v.push_back(float((*it)->GetStartY()));
+        _v.push_back(float((*it)->GetStartZ()));
+        _v.push_back(float((*it)->GetStartT()));
+        _v.push_back(float((*it)->GetPx()/p));
+        _v.push_back(float((*it)->GetPy()/p));
+        _v.push_back(float((*it)->GetPz()/p));
+        _v.push_back(re.shoot());
+      }
+
+      _anim->xyztn.touch();
+
+    }
+
+    empty = false;
+
+  //////////////////////////////////////
+  /// rep point : //////////////////////
+  //////////////////////////////////////
+  } else if(_style.modeling.value()==inlib::sg::modeling_markers()) {
+
+    inlib::sg::rgba* mat = new inlib::sg::rgba();
+    mat->color = _style.color.value();
+    sep->add(mat);
+
+    sep->add(new inlib::sg::matrix);  //for move_manip.
+
+    inlib::sg::markers* _marks = new inlib::sg::markers;
+    _marks->size = _style.marker_size;
+    _marks->style = _style.marker_style;
+   {inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+      _marks->add(float((*it)->GetStartX()),float((*it)->GetStartY()),float((*it)->GetStartZ()));
+    }}
+    sep->add(_marks);  
+
+    empty = false;
+
+  } else if(_style.modeling.value().empty()) {
+
+    inlib::sg::draw_style* ds = new inlib::sg::draw_style;
+    ds->style = inlib::sg::draw_points;
+    ds->point_size = _style.point_size;
+    sep->add(ds);
+
+    if(anim) {
+      inlib::sg::rgba* mat = new inlib::sg::rgba();
+      mat->color = _style.color.value();
+      sep->add(mat);
+
+      sep->add(new inlib::sg::matrix);  //for move_manip.
+
+      std::vector<inlib::vec4f> xyzts;
+     {inlib_vforcit(EsbMCTrack*,cut_tracks,it)
+       xyzts.push_back(inlib::vec4f
+         (float((*it)->GetStartX()),float((*it)->GetStartY()),float((*it)->GetStartZ()),float((*it)->GetStartT())));}
+
+      sep->add(new inlib::sg::xyzt_anim(xyzts));
+
+      empty = false;
+
+    } else if(_cmap) {
+
+      if(_style.pickable) {
+        inlib::colorf _color;
+        double value;
+
+        inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+          inlib::sg::atb_vertices* vtxs;
+          sep->add(create_sg_pickable(a_gv,_eval_cut,*(*it),vtxs));
+          if(!_eval_coloring.evaluate_double(*(*it),value)) {}
+          _cmap->get_color(float((value-_min_coloring)/_range_coloring),_color);
+          vtxs->add_pos_color(float((*it)->GetStartX()),float((*it)->GetStartY()),float((*it)->GetStartZ()),_color);
+          empty = false;
+        }
+
+      } else {
+        sep->add(new inlib::sg::matrix);  //for move_manip.
+
+        inlib::sg::atb_vertices* vtxs = new inlib::sg::atb_vertices;
+        vtxs->mode = inlib::gl::points();
+        sep->add(vtxs);
+
+        inlib::colorf _color;
+        double value;
+
+        inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+          if(!_eval_coloring.evaluate_double(*(*it),value)) {}
+          _cmap->get_color(float((value-_min_coloring)/_range_coloring),_color);
+          vtxs->add_pos_color(float((*it)->GetStartX()),float((*it)->GetStartY()),float((*it)->GetStartZ()),_color);
+          empty = false;
+        }
+      }
+
+    } else {
+      if(_style.pickable) {
+
+        inlib::sg::rgba* mat = new inlib::sg::rgba();
+        mat->color = _style.color.value();
+        sep->add(mat);
+
+        inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+          inlib::sg::vertices* vtxs;
+          sep->add(create_sg_pickable(a_gv,_eval_cut,*(*it),vtxs));
+          vtxs->add(float((*it)->GetStartX()),float((*it)->GetStartY()),float((*it)->GetStartZ()));
+          empty = false;
+        }
+
+      } else {
+        sep->add(new inlib::sg::matrix);  //for move_manip.
+
+        inlib::sg::rgba* mat = new inlib::sg::rgba();
+        mat->color = _style.color.value();
+        sep->add(mat);
+
+        inlib::sg::vertices* vtxs = new inlib::sg::vertices;
+        vtxs->mode = inlib::gl::points();
+        sep->add(vtxs);
+
+        inlib_vforcit(EsbMCTrack*,cut_tracks,it) {
+          vtxs->add(float((*it)->GetStartX()),float((*it)->GetStartY()),float((*it)->GetStartZ()));
+          empty = false;
+        }
+
+      }
+    }
+  } else {
+    a_insh.warn(s_cmd+": unknown modeling style "+_style.modeling.value()+".");
+  }
+
+  delete _cmap;
+  delete _eval_arrow_length;
+
+  if(_args.size()) {
+    delete sep;
+    a_insh.out(s_cmd+": unexpected arguments.");
+    _args.dump(a_insh.out());
+    return;
+  }
+
+  if(empty) {delete sep;return;}
+
+  INLIB_ISHELL_SEP_PLACEMENT
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// DetectorPoints : /////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline void vis_DetectorPoints(inlib::ishell& a_insh,inlib::sg::gui_viewer& a_gv,
+                               const one_event& a_event,const std::vector<EsbDetectorPoint*>& a_points,
+			       const std::string& a_emi,const std::vector<std::string>& a_args) {
+  static const std::string s_cmd(a_emi+"_vis");
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_insh.warn(s_cmd+": bad dac cast.");return;}
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) {a_insh.warn(s_cmd+": bad evd cast.");return;}
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+
+  INLIB_ISHELL_SET_SG_STYLE
+  
+  bool anim = false;
+  INLIB_ISHELL_GET_ARG_BOOL(anim)
+
+  INLIB_ISHELL_GET_PLACEMENT_DYNAMIC
+
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  
+  //////////////////////////////////////
+  /// cut : ////////////////////////////
+  //////////////////////////////////////
+  EsbDetectorPoint_evaluator _eval_cut(a_insh.out(),_style.cut.value(),a_event);
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(_style.cut.value())+" for cut evaluator.");
+    return;
+  }
+
+  std::vector<EsbDetectorPoint*> cut_points;
+  DetectorPoint_cut(a_points,_style.cut.value(),_eval_cut,cut_points);
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  inlib::sg::base_colormap* _cmap = 0;
+  double _min_coloring,_max_coloring,_range_coloring;
+  EsbDetectorPoint_evaluator _eval_coloring(a_insh.out(),_style.coloring.value(),a_event);
+  if(_style.coloring.value().size()) {
+    if(!_eval_coloring.is_valid()) {
+      a_insh.warn(s_cmd+": bad script "+inlib::sout(_style.coloring.value())+" for coloring evaluator.");
+      return;
+    }
+    _cmap = inlib::get_colormap(a_insh.out(),_style,a_gv.styles().cmaps(),cut_points,_eval_coloring,_min_coloring,_max_coloring);
+    _range_coloring = _max_coloring-_min_coloring;
+  }
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+  inlib::sg::separator* sep = new inlib::sg::separator;
+  bool empty = true;
+
+  if(_style.modeling==inlib::sg::modeling_detector()) {  // have a hedgehog rep.
+    float p_max = 0;
+    inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
+      p_max = inlib::mx<float>(p_max,(*it)->GetP());
+    }
+    if(p_max<=0) {
+      delete sep;
+      a_insh.warn(s_cmd+": p_max<=0.");
+      return;
+    }
+
+    double wc_radius = _dac->wc_radius();
+    double wc_length = _dac->wc_length();
+    float rep_length = float(wc_length)*0.5f;
+    inlib::mat4d wc_inv;_dac->wc_matrix().invert(wc_inv);
+    double epsilon = wc_radius*1e-6;
+
+    const inlib::mat4d& dac_mtx = _dac->wc_matrix();
+    inlib::mat4f da_mtxf(
+      float(dac_mtx.v00()),float(dac_mtx.v01()),float(dac_mtx.v02()),float(dac_mtx.v03()),
+      float(dac_mtx.v10()),float(dac_mtx.v11()),float(dac_mtx.v12()),float(dac_mtx.v13()),
+      float(dac_mtx.v20()),float(dac_mtx.v21()),float(dac_mtx.v22()),float(dac_mtx.v23()),
+      float(dac_mtx.v30()),float(dac_mtx.v31()),float(dac_mtx.v32()),float(dac_mtx.v33()) );
+
+
+    inlib::sg::draw_style* ds = new inlib::sg::draw_style;
+    ds->style = inlib::sg::draw_lines;
+    ds->line_width = _style.line_width;
+    sep->add(ds);
+
+    inlib::sg::rgba* mat = new inlib::sg::rgba();
+    mat->color = _style.color.value();
+    sep->add(mat);
+
+    inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
+      const EsbDetectorPoint* point = *it;
+      float length = rep_length*float(point->GetP())/p_max;
+
+    //length = rep_length; //for debugging.
+
+      double x = point->GetX();
+      double y = point->GetY();
+      double z = point->GetZ();
+      double w = 1;
+      wc_inv.mul_4(x,y,z,w);
+      int location;
+      if(!get_location(wc_radius,wc_length,epsilon,x,y,z,location)) {}
+
+      inlib::sg::separator* _sep = new inlib::sg::separator;
+      sep->add(_sep);
+
+      inlib::sg::matrix* _matrix = new inlib::sg::matrix;
+      _sep->add(_matrix);
+
+      inlib::sg::vertices* vtxs = new inlib::sg::vertices;
+      vtxs->mode = inlib::gl::lines();
+      vtxs->add(0,0,0);
+      vtxs->add(0,0,length);
+      _sep->add(vtxs);
+
+      empty = false;
+
+      _matrix->mtx = da_mtxf;
+
+      if(location==1) { //front
+        _matrix->mul_translate(x,y,z);
+      } else if(location==2) { //side
+        _matrix->mul_translate(x,y,z);
+        _matrix->mul_rotate(inlib::vec3f(1,0,0),inlib::vec3f(x,y,0));
+        _matrix->mul_rotate(0,1,0,inlib::fhalf_pi());  //bring shape along x.
+      } else if(location==3) { //back
+        _matrix->mul_translate(x,y,z-length);
+      }
+    }
+
+  } else { //_style.modeling.
+
+  inlib::sg::draw_style* ds = new inlib::sg::draw_style;
+  ds->style = inlib::sg::draw_points;
+  ds->point_size = _style.point_size;
+  sep->add(ds);
+
+  if(anim) {
+    inlib::sg::rgba* mat = new inlib::sg::rgba();
+    mat->color = _style.color.value();
+    sep->add(mat);
+
+    sep->add(new inlib::sg::matrix);  //for move_manip.
+
+    std::vector<inlib::vec4f> xyzts;
+   {inlib_vforcit(EsbDetectorPoint*,cut_points,it)
+      xyzts.push_back(inlib::vec4f(float((*it)->GetX()),float((*it)->GetY()),float((*it)->GetZ()),float((*it)->GetTime())));}
+
+    sep->add(new inlib::sg::xyzt_anim(xyzts));
+
+    empty = false;
+
+  } else if(_style.pickable) {
+    inlib::colorf _color;
+    double value;
+    std::vector<std::string> vinfos;
+
+    inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
+      inlib::sg::atb_vertices* vtxs;
+      sep->add(create_sg_pickable(a_gv,_eval_cut,*(*it),vtxs));
+      if(_cmap) {
+        if(!_eval_coloring.evaluate_double(*(*it),value)) {}
+        _cmap->get_color(float((value-_min_coloring)/_range_coloring),_color);
+        vtxs->add_pos_color(float((*it)->GetX()),float((*it)->GetY()),float((*it)->GetZ()),_color);
+      } else {
+        vtxs->add_pos_color(float((*it)->GetX()),float((*it)->GetY()),float((*it)->GetZ()),_style.color.value());
+      }
+
+      empty = false;
+    }
+
+  } else {
+
+    sep->add(new inlib::sg::matrix);  //for move_manip.
+
+    if(_cmap) {
+      inlib::colorf _color;
+      double value;
+
+      inlib::sg::atb_vertices* vtxs = new inlib::sg::atb_vertices;
+      vtxs->mode = inlib::gl::points();
+      sep->add(vtxs);
+
+      if(_style.modeling.value()==s_modeling_mc_track()) {
+        inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
+          if(!_eval_coloring.evaluate_double(*(*it),value)) {}
+          _cmap->get_color(float((value-_min_coloring)/_range_coloring),_color);
+          int track_id = (*it)->GetTrackID();
+          if((track_id<0)||(track_id>=int(a_event.mc_tracks().size())))  {
+	    std::string strack_id;
+	    inlib::num2s(track_id,strack_id);
+            a_insh.warn(s_cmd+": a point with a bad track ID ("+strack_id+").");
+	  } else {
+            const EsbMCTrack* track = a_event.mc_tracks()[track_id];
+            vtxs->add_pos_color(float(track->GetStartX()),float(track->GetStartY()),float(track->GetStartZ()),_color);
+            empty = false;
+	  }
+        }
+      } else if(_style.modeling.value().empty()) {
+        inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
+          if(!_eval_coloring.evaluate_double(*(*it),value)) {}
+          _cmap->get_color(float((value-_min_coloring)/_range_coloring),_color);
+          vtxs->add_pos_color(float((*it)->GetX()),float((*it)->GetY()),float((*it)->GetZ()),_color);
+          empty = false;
+        }
+      } else {
+        a_insh.warn(s_cmd+": unknown modeling style "+_style.modeling.value()+".");
+      }
+
+    } else {
+      inlib::sg::rgba* mat = new inlib::sg::rgba();
+      mat->color = _style.color.value();
+      sep->add(mat);
+
+      inlib::sg::vertices* vtxs = new inlib::sg::vertices;
+      vtxs->mode = inlib::gl::points();
+      sep->add(vtxs);
+
+      if(_style.modeling.value()==s_modeling_mc_track()) {
+        inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
+          int track_id = (*it)->GetTrackID();
+          if((track_id<0)||(track_id>=int(a_event.mc_tracks().size())))  {
+	    std::string strack_id;
+	    inlib::num2s(track_id,strack_id);
+            a_insh.warn(s_cmd+": a point with a bad track ID ("+strack_id+").");
+	  } else {
+            const EsbMCTrack* track = a_event.mc_tracks()[track_id];
+            vtxs->add(float(track->GetStartX()),float(track->GetStartY()),float(track->GetStartZ()));
+            empty = false;
+	  }
+        }
+      } else if(_style.modeling.value().empty()) {
+        inlib_vforcit(EsbDetectorPoint*,cut_points,it) {
+          vtxs->add(float((*it)->GetX()),float((*it)->GetY()),float((*it)->GetZ()));
+          empty = false;
+        }
+      } else {
+        a_insh.warn(s_cmd+": unknown modeling style "+_style.modeling.value()+".");
+      }
+    }
+  }
+
+  delete _cmap;
+
+  } //_style.modeling.
+
+  if(empty) {delete sep;return;}
+
+  INLIB_ISHELL_SEP_PLACEMENT
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// WCDetectorPoint : ////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline void insh_WCDetectorPoint_vis(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  vis_DetectorPoints(a_insh,a_gv,_dac->event(),_dac->event().wc_points(),"WCDetectorPoint",a_args);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// FgdDetectorPoint : ////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+inline void insh_FgdDetectorPoint_vis(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  vis_DetectorPoints(a_insh,a_gv,_dac->event(),_dac->event().fgd_points(),"FgdDetectorPoint",a_args);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// FgdHit : /////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline void insh_FgdHit_vis(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) { 
+  static const std::string s_cmd("FgdHit_vis");
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_insh.warn(s_cmd+": bad dac cast.");return;}
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) {a_insh.warn(s_cmd+": bad evd cast.");return;}
+
+  //////////////////////////////////////
+  //// args: ///////////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+
+  INLIB_ISHELL_SET_SG_STYLE
+
+  std::string scube_size;
+  INLIB_ISHELL_GET_ARG_STRING(cube_size)
+
+  bool unique_at_pos = false;
+  INLIB_ISHELL_GET_ARG_BOOL(unique_at_pos)
+  bool unique_verbose = false;
+  INLIB_ISHELL_GET_ARG_BOOL(unique_verbose)
+
+  INLIB_ISHELL_GET_PLACEMENT_DYNAMIC
+  
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  
+  //////////////////////////////////////
+  /// unique : /////////////////////////
+  //////////////////////////////////////
+  std::vector<EsbFgdHit*> unique_hits;
+  bool unique_to_clear = false;
+  if(unique_at_pos) {
+    FgdHits_unique_at_pos(a_insh.out(),_dac->event().fgd_hits(),unique_hits,unique_verbose);
+    unique_to_clear = true;
+  } else {
+    unique_hits = _dac->event().fgd_hits();
+  }
+
+  //////////////////////////////////////
+  /// cut : ////////////////////////////
+  //////////////////////////////////////
+  EsbFgdHit_evaluator _eval_cut(a_insh.out(),_style.cut.value(),_dac->event());
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(_style.cut.value())+" for cut evaluator.");
+    return;
+  }
+  std::vector<EsbFgdHit*> cut_hits;
+  FgdHit_cut(unique_hits,_style.cut.value(),_eval_cut,cut_hits);
+
+  ///////////////////////////////////////////
+  /// building the representations : ////////
+  ///////////////////////////////////////////
+
+  if(_style.modeling.value()==inlib::sg::modeling_cube()) {
+    //////////////////////////////////////
+    /// modeling_cube : //////////////////
+    //////////////////////////////////////
+    inlib::sg::base_colormap* _cmap = 0;
+    double _min_coloring,_max_coloring,_range_coloring;
+    EsbFgdHit_evaluator _eval_coloring(a_insh.out(),_style.coloring.value(),_dac->event());
+    if(_style.coloring.value().size()) {
+      if(!_eval_coloring.is_valid()) {
+        a_insh.warn(s_cmd+": bad script "+inlib::sout(_style.coloring.value())+" for coloring evaluator.");
+        if(unique_to_clear) inlib::raw_clear(unique_hits);
+        return;
+      }
+      _cmap = inlib::get_colormap(a_insh.out(),_style,a_gv.styles().cmaps(),cut_hits,_eval_coloring,_min_coloring,_max_coloring);
+      _range_coloring = _max_coloring-_min_coloring;
+    }
+
+    EsbFgdHit_evaluator*  _eval_cube_size = 0;
+    double _min_cube_size,_max_cube_size,_range_cube_size;
+    double default_cube_size = 0.99; // not one so that cube is within Esb/SuperFGD volume. (It avoids bad coloring if SuperFGD is transparent).
+    if(inlib::rm_eval_parenthesis(scube_size)) {
+      _eval_cube_size = new EsbFgdHit_evaluator(a_insh.out(),scube_size,_dac->event());
+      if(!_eval_cube_size->evaluate_double_min_max(cut_hits,_min_cube_size,_max_cube_size)) {
+        _range_cube_size = -1;
+      } else {
+        _range_cube_size = _max_cube_size-_min_cube_size;
+      }
+    } else {
+      if(!inlib::to<double>(scube_size,default_cube_size,0.99)) {}
+    }
+
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+
+    inlib::sg::separator* sep = new inlib::sg::separator;
+
+    sep->add(new inlib::sg::matrix);  //for move_manip.
+
+  //if(_style.color.value().a()<1) sort_by_z(cut_hits);
+
+    inlib::sg::draw_style* ds = new inlib::sg::draw_style;
+    ds->cull_face = false;
+    ds->style = inlib::sg::draw_filled;
+    if(_eval_cube_size && (_range_cube_size!=(-1))) ds->style = inlib::sg::draw_lines;
+    sep->add(ds);
+
+    if(_cmap) {
+    } else {
+      inlib::sg::rgba* mat = new inlib::sg::rgba();
+      mat->color = _style.color.value();
+      sep->add(mat);
+    }
+
+    inlib::colorf _color;
+
+    inlib_vforcit(EsbFgdHit*,cut_hits,it) {
+      inlib::sg::separator* _sep = new inlib::sg::separator;
+      sep->add(_sep);
+
+      _sep->add(create_sg_infos(a_gv,_eval_cut,*(*it)));
+
+      if(_cmap) {
+        double value;
+        if(!_eval_coloring.evaluate_double(*(*it),value)) {}
+        _cmap->get_color(float((value-_min_coloring)/_range_coloring),_color);
+        //::printf("debug : %g : %g %g %g\n",float((value-_min_coloring)/_range_coloring),(*it)->m_mppc_x,(*it)->m_mppc_y,(*it)->m_mppc_z);
+
+        inlib::sg::rgba* mat = new inlib::sg::rgba();
+        mat->color = _color;
+        _sep->add(mat);
+      }
+
+    //float x = float((*it)->mppc_x())-50+0.5f;      // it should match GetX().
+    //float y = float((*it)->mppc_y())-50+0.5f;      // it should match GetY().
+    //float z = float((*it)->mppc_z())-50+0.5f-550;  // it should match GetZ().
+
+      inlib::sg::matrix* mtx = new inlib::sg::matrix;
+      mtx->set_translate(float((*it)->GetX()),float((*it)->GetY()),float((*it)->GetZ()));
+      _sep->add(mtx);
+
+      double cube_size = default_cube_size;
+      if(_eval_cube_size) {
+        if(_range_cube_size!=(-1)) {
+          double dcube_size;
+          if(!_eval_cube_size->evaluate_double(*(*it),dcube_size)) {}
+          cube_size = 0.5+0.5*default_cube_size*(dcube_size-_min_cube_size)/_range_cube_size;   // [0.5,0.99]
+        }
+      }
+
+      inlib::sg::cube* cube = new inlib::sg::cube;
+      cube->width = float(cube_size);
+      cube->height = float(cube_size);
+      cube->depth = float(cube_size);
+      _sep->add(cube);
+    }
+
+    delete _cmap;
+    delete _eval_cube_size;
+
+    INLIB_ISHELL_SEP_PLACEMENT
+
+  } else if(_style.modeling.value().empty()) {
+    //////////////////////////////////////
+    /// points : /////////////////////////
+    //////////////////////////////////////
+    inlib::sg::separator* sep = new inlib::sg::separator;
+
+    sep->add(new inlib::sg::matrix);  //for move_manip.
+
+    inlib::sg::draw_style* ds = new inlib::sg::draw_style;
+    ds->style = inlib::sg::draw_points;
+    ds->point_size = _style.point_size;
+    sep->add(ds);
+
+    inlib::sg::rgba* mat = new inlib::sg::rgba();
+    mat->color = _style.color.value();
+    sep->add(mat);
+
+    inlib::sg::vertices* vtxs = new inlib::sg::vertices;
+    vtxs->mode = inlib::gl::points();
+    sep->add(vtxs);
+
+    inlib_vforcit(EsbFgdHit*,cut_hits,it) vtxs->add(float((*it)->GetX()),float((*it)->GetY()),float((*it)->GetZ()));
+
+    INLIB_ISHELL_SEP_PLACEMENT
+
+  } else {
+    a_insh.warn(s_cmd+": unknown modeling style "+_style.modeling.value()+".");
+  }
+
+  if(unique_to_clear) inlib::raw_clear(unique_hits);
+}
+
+}
+
+#endif
+

@@ -1,0 +1,283 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_insh_plot
+#define EsbRootView_insh_plot
+
+#include <exlib/xml/xml_style>
+#include <inlib/xml/wrap_viewplot_fonts_microsoft_style> // inlib/xml/viewplot.style file embeded in an inline function.
+
+#include <inlib/sg/plots>
+#include <inlib/sg/plotter_style>
+#include <inlib/sg/h2plot_cp>
+
+namespace EsbRootView {
+
+inline bool load_embeded_styles(inlib::xml::styles& a_styles) {
+  std::string ss;
+  unsigned int linen;
+  const char** lines = viewplot_fonts_microsoft_style(linen);
+  for(unsigned int index=0;index<linen;index++) {
+    std::string s = lines[index];
+    inlib::replace(s,"@@double_quote@@","\"");
+    inlib::replace(s,"@@back_slash@@","\\");
+    ss += s + "\n";
+  }
+  return exlib::xml::load_style_string(a_styles,ss);
+}
+
+inline void setup_plotter(std::ostream& a_out,inlib::sg::plotter& a_plotter,double a_radius,double a_length) {
+  //////////////////////////////////////////////////////////
+  /// style : //////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  inlib::sg::plotter& _plotter = a_plotter;
+
+  _plotter.background_style().visible = true;
+
+  inlib::xml::styles styles(a_out);
+  styles.add_colormap("default",inlib::sg::style_default_colormap());
+  styles.add_colormap("ROOT",inlib::sg::style_ROOT_colormap());
+  load_embeded_styles(styles);
+  _plotter.reset_style();
+  inlib::sg::style_from_res(styles,"ROOT_default",_plotter,true);
+
+  _plotter.title_box_style().visible = false;
+  _plotter.infos_style().visible = false;
+
+  _plotter.title_to_axis = 0.03f;
+  _plotter.title_style().visible = true;
+  _plotter.title_style().scale = 3;
+  _plotter.title_style().font = inlib::sg::font_arialbd_ttf();
+  _plotter.title_style().font_modeling = inlib::sg::font_pixmap;
+
+  //hEvent->Draw("COLZ");
+  _plotter.bins_style(0).color = inlib::colorf_red();
+  _plotter.bins_style(0).modeling = inlib::sg::modeling_solid();
+  _plotter.bins_style(0).painting = inlib::sg::painting_violet_to_red;
+
+  //TEllipse* ellipse = new TEllipse();
+  //ellipse->SetLineWidth(2);
+  //ellipse->SetFillStyle(0);
+  //ellipse->DrawEllipse(0, 0, a_radius, 0, 0, 360, 0);
+  //ellipse->DrawEllipse(a_radius+a_length+a_radius, 0, a_radius, 0, 0, 360, 0);
+
+  _plotter.add_primitive
+    (new inlib::sg::plottable_ellipse(0,0,float(a_radius),float(a_radius),
+                                      inlib::sg::plottable_ellipse::HOLLOW,inlib::colorf_white(),0,0,inlib::colorf_black(),2));
+  _plotter.add_primitive
+    (new inlib::sg::plottable_ellipse(float(a_radius+a_length+a_radius),0,float(a_radius),float(a_radius),
+                                      inlib::sg::plottable_ellipse::HOLLOW,inlib::colorf_white(),0,0,inlib::colorf_black(),2));
+
+  //TBox* box = new TBox();
+  //box->SetLineWidth(2);
+  //box->SetFillStyle(0);
+  //box->DrawBox(a_radius, -a_radius*TMath::Pi(), a_radius+a_length, a_radius*TMath::Pi());
+
+  _plotter.add_primitive
+    (new inlib::sg::plottable_box(float(a_radius),float(-a_radius*inlib::pi()),float(a_radius+a_length),float(a_radius*inlib::pi()),
+                                  inlib::sg::plottable_box::HOLLOW,inlib::colorf_white(),0,0,inlib::colorf_black(),2));
+
+  //TLatex* latex = new TLatex();
+  //latex->SetTextSize(0.06);
+  //latex->SetTextAlign(22);
+  //latex->DrawLatex(0                         , a_radius*TMath::Pi()+200, "BACK");
+  //latex->DrawLatex(a_radius+a_length/2       , a_radius*TMath::Pi()+200, "SIDE");
+  //latex->DrawLatex(a_radius+a_length+a_radius, a_radius*TMath::Pi()+200, "FRONT");
+
+  // latex->SetTextAlign(h*10+v);
+  // horizontal :
+  //  2    TA_CENTER
+  //  3    TA_RIGHT
+  //  else TA_LEFT
+  // vertical :
+  //  1    TA_BASELINE
+  //  2    TA_TOP
+  //  3    TA_TOP
+  //  else TA_BASELINE
+  // 22 in ROOT is for horizontal/center and vertical/top.
+
+//float y_min = -a_radius*inlib::pi()-50;       //from the h2d booking.
+  float y_max =  a_radius*inlib::pi()+300;      //from the h2d booking.
+  float top_box = float(a_radius*inlib::pi());  //from the upper box size.
+
+  float text_y = (y_max+top_box)*0.5f;
+
+  float text_height = (2*float(a_radius*inlib::pi()))*0.09f;
+
+  _plotter.add_primitive
+    (new inlib::sg::plottable_text("BACK",0,text_y,
+                                 //0.06f,false,
+                                   text_height,inlib::sg::text_enforce_height,
+                                   0,'C','M',
+                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap,
+                                   false,inlib::colorf_white(),0));
+  _plotter.add_primitive
+    (new inlib::sg::plottable_text("SIDE",float(a_radius+a_length/2),text_y,
+                                 //0.06f,false,
+                                   text_height,inlib::sg::text_enforce_height,
+                                   0,'C','M',
+                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap,
+                                   false,inlib::colorf_white(),0));
+  _plotter.add_primitive
+    (new inlib::sg::plottable_text("FRONT",float(a_radius+a_length+a_radius),text_y,
+                                 //0.06f,false,
+                                   text_height,inlib::sg::text_enforce_height,
+                                   0,'C','M',
+                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap,
+                                   false,inlib::colorf_white(),0));
+
+  _plotter.set_axes_font_modeling(inlib::sg::font_pixmap);
+
+}
+
+inline void setup_plotter(std::ostream& a_out,inlib::sg::plotter& a_plotter) {
+  //////////////////////////////////////////////////////////
+  /// style : //////////////////////////////////////////////
+  //////////////////////////////////////////////////////////
+  inlib::sg::plotter& _plotter = a_plotter;
+
+  _plotter.background_style().visible = true;
+
+  inlib::xml::styles styles(a_out);
+  styles.add_colormap("default",inlib::sg::style_default_colormap());
+  styles.add_colormap("ROOT",inlib::sg::style_ROOT_colormap());
+  load_embeded_styles(styles);
+  _plotter.reset_style();
+  inlib::sg::style_from_res(styles,"ROOT_default",_plotter,true);
+  _plotter.set_axes_font_modeling(inlib::sg::font_pixmap);
+}
+
+}
+
+#include "hist_data"
+#include "../evaluators"
+#include <inlib/sg/gui_viewer>
+
+namespace EsbRootView {
+
+inline void insh_MCTrack_plot(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  static const std::string s_cmd("MCTrack_plot");
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_insh.warn(s_cmd+": bad dac cast.");return;}
+  inlib::sg::plots* plots = inlib::sg::search_plots<inlib::sg::plots>(a_gv);
+  if(!plots) return;
+  inlib::sg::plotter& _plotter = plots->current_plotter();
+  _plotter.clear();
+  inlib::args _args(a_args);
+  bool manage = _args.is_arg("-histo_name");  //it is reused in hist_data.
+  inlib::histo::h1d* h1d;
+  inlib::histo::h2d* h2d;
+  hist_data<EsbMCTrack,EsbMCTrack_evaluator>
+    (a_insh,a_gv.get_omanager(),_args,_dac->event().mc_tracks(),_dac->event(),"MCTrack",manage,h1d,h2d);
+  setup_plotter(a_insh.out(),_plotter);
+  if(h1d) {
+    _plotter.add_plottable(new inlib::sg::h1d2plot_cp(*h1d));
+    if(!manage) delete h1d;
+  }
+  if(h2d) {
+    _plotter.add_plottable(new inlib::sg::h2d2plot_cp(*h2d));
+    if(!manage) delete h2d;
+  }
+}
+
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+inline void plot_DetectorPoints(inlib::ishell& a_insh,const std::vector<std::string>& a_args,
+                                inlib::omanager& a_mgr,
+                                inlib::sg::plots& a_plots,
+                                dac& a_dac,const std::string& a_emi,
+                                const std::vector<EsbDetectorPoint*>& a_points) {
+  static const std::string s_cmd(a_emi+"_plot");
+  inlib::args _args(a_args);
+  std::string smodeling;
+  INLIB_ISHELL_GET_ARG_STRING(modeling)
+  inlib::sg::plotter& _plotter = a_plots.current_plotter();
+  _plotter.clear();
+  if(smodeling==inlib::sg::modeling_detector()) {
+    std::string shisto_name;
+    INLIB_ISHELL_GET_ARG_STRING(histo_name)
+  //if(shisto_name.size()) {
+  //  if(!inlib::is_C_variable(shisto_name)) {
+  //    a_insh.warn(s_cmd+": histo name "+inlib::sout(shisto_name)+" must have the syntax of a C variable.");
+  //    return;
+  //  }
+  //}
+    bool no_warn;
+    INLIB_ISHELL_IS_ARG(no_warn)
+    bool warn = no_warn?false:true;
+    INLIB_ISHELL_ARGS_UNEXPECTED
+    bool manage = shisto_name.size()?true:false;
+    inlib::histo::h2d* h = hist2D_DetectorPoints(a_insh,a_dac,a_points);
+    if(!h) return;
+    setup_plotter(a_insh.out(),_plotter,a_dac.wc_radius(),a_dac.wc_length());
+    _plotter.add_plottable(new inlib::sg::h2d2plot_cp(*h));
+    if(manage) a_mgr.manage_object(h,shisto_name,true,true,warn);
+    else delete h;
+  } else if(smodeling.empty()) {
+    bool manage = _args.is_arg("-histo_name");  //it is reused in hist_data.
+    inlib::histo::h1d* h1d;
+    inlib::histo::h2d* h2d;
+    hist_data<EsbDetectorPoint,EsbDetectorPoint_evaluator>
+      (a_insh,a_mgr,_args,a_points,a_dac.event(),a_emi,manage,h1d,h2d);
+    setup_plotter(a_insh.out(),_plotter);
+    if(h1d) {
+      _plotter.add_plottable(new inlib::sg::h1d2plot_cp(*h1d));
+      if(!manage) delete h1d;
+    }
+    if(h2d) {
+      _plotter.add_plottable(new inlib::sg::h2d2plot_cp(*h2d));
+      if(!manage) delete h2d;
+    }
+  } else {
+    a_insh.warn(s_cmd+": unknown modeling style "+inlib::sout(smodeling)+".");
+  }
+}
+
+inline void insh_WCDetectorPoint_plot(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  inlib::sg::plots* plots = inlib::sg::search_plots<inlib::sg::plots>(a_gv);
+  if(!plots) return;
+  plot_DetectorPoints(a_insh,a_args,a_gv.get_omanager(),*plots,*_dac,"WCDetectorPoint",_dac->event().wc_points());
+}
+inline void insh_FgdDetectorPoint_plot(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  inlib::sg::plots* plots = inlib::sg::search_plots<inlib::sg::plots>(a_gv);
+  if(!plots) return;
+  plot_DetectorPoints(a_insh,a_args,a_gv.get_omanager(),*plots,*_dac,"FgdDetectorPoint",_dac->event().fgd_points());
+}
+
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
+
+inline void insh_FgdHit_plot(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  inlib::sg::plots* plots = inlib::sg::search_plots<inlib::sg::plots>(a_gv);
+  if(!plots) return;
+  inlib::sg::plotter& _plotter = plots->current_plotter();
+  _plotter.clear();
+  inlib::args _args(a_args);
+  bool manage = _args.is_arg("-histo_name");
+  inlib::histo::h1d* h1d;
+  inlib::histo::h2d* h2d;
+  hist_data<EsbFgdHit,EsbFgdHit_evaluator>
+    (a_insh,a_gv.get_omanager(),_args,_dac->event().fgd_hits(),_dac->event(),"FgdHit",manage,h1d,h2d);
+  setup_plotter(a_insh.out(),_plotter);
+  if(h1d) {
+    _plotter.add_plottable(new inlib::sg::h1d2plot_cp(*h1d));
+    if(!manage) delete h1d;
+  }
+  if(h2d) {
+    _plotter.add_plottable(new inlib::sg::h2d2plot_cp(*h2d));
+    if(!manage) delete h2d;
+  }
+}
+
+}
+
+#endif

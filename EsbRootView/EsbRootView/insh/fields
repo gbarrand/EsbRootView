@@ -1,0 +1,63 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_insh_fields
+#define EsbRootView_insh_fields
+
+#include "../evaluators"
+
+#include <inlib/insh/ishell>
+#include <inlib/sort>
+
+namespace EsbRootView {
+
+#define ESBROOTVIEW_FIELDS_ITEM(a__data,a__evaluator) \
+inline void insh_##a__data##_fields(inlib::ishell& a_insh) {\
+  Esb##a__evaluator##_evaluator _eval(a_insh.out(),"",one_event());\
+  std::vector<std::string> names;\
+  _eval.get_names(names);\
+  if(a_insh.in_backquote()) {\
+    a_insh.out_begin();\
+    a_insh.out(names,true);\
+  } else {\
+    inlib::sort::sort(names);\
+    a_insh.unix_print(names);\
+  }\
+}
+
+ESBROOTVIEW_FIELDS_ITEM(MCTrack,MCTrack)
+ESBROOTVIEW_FIELDS_ITEM(WCDetectorPoint,DetectorPoint)
+ESBROOTVIEW_FIELDS_ITEM(FgdDetectorPoint,DetectorPoint)
+ESBROOTVIEW_FIELDS_ITEM(FgdHit,FgdHit)
+
+#undef ESBROOTVIEW_FIELDS_ITEM
+
+}
+
+#include "event"
+
+namespace EsbRootView {
+
+inline void insh_event_fields(inlib::ishell& a_insh,const std::vector<std::string>& a_args) {
+  static const std::string s_cmd("event_fields");
+  if(a_args.empty()) {insh_event_model_items(a_insh);return;}
+  inlib::args _args(a_args);
+  std::string fnh;
+  /*backcomp : in the below, second false to take all not hyphens (not only the trailing ones).*/
+  if(!_args.first_not_hyphen(fnh,false,false)) {
+    a_insh.warn(s_cmd+": no event model item given.");
+    return;
+  }
+  _args.remove(fnh);
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  if(fnh=="MCTrack")          {insh_MCTrack_fields(a_insh);return;}
+  if(fnh=="WCDetectorPoint")  {insh_WCDetectorPoint_fields(a_insh);return;}
+  if(fnh=="FgdDetectorPoint") {insh_FgdDetectorPoint_fields(a_insh);return;}
+  if(fnh=="FgdHit")           {insh_FgdHit_fields(a_insh);return;}
+  a_insh.warn(s_cmd+": event model item "+inlib::sout(fnh)+" unknown.");
+}
+
+}
+
+#endif
+

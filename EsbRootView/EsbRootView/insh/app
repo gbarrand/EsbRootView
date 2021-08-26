@@ -1,0 +1,548 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_insh_app
+#define EsbRootView_insh_app
+
+#include "event"
+#include "count_print_stats"
+#include "fields"
+#include "vis"
+#include "histo"
+#include "plot"
+
+#include "../version"
+
+#include <inlib/insh/guib>
+
+namespace EsbRootView {
+
+inline void insh_app_version(inlib::ishell& a_insh,const std::vector<std::string>&) {
+  a_insh.out(ESBROOTVIEW_VERSION);
+}
+
+#define ESBROOTVIEW_INSH_DAC_CMD(a__action)\
+inline void insh_event_##a__action(inlib::ishell& a_insh,const std::vector<std::string>& a_args,dac& a_dac) {\
+  static const std::string s_cmd("event_"+std::string(#a__action));\
+  if(a_args.empty()) {insh_event_model_items(a_insh);return;}\
+  inlib::args _args(a_args);\
+  std::string fnh;\
+  /*backcomp : in the below, second false to take all not hyphens (not only the trailing ones).*/\
+  if(!_args.first_not_hyphen(fnh,false,false)) {\
+    a_insh.warn(s_cmd+": no event model item given.");\
+    return;\
+  }\
+  _args.remove(fnh);\
+  std::vector<std::string> args;\
+  _args.to_vector(args);\
+  if(fnh=="MCTrack")          {insh_MCTrack_##a__action(a_insh,args,a_dac);return;}\
+  if(fnh=="WCDetectorPoint")  {insh_WCDetectorPoint_##a__action(a_insh,args,a_dac);return;}\
+  if(fnh=="FgdDetectorPoint") {insh_FgdDetectorPoint_##a__action(a_insh,args,a_dac);return;}\
+  if(fnh=="FgdHit")           {insh_FgdHit_##a__action(a_insh,args,a_dac);return;}\
+  a_insh.warn(s_cmd+": event model item "+inlib::sout(fnh)+" unknown.");\
+}
+
+ESBROOTVIEW_INSH_DAC_CMD(count)   //insh_event_count
+ESBROOTVIEW_INSH_DAC_CMD(stats)   //insh_event_stats
+ESBROOTVIEW_INSH_DAC_CMD(print)   //insh_event_print
+
+#undef ESBROOTVIEW_INSH_DAC_CMD
+
+#define ESBROOTVIEW_INSH_EVENT_GUI_VIEWER_CMD(a__action)\
+inline void insh_event_##a__action(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {\
+  static const std::string s_cmd("event_"+std::string(#a__action));\
+  if(a_args.empty()) {insh_event_model_items(a_insh);return;}\
+  inlib::args _args(a_args);\
+  std::string fnh;\
+  /*backcomp : in the below, second false to take all not hyphens (not only the trailing ones).*/\
+  if(!_args.first_not_hyphen(fnh,false,false)) {\
+    a_insh.warn(s_cmd+": no event model item given.");\
+    return;\
+  }\
+  _args.remove(fnh);\
+  std::vector<std::string> args;\
+  _args.to_vector(args);\
+  if(fnh=="MCTrack")          {insh_MCTrack_##a__action(a_insh,args,a_gv);return;}\
+  if(fnh=="WCDetectorPoint")  {insh_WCDetectorPoint_##a__action(a_insh,args,a_gv);return;}\
+  if(fnh=="FgdDetectorPoint") {insh_FgdDetectorPoint_##a__action(a_insh,args,a_gv);return;}\
+  if(fnh=="FgdHit")           {insh_FgdHit_##a__action(a_insh,args,a_gv);return;}\
+  a_insh.warn(s_cmd+": event model item "+inlib::sout(fnh)+" unknown.");\
+}
+
+ESBROOTVIEW_INSH_EVENT_GUI_VIEWER_CMD(vis)     //insh_event_vis
+ESBROOTVIEW_INSH_EVENT_GUI_VIEWER_CMD(hfill)   //insh_event_hfill
+ESBROOTVIEW_INSH_EVENT_GUI_VIEWER_CMD(histo)   //insh_event_histo
+ESBROOTVIEW_INSH_EVENT_GUI_VIEWER_CMD(plot)    //insh_event_plot
+
+#undef ESBROOTVIEW_INSH_EVENT_GUI_VIEWER_CMD
+
+inline const std::string& insh_event_vis_help() {
+  static const std::string s_help("\
+event_vis: event_vis [-cut] [event_model_item]\n\
+  Visualize event model item instances.\n\
+  Someone can give a cut in option.\n\
+  Without any argument, the event model items are printed.\n\
+  Example :\n\
+    event_vis\n\
+    event_vis MCTrack\n\
+    event_vis -cut=pdg==50000050 MCTrack\n\
+");
+  return s_help;
+}
+
+inline const std::string& insh_event_count_help() {
+  static const std::string s_help("\
+event_count: event_count [-cut] [event_model_item]\n\
+  Count event model item instances.\n\
+  Someone can give a cut in option.\n\
+  Without any argument, the event model items are printed.\n\
+  Example :\n\
+    event_count\n\
+    event_count MCTrack\n\
+    event_count -cut=pdg==50000050 MCTrack\n\
+");
+  return s_help;
+}
+
+inline const std::string& insh_event_stats_help() {
+  static const std::string s_help("\
+event_stats: event_stats [-cut,-sum,-min,-max,-mean,-rms] [event_model_item] [fields]\n\
+  Print event model item fields sum/min/max/mean/rms.\n\
+  Someone can give a cut in option and a list of fields.\n\
+  If only one field and one of [-sum,-min,-max,-mean,-rms] are specifed, then\n\
+  the single number [sum,min,max,mean,rms] is printed. This number can be used\n\
+  with backquoting. If no field is given, all are considered.\n\
+  Without any argument, the event model items are printed.\n\
+  Example :\n\
+    event_stats\n\
+    event_stats MCTrack\n\
+    event_stats -cut=pdg==50000050 MCTrack x y z p\n\
+    event_stats -cut=pdg==50000050 -mean MCTrack p\n\
+    mean_p=`event_stats -cut=pdg==50000050 -mean MCTrack p`\n\
+    echo \"Mean impulse is ${mean_p}\"\n\
+");
+  return s_help;
+}
+
+inline const std::string& insh_event_print_help() {
+  static const std::string s_help("\
+event_print: event_print [-cut] [event_model_item] [fields]\n\
+  Print event model item fields.\n\
+  Someone can give a cut in option and a list of fields.\n\
+  If no field is given, all are considered.\n\
+  Without any argument, the event model items are printed.\n\
+  Example :\n\
+    event_print\n\
+    event_print MCTrack\n\
+    event_print -cut=pdg==50000050 MCTrack x y z p\n\
+");
+  return s_help;
+}
+
+inline const std::string& insh_event_hfill_help() {
+  static const std::string s_help("\
+event_hfill: event_hfill [-name,-cut,-xfill,-yfill] [event_model_item]\n\
+  Fill a managed histogram with the fields of event model item instances.\n\
+  Someone can give a cut in option.\n\
+  -name=string name of the managed histogram (mendatory).\n\
+  -cut=string cut in the event model item instances.\n\
+  -xfill=string expression to fill a 1D histo or the x of a 2D.\n\
+  -yfill=string expression to fill the y of a 2D histogram.\n\
+  Without any argument, the event model items are printed.\n\
+  Example :\n\
+    event_hfill\n\
+    histo_create -xbins=100 -xmin=0 -xmax=1e-7 h_MCTrack\n\
+    event_hfill -name=h_MCTrack -xfill=p MCTrack\n\
+    histo_create -xbins=100 -xmin=0 -xmax=1e-7 h_MCTrack_cut\n\
+    event_hfill -name=h_MCTrack_cut -cut=pdg==50000050 -xfill=t MCTrack\n\
+    histo_create -class=h2d -xbins=100 -xmin=0 -xmax=1e-7 -ybins=100 -ymin=0 -ymax=100 h2_MCTrack\n\
+    event_hfill -name=h2_MCTrack -xfill=p -yfill=t MCTrack\n\
+    histo_ls\n\
+");
+  return s_help;
+}
+
+inline const std::string& insh_event_histo_help() {
+  static const std::string s_help("\
+event_histo: event_histo [-name,-cut,-[x,y][fill,bins,min,max]] [event_model_item]\n\
+  Histogram fields of event model item instances.\n\
+  If -xfill given only, a 1D histogram is created and filled.\n\
+  If -xfill and -yfill given, a 2D histogram is created and filled.\n\
+  Someone can give a cut in option.\n\
+  -name=string name of the managed histogram (mendatory).\n\
+  -cut=string cut in the event model item instances.\n\
+  -xfill=string expression to fill a 1D histo or the x of a 2D.\n\
+  -yfill=string expression to fill the y of a 2D histogram.\n\
+  -xbins=uint number of x bins (default is 100).\n\
+  -xmin=real if given, xmin of the 1D histo.\n\
+   If not given, it is guessed from -xfill applied on data.\n\
+  -xmax=real if given, xmax of the 1D histo.\n\
+   If not given, it is guessed from -xfill applied on data.\n\
+  -ybins=uint number of y bins (default is 100).\n\
+  -ymin=real if given, ymin of the 2D histo.\n\
+   If not given, it is guessed from -yfill applied on data.\n\
+  -ymax=real if given, ymax of the 2D histo.\n\
+   If not given, it is guessed from -yfill applied on data.\n\
+  Without any argument, the event model items are printed.\n\
+  Example :\n\
+    event_histo\n\
+    event_histo -name=h_MCTrack -xfill=p MCTrack\n\
+    event_histo -name=h_MCTrack_cut -cut=pdg==50000050 -xfill=t MCTrack\n\
+    event_histo -name=h2_MCTrack -xfill=p -yfill=t MCTrack\n\
+    histo_ls\n\
+");
+  return s_help;
+}
+
+inline const std::string& insh_event_plot_help() {
+  static const std::string s_help("\
+event_plot: event_plot [-cut,-[x,y][fill,bins,min,max]] [event_model_item]\n\
+  Plot field of event model item instances.\n\
+  If -xfill given only, a 1D histogram is created, filled and plotted.\n\
+  If -xfill and -yfill given, a 2D histogram is created, filled and plotted.\n\
+  Someone can give a cut in option.\n\
+  -cut=string cut in the event model item instances.\n\
+  -histo_name=string if given, the transient histogram is managed,\n\
+   else it is deleted when plotting is finished.\n\
+  -xfill=string expression to fill a 1D histo or the x of a 2D.\n\
+  -yfill=string expression to fill the y of a 2D histogram.\n\
+  -filling=string deprecated. Same as -xfill.\n\
+  -xbins=uint number of x bins (default is 100).\n\
+  -xmin=real if given, xmin of the 1D histo.\n\
+   If not given, it is guessed from -xfill applied on data.\n\
+  -xmax=real if given, xmax of the 1D histo.\n\
+   If not given, it is guessed from -xfill applied on data.\n\
+  -ybins=uint number of y bins (default is 100).\n\
+  -ymin=real if given, ymin of the 2D histo.\n\
+   If not given, it is guessed from -yfill applied on data.\n\
+  -ymax=real if given, ymax of the 2D histo.\n\
+   If not given, it is guessed from -yfill applied on data.\n\
+  Without any argument, the event model items are printed.\n\
+  Example :\n\
+    event_plot\n\
+    event_plot -xfill=p MCTrack\n\
+    event_plot -cut=pdg==50000050 -xfill=t MCTrack\n\
+    event_plot -cut=pdg==50000050 -xfill=p -yfill=t MCTrack\n\
+");
+  return s_help;
+}
+
+inline void insh_app_manage_geo_manager(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  static const std::string s_cmd("app_manage_geo_manager");
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_insh.warn(s_cmd+": bad dac cast.");return;}
+  bool own = false; //important.
+  inlib::rroot::geo_manager* _geo_mgr = &(_dac->geo_manager());
+  a_gv.get_omanager().manage_object<inlib::rroot::geo_manager>(_geo_mgr,"geo_manager",true,true,false,own);
+}
+
+inline void insh_app_open_geometry_file(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  static const std::string s_cmd("app_open_geometry_file");
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_insh.warn(s_cmd+": bad dac cast.");return;}
+  inlib::args _args(a_args);
+  std::string path;
+  if(!inlib::insh_args_file(a_insh,a_gv,_args,s_cmd,path)) return;
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  std::string smsg;
+  if(!_dac->open_geometry_file(path,smsg)) {
+    a_insh.warn(s_cmd+": "+smsg);
+    a_gv.show_console("no volumes");
+    return;
+  }
+  a_gv.show_console(smsg);
+}
+
+inline void insh_app_open_event_file(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  static const std::string s_cmd("open_event_file");
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_insh.warn(s_cmd+": bad dac cast.");return;}
+  inlib::sg::view_evd* _evd = inlib::sg::cast_view_evd(a_gv);
+  if(!_evd) {a_insh.warn(s_cmd+": bad view_evd cast.");return;}
+  inlib::args _args(a_args); 
+  std::string path;
+  if(!inlib::insh_args_file(a_insh,a_gv,_args,s_cmd,path)) return;
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  _evd->event_index() = 0;
+  std::string smsg;
+  if(!_dac->open_event_file(path,smsg)) {
+    a_insh.warn(s_cmd+": "+smsg);
+    a_gv.show_console("no events");
+    return;
+  }
+  a_gv.show_console(smsg);
+}
+
+inline const std::string& insh_emi_vis_help() {
+  static const std::string s_help("\
+<event_model_item>_vis: <event_model_item>_vis [-cut]\n\
+  Visualize event model item instances.\n\
+  Someone can give a cut in option.\n\
+  See the event_model command to have a list of the event model items.\n\
+  Example :\n\
+    event_model -items\n\
+    MCTrack_vis\n\
+    WCDetectorPoint_vis -cut=pdg==50000050\n\
+");
+  return s_help;
+}
+inline const std::string& insh_emi_count_help() {
+  static const std::string s_help("\
+<event_model_item>_count: <event_model_item>_count [-cut]\n\
+  Count event model item instances.\n\
+  Someone can give a cut in option.\n\
+  See the event_model command to have a list of the event model items.\n\
+  Example :\n\
+    event_model -items\n\
+    MCTrack_count\n\
+    WCDetectorPoint_count -cut=pdg==50000050\n\
+");
+  return s_help;
+}
+inline const std::string& insh_emi_print_help() {
+  static const std::string s_help("\
+<event_model_item>_print: <event_model_item>_print [-cut] [fields]\n\
+  Print event model item fields.\n\
+  Someone can give a cut in option and a list of fields.\n\
+  If no field is given, all are considered.\n\
+  See the event_model command to have a list of the event model items.\n\
+  Example :\n\
+    event_model -items\n\
+    WCDetectorPoint_print\n\
+    MCTrack_print -cut=pdg==50000050 MCTrack x y z p\n\
+");
+  return s_help;
+}
+inline const std::string& insh_emi_stats_help() {
+  static const std::string s_help("\
+<event_model_item>_stats: <event_model_item>_stats [-cut,-sum,-min,-max,-mean,-rms] [fields]\n\
+  Print event model item fields sum/min/max/mean/rms.\n\
+  Someone can give a cut in option and a list of fields.\n\
+  If only one field and one of [-sum,-min,-max,-mean,-rms] are specifed, then\n\
+  the single number [sum,min,max,mean,rms] is printed. This number can be used\n\
+  with backquoting. If no field is given, all are considered.\n\
+  See the event_model command to have a list of the event model items.\n\
+  Example :\n\
+    event_model -items\n\
+    MCTrack_stats\n\
+    MCTrack_stats -cut=pdg==50000050 x y z p\n\
+    MCTrack_stats -cut=pdg==50000050 -mean p\n\
+    mean_p=`MCTrack_stats -cut=pdg==50000050 -mean p`\n\
+    echo \"Mean impulse is ${mean_p}\"\n\
+");
+  return s_help;
+}
+inline const std::string& insh_emi_hfill_help() {
+  static const std::string s_help("\
+<event_model_item>_hfill: <event_model_item>_hfill [-name,-cut,-xfill,-yfill]\n\
+  Fill a managed histogram with the fields of event model item instances.\n\
+  Someone can give a cut in option.\n\
+  -name=string name of the managed histogram (mendatory).\n\
+  -cut=string cut in the event model item instances.\n\
+  -xfill=string expression to fill a 1D histo or the x of a 2D.\n\
+  -yfill=string expression to fill the y of a 2D histogram.\n\
+  See the event_model command to have a list of the event model items.\n\
+  Example :\n\
+    event_model -items\n\
+    histo_create -xbins=100 -xmin=0 -xmax=1e-7 h_MCTrack\n\
+    MCTrack_hfill -name=h_MCTrack -xfill=p\n\
+    histo_create -xbins=100 -xmin=0 -xmax=1e-7 h_MCTrack_cut\n\
+    MCTrack_hfill -name=h_MCTrack_cut -cut=pdg==50000050 -xfill=t\n\
+    histo_create -class=h2d -xbins=100 -xmin=0 -xmax=1e-7 -ybins=100 -ymin=0 -ymax=100 h2_MCTrack\n\
+    MCTrack_hfill -name=h2_MCTrack -xfill=p -yfill=t\n\
+    histo_ls\n\
+");
+  return s_help;
+}
+inline const std::string& insh_emi_histo_help() {
+  static const std::string s_help("\
+<event_model_item>_histo: <event_model_item>_histo [-name,-cut,-[x,y][fill,bins,min,max]]\n\
+  Histogram fields of event model item instances.\n\
+  If -xfill given only, a 1D histogram is created and filled.\n\
+  If -xfill and -yfill given, a 2D histogram is created and filled.\n\
+  Someone can give a cut in option.\n\
+  -name=string name of the managed histogram (mendatory).\n\
+  -cut=string cut in the event model item instances.\n\
+  -xfill=string expression to fill a 1D histo or the x of a 2D.\n\
+  -yfill=string expression to fill the y of a 2D histogram.\n\
+  -xbins=uint number of x bins (default is 100).\n\
+  -xmin=real if given, xmin of the 1D histo.\n\
+   If not given, it is guessed from -xfill applied on data.\n\
+  -xmax=real if given, xmax of the 1D histo.\n\
+   If not given, it is guessed from -xfill applied on data.\n\
+  -ybins=uint number of y bins (default is 100).\n\
+  -ymin=real if given, ymin of the 2D histo.\n\
+   If not given, it is guessed from -yfill applied on data.\n\
+  -ymax=real if given, ymax of the 2D histo.\n\
+   If not given, it is guessed from -yfill applied on data.\n\
+  See the event_model command to have a list of the event model items.\n\
+  Example :\n\
+    event_model -items\n\
+    MCTrack_histo -name=h_MCTrack -xfill=p\n\
+    MCTrack_histo -name=h_MCTrack_cut -cut=pdg==50000050 -xfill=t\n\
+    MCTrack_histo -name=h2_MCTrack -xfill=p -yfill=t\n\
+    histo_ls\n\
+");
+  return s_help;
+}
+inline const std::string& insh_emi_plot_help() {
+  static const std::string s_help("\
+<event_model_item>_plot: <event_model_item>_plot [-cut,-[x,y][fill,bins,min,max]]\n\
+  Plot field of event model item instances.\n\
+  If -xfill given only, a 1D histogram is created, filled and plotted.\n\
+  If -xfill and -yfill given, a 2D histogram is created, filled and plotted.\n\
+  Someone can give a cut in option.\n\
+  -cut=string cut in the event model item instances.\n\
+  -histo_name=string if given, the transient histogram is managed,\n\
+   else it is deleted when plotting is finished.\n\
+  -xfill=string expression to fill a 1D histo or the x of a 2D.\n\
+  -yfill=string expression to fill the y of a 2D histogram.\n\
+  -filling=string deprecated. Same as -xfill.\n\
+  -xbins=uint number of x bins (default is 100).\n\
+  -xmin=real if given, xmin of the 1D histo.\n\
+   If not given, it is guessed from -xfill applied on data.\n\
+  -xmax=real if given, xmax of the 1D histo.\n\
+   If not given, it is guessed from -xfill applied on data.\n\
+  -ybins=uint number of y bins (default is 100).\n\
+  -ymin=real if given, ymin of the 2D histo.\n\
+   If not given, it is guessed from -yfill applied on data.\n\
+  -ymax=real if given, ymax of the 2D histo.\n\
+   If not given, it is guessed from -yfill applied on data.\n\
+  See the event_model command to have a list of the event model items.\n\
+  Example :\n\
+    event_model -items\n\
+    MCTrack_plot -xfill=p\n\
+    MCTrack_plot -cut=pdg==50000050 -xfill=t\n\
+    MCTrack_plot -cut=pdg==50000050 -xfill=p -yfill=t\n\
+");
+  return s_help;
+}
+inline const std::string& insh_emi_fields_help() {
+  static const std::string s_help("\
+<event_model_item>_fields: <event_model_item>_fields item\n\
+  Print event model item fields.\n\
+  See the event_model command to have a list of the event model items.\n\
+  Example :\n\
+    event_model -items\n\
+    MCTrack_fields\n\
+");
+  return s_help;
+}
+
+
+}
+
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+///////////////////////////////////////////////////
+#include <inlib/insh/ishell_cmd>
+#include <inlib/insh/ishell_args_cmd>
+#include <inlib/insh/ishell_args_dac_cmd>
+#include <inlib/insh/ishell_args_gui_viewer_cmd>
+#include <inlib/insh/dac_event>
+
+#define ESBROOTVIEW_INSH_ADDS(a__insh,a__viewer)\
+  INLIB_INSH_DAC_EVENT_ADDS(a__insh,a__viewer)\
+  \
+  INLIB_INSH_ADD_ISHELL_CMD(a__insh,event_source_insh,\
+    EsbRootView::insh_event_source_insh,\
+"event_source_insh: event_source_insh\n\
+  Source the event.insh script.\n\
+")\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_CMD(a__insh,app_version,\
+    EsbRootView::insh_app_version,\
+"app_version: app_version\n\
+  Print the application version.\n\
+")\
+  INLIB_INSH_ADD_ISHELL_ARGS_CMD(a__insh,event_model,EsbRootView::insh_event_model,EsbRootView::insh_event_model_help())\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,event_count,EsbRootView::insh_event_count,EsbRootView::insh_event_count_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,event_stats,EsbRootView::insh_event_stats,EsbRootView::insh_event_stats_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,event_print,EsbRootView::insh_event_print,EsbRootView::insh_event_print_help())\
+  \
+  INLIB_INSH_ADD_ISHELL_CMD(a__insh,MCTrack_fields,EsbRootView::insh_MCTrack_fields,EsbRootView::insh_emi_fields_help())\
+  INLIB_INSH_ADD_ISHELL_CMD(a__insh,WCDetectorPoint_fields,EsbRootView::insh_WCDetectorPoint_fields,EsbRootView::insh_emi_fields_help())\
+  INLIB_INSH_ADD_ISHELL_CMD(a__insh,FgdDetectorPoint_fields,EsbRootView::insh_FgdDetectorPoint_fields,EsbRootView::insh_emi_fields_help())\
+  INLIB_INSH_ADD_ISHELL_CMD(a__insh,FgdHit_fields,EsbRootView::insh_FgdHit_fields,EsbRootView::insh_emi_fields_help())\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,MCTrack_count,EsbRootView::insh_MCTrack_count,EsbRootView::insh_emi_count_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,WCDetectorPoint_count,EsbRootView::insh_WCDetectorPoint_count,EsbRootView::insh_emi_count_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,FgdDetectorPoint_count,EsbRootView::insh_FgdDetectorPoint_count,EsbRootView::insh_emi_count_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,FgdHit_count,EsbRootView::insh_FgdHit_count,EsbRootView::insh_emi_count_help())\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,MCTrack_print,EsbRootView::insh_MCTrack_print,EsbRootView::insh_emi_print_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,WCDetectorPoint_print,EsbRootView::insh_WCDetectorPoint_print,EsbRootView::insh_emi_print_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,FgdDetectorPoint_print,EsbRootView::insh_FgdDetectorPoint_print,EsbRootView::insh_emi_print_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,FgdHit_print,EsbRootView::insh_FgdHit_print,EsbRootView::insh_emi_print_help())\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,MCTrack_stats,EsbRootView::insh_MCTrack_stats,EsbRootView::insh_emi_stats_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,WCDetectorPoint_stats,EsbRootView::insh_WCDetectorPoint_stats,EsbRootView::insh_emi_stats_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,FgdDetectorPoint_stats,EsbRootView::insh_FgdDetectorPoint_stats,EsbRootView::insh_emi_stats_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_DAC_CMD(a__insh,a__viewer,FgdHit_stats,EsbRootView::insh_FgdHit_stats,EsbRootView::insh_emi_stats_help())\
+\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_vis,EsbRootView::insh_event_vis,EsbRootView::insh_event_vis_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_hfill,EsbRootView::insh_event_hfill,EsbRootView::insh_event_hfill_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_histo,EsbRootView::insh_event_histo,EsbRootView::insh_event_histo_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_plot,EsbRootView::insh_event_plot,EsbRootView::insh_event_plot_help())\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_CMD(a__insh,event_fields,\
+    EsbRootView::insh_event_fields,\
+"event_fields: event_fields item\n\
+  Print event model item fields.\n\
+  Without any argument, the event model items are printed.\n\
+  Example :\n\
+    event_fields\n\
+    event_fields MCTrack\n\
+")\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,app_manage_geo_manager,\
+    EsbRootView::insh_app_manage_geo_manager,\
+"app_manage_geo_manager: app_manage_geo_manager\n\
+  Have the default inlib::rroot::geo_manager declared as a named managed object.\n\
+  Its name is 'geo_manager'\n\
+  Example :\n\
+    app_manage_geo_manager\n\
+    omanager_ls  # 'geo_manager' should be in the list.\n\
+")\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,app_open_geometry_file,\
+    EsbRootView::insh_app_open_geometry_file,\
+"app_open_geometry_file: app_open_geometry_file [-doc_res,-res,-doc] path\n\
+  Open a root geometry file.\n\
+  If no directory is given in path, the -doc_res option permits to search a file first\n\
+  in the document directory declared to the app, and then in the app (internal) resource directory.\n\
+  -res for the resource directory only, -doc for the document directory only.\n\
+  See also : app_dir.\n\
+")\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,app_open_event_file,\
+    EsbRootView::insh_app_open_event_file,\
+"app_open_event_file: app_open_event_file [-doc_res,-res,-doc] path\n\
+  Open a root event file.\n\
+  If no directory is given in path, the -doc_res option permits to search a file first\n\
+  in the document directory declared to the app, and then in the app (internal) resource directory.\n\
+  -res for the resource directory only, -doc for the document directory only.\n\
+  See also : app_dir.\n\
+")\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,MCTrack_vis,EsbRootView::insh_MCTrack_vis,EsbRootView::insh_emi_vis_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,WCDetectorPoint_vis,EsbRootView::insh_WCDetectorPoint_vis,EsbRootView::insh_emi_vis_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,FgdDetectorPoint_vis,EsbRootView::insh_FgdDetectorPoint_vis,EsbRootView::insh_emi_vis_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,FgdHit_vis,EsbRootView::insh_FgdHit_vis,EsbRootView::insh_emi_vis_help())\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,MCTrack_hfill,EsbRootView::insh_MCTrack_hfill,EsbRootView::insh_emi_hfill_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,WCDetectorPoint_hfill,EsbRootView::insh_WCDetectorPoint_hfill,EsbRootView::insh_emi_hfill_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,FgdDetectorPoint_hfill,EsbRootView::insh_FgdDetectorPoint_hfill,EsbRootView::insh_emi_hfill_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,FgdHit_hfill,EsbRootView::insh_FgdHit_hfill,EsbRootView::insh_emi_hfill_help())\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,MCTrack_histo,EsbRootView::insh_MCTrack_histo,EsbRootView::insh_emi_histo_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,WCDetectorPoint_histo,EsbRootView::insh_WCDetectorPoint_histo,EsbRootView::insh_emi_histo_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,FgdDetectorPoint_histo,EsbRootView::insh_FgdDetectorPoint_histo,EsbRootView::insh_emi_histo_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,FgdHit_histo,EsbRootView::insh_FgdHit_histo,EsbRootView::insh_emi_histo_help())\
+  \
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,MCTrack_plot,EsbRootView::insh_MCTrack_plot,EsbRootView::insh_emi_plot_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,WCDetectorPoint_plot,EsbRootView::insh_WCDetectorPoint_plot,EsbRootView::insh_emi_plot_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,FgdDetectorPoint_plot,EsbRootView::insh_FgdDetectorPoint_plot,EsbRootView::insh_emi_plot_help())\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,FgdHit_plot,EsbRootView::insh_FgdHit_plot,EsbRootView::insh_emi_plot_help())
+
+
+#endif

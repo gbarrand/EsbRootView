@@ -1,0 +1,138 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_insh_event
+#define EsbRootView_insh_event
+
+#include <inlib/insh/ishell>
+
+namespace EsbRootView {
+
+inline void insh_event_source_insh(inlib::ishell& a_insh) {
+  a_insh.exec_line_reset_to_stop(". event.insh");
+}
+
+}
+
+#include "../evaluators"
+#include <inlib/args>
+#include <inlib/sort>
+#include <inlib/sbeg>
+
+namespace EsbRootView {
+
+#define ESBROOTVIEW_PRINT_FIELDS(a__evaluator) \
+ {Esb##a__evaluator##_evaluator _eval(a_insh.out(),"",one_event());\
+  std::vector<std::string> names;\
+  _eval.get_names(names);\
+  if(a_insh.in_backquote()) {\
+    a_insh.out(names,true);\
+  } else {\
+    inlib::sort::sort(names);\
+    a_insh.unix_print(names);\
+  }}
+
+inline void insh_event_model(inlib::ishell& a_insh,const std::vector<std::string>& a_args) {
+  static const std::string s_cmd("event_model");
+  if(a_args.empty()) {
+    a_insh.out_begin();
+    a_insh.out("MCTrack :",true);
+    ESBROOTVIEW_PRINT_FIELDS(MCTrack)
+    a_insh.out("",true);
+    a_insh.out("WCDetectorPoint :",true);
+    ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
+    a_insh.out("",true);
+    a_insh.out("FgdDetectorPoint :",true);
+    ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
+    a_insh.out("",true);
+    a_insh.out("FgdHit :",true);
+    ESBROOTVIEW_PRINT_FIELDS(FgdHit)
+    return;
+  }
+  inlib::args _args(a_args);
+  if(_args.is_arg("-items")) {
+    a_insh.out_begin();
+    a_insh.out("MCTrack",true);
+    a_insh.out("WCDetectorPoint",true);
+    a_insh.out("FgdDetectorPoint",true);
+    a_insh.out("FgdHit",true);
+    return;
+  }
+  std::string fnh;
+  if(!_args.first_not_hyphen(fnh)) {
+    a_insh.warn(s_cmd+": no event model item given.");
+    return;
+  }
+  _args.remove(fnh);
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  if(fnh=="MCTrack") {
+    a_insh.out_begin();
+    ESBROOTVIEW_PRINT_FIELDS(MCTrack)
+    return;
+  }
+  if(fnh=="WCDetectorPoint") {
+    a_insh.out_begin();
+    ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
+    return;
+  }
+  if(fnh=="FgdDetectorPoint") {
+    a_insh.out_begin();
+    ESBROOTVIEW_PRINT_FIELDS(DetectorPoint)
+    return;
+  }
+  if(fnh=="FgdHit") {
+    a_insh.out_begin();
+    ESBROOTVIEW_PRINT_FIELDS(FgdHit)
+    return;
+  }
+  a_insh.warn(s_cmd+": unknown event model item "+inlib::sout(fnh)+".");
+}
+
+#undef ESBROOTVIEW_PRINT_FIELDS
+
+inline const std::string& insh_event_model_help() {
+  static const std::string s_help("\
+event_model: event_model [class]\n\
+  Print event model items along with their fields.\n\
+  -items prints event model items only.\n\
+  If a class is given, print the fields of this class.\n\
+  Fields permit, for example, to pass cut in event_vis,\n\
+  event_count, event_stats, event_print, event_histo, event_plot commands.\n\
+  Examples:\n\
+    event_model\n\
+    event_model -items\n\
+    event_model MCTrack\n\
+  Related examples:\n\
+    event_vis -cut=(pdg==50000050) -color=red MCTrack\n\
+    event_vis -cut=name==\"'opticalphoton'\" -color=blue MCTrack\n\
+    event_histo -name=h_MCTrack -cut=(pdg!=50000050) -xfill=p MCTrack\n\
+    event_plot -cut=(pdg!=50000050) -xfill=p MCTrack\n\
+    event_print -cut=index<10 WCDetectorPoint x y z p\n\
+");
+  return s_help;
+}
+
+inline void event_model_complete(const std::string& a_begin,std::vector<std::string>& a_names) {
+  if(a_begin.empty()) {
+    event_model_items(a_names);
+    inlib::sort::sort(a_names);
+  } else {
+    std::vector<std::string> names;
+    event_model_items(names);
+    a_names.clear();
+    inlib_vforcit(std::string,names,it) {if(inlib::is_beg(*it,a_begin)) a_names.push_back(*it);}
+    inlib::sort::sort(a_names);
+  }
+}
+
+inline void insh_event_model_items(inlib::ishell& a_insh) {
+  std::vector<std::string> names;
+  event_model_items(names);
+  a_insh.out_begin();
+  inlib_vforcit(std::string,names,it) a_insh.out(*it,true);
+}
+
+}
+
+#endif
+

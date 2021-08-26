@@ -1,0 +1,244 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_insh_histo
+#define EsbRootView_insh_histo
+
+#include "../event_model"
+
+#include <inlib/insh/ishell>
+#include <inlib/omanager>
+#include <inlib/args>
+
+#include <inlib/histo/h1d>
+#include <inlib/histo/h2d>
+//#include <inlib/mathd>
+//#include <inlib/svar>
+
+//#include "../strings"
+
+namespace EsbRootView {
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// hfill : //////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template <class DATA,class EVALUATOR>
+inline void histo_fill(inlib::ishell& a_insh,inlib::omanager& a_mgr,const std::vector<std::string>& a_args,
+                       const std::vector<DATA*>& a_data,const one_event& a_event,
+                       const std::string& a_data_name) {
+  static const std::string s_cmd = a_data_name+"_hfill";
+  //////////////////////////////////////
+  //// get args : //////////////////////
+  //////////////////////////////////////
+  inlib::args _args(a_args);
+
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+  std::string sxfill;
+  INLIB_ISHELL_GET_ARG_STRING(xfill)
+  std::string syfill;
+  INLIB_ISHELL_GET_ARG_STRING(yfill)
+  std::string sname;
+  INLIB_ISHELL_GET_ARG_STRING(name)
+
+  INLIB_ISHELL_ARGS_UNEXPECTED
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  if(sname.empty()) {
+    a_insh.warn(s_cmd+": no name given.");
+    return;
+  }
+  inlib::base_oholder* _boh = a_mgr.find_base_oholder(sname);
+  if(!_boh) {
+    a_insh.warn(s_cmd+": managed object "+inlib::sout(sname)+" not found.");
+    return;
+  }
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  EVALUATOR _eval_cut(a_insh.out(),scut,a_event);
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+
+  std::vector<DATA*> cut_data;
+  if(scut.empty()) {
+    cut_data = a_data;
+  } else {
+    bool ok;
+    inlib_typename_vforcit(DATA*,a_data,it) {
+      if(!_eval_cut.accept(*(*it),ok)) {cut_data.clear();break;}
+      if(ok) cut_data.push_back(*it);
+    }
+  }
+
+  if(sxfill.size() && syfill.empty()) {
+    EVALUATOR _eval_x_filling(a_insh.out(),sxfill,a_event);
+    if(!_eval_x_filling.is_valid()) {
+      a_insh.warn(s_cmd+": bad script "+inlib::sout(sxfill)+" for xfill evaluator.");
+      return;
+    }
+
+    inlib::histo::h1d* h = inlib::cast_oholder_object<inlib::histo::h1d>(*_boh);
+    if(!h) {
+      a_insh.warn(s_cmd+": node "+inlib::sout(sname)+" is not a h1d.");
+      return;
+    }
+
+    double dvalue;
+    inlib_typename_vforcit(DATA*,cut_data,it) {
+      if(!_eval_x_filling.evaluate_double(*(*it),dvalue)) {}
+      h->fill(dvalue);
+    }
+
+  } else if(sxfill.size() && syfill.size()) {
+    EVALUATOR _eval_x_filling(a_insh.out(),sxfill,a_event);
+    if(!_eval_x_filling.is_valid()) {
+      a_insh.warn(s_cmd+": bad script "+inlib::sout(sxfill)+" for x_filling evaluator.");
+      return;
+    }
+
+    EVALUATOR _eval_y_filling(a_insh.out(),syfill,a_event);
+    if(!_eval_y_filling.is_valid()) {
+      a_insh.warn(s_cmd+": bad script "+inlib::sout(syfill)+" for y_filling evaluator.");
+      return;
+    }
+
+    inlib::histo::h2d* h = inlib::cast_oholder_object<inlib::histo::h2d>(*_boh);
+    if(!h) {
+      a_insh.warn(s_cmd+": node "+inlib::sout(sname)+" is not a h2d.");
+      return;
+    }
+
+    double x_value,y_value;
+    inlib_typename_vforcit(DATA*,cut_data,it) {
+      if(!_eval_x_filling.evaluate_double(*(*it),x_value)) {}
+      if(!_eval_y_filling.evaluate_double(*(*it),y_value)) {}
+      h->fill(x_value,y_value);
+    }
+
+  } else if(sxfill.empty() && syfill.empty()) {
+    a_insh.warn(s_cmd+": no filling script given.");
+    return;
+  } else {
+    a_insh.warn(s_cmd+": yfill without xfill given.");
+    return;
+  }
+
+}
+
+}
+
+#include "../dac"
+#include "../evaluators"
+
+#include <inlib/sg/gui_viewer>
+
+namespace EsbRootView {
+
+inline void insh_MCTrack_hfill(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_insh.warn("MCTrack_hfill : bad dac cast.");return;}
+  histo_fill<EsbMCTrack,EsbMCTrack_evaluator>
+       (a_insh,a_gv.get_omanager(),a_args,_dac->event().mc_tracks(),_dac->event(),"MCTrack");
+}
+
+inline void insh_WCDetectorPoint_hfill(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  histo_fill<EsbDetectorPoint,EsbDetectorPoint_evaluator>
+    (a_insh,a_gv.get_omanager(),a_args,_dac->event().wc_points(),_dac->event(),"WCDetectorPoint");
+}
+inline void insh_FgdDetectorPoint_hfill(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  histo_fill<EsbDetectorPoint,EsbDetectorPoint_evaluator>
+    (a_insh,a_gv.get_omanager(),a_args,_dac->event().fgd_points(),_dac->event(),"FgdDetectorPoint");
+}
+
+inline void insh_FgdHit_hfill(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  histo_fill<EsbFgdHit,EsbFgdHit_evaluator>
+    (a_insh,a_gv.get_omanager(),a_args,_dac->event().fgd_hits(),_dac->event(),"FgdHit");
+}
+
+}
+
+#include "hist_data"
+
+namespace EsbRootView {
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// _histo : /////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline void insh_MCTrack_histo(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) {a_insh.warn("MCTrack_histo : bad dac cast.");return;}
+  inlib::histo::h1d* h1d;
+  inlib::histo::h2d* h2d;
+  inlib::args _args(a_args);
+  hist_data<EsbMCTrack,EsbMCTrack_evaluator>
+       (a_insh,a_gv.get_omanager(),_args,_dac->event().mc_tracks(),_dac->event(),"MCTrack",true,h1d,h2d);
+}
+
+inline void histo_DetectorPoints(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::omanager& a_mgr,
+                                 dac& a_dac,
+                                 const std::string& a_data_name,
+                                 const std::vector<EsbDetectorPoint*>& a_points) {
+  static const std::string s_cmd = a_data_name+"_histo";
+  inlib::args _args(a_args);
+  std::string smodeling;
+  INLIB_ISHELL_GET_ARG_STRING(modeling)
+  if(smodeling==inlib::sg::modeling_detector()) {
+    bool warn = _args.is_arg("-no_warn")?false:true;
+    std::string sname;
+    INLIB_ISHELL_GET_ARG_STRING(name)
+    if(sname.empty()) {
+      a_insh.warn(s_cmd+": no histo name given.");
+      return;
+    }
+    INLIB_ISHELL_ARGS_UNEXPECTED
+  //if(!inlib::is_C_variable(sname)) {
+  //  a_insh.warn(s_cmd+": histo name "+inlib::sout(sname)+" must have the syntax of a C variable.");
+  //  return;
+  //}
+    inlib::histo::h2d* h = hist2D_DetectorPoints(a_insh,a_dac,a_points);
+    if(h) a_mgr.manage_object(h,sname,true,true,warn);
+  } else if(smodeling.empty()) {
+    inlib::histo::h1d* h1d;
+    inlib::histo::h2d* h2d;
+    hist_data<EsbDetectorPoint,EsbDetectorPoint_evaluator>(a_insh,a_mgr,_args,a_points,a_dac.event(),a_data_name,true,h1d,h2d);
+  } else {
+    a_insh.warn(s_cmd+": unknown modeling "+smodeling+".");
+  }
+}
+
+inline void insh_WCDetectorPoint_histo(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  histo_DetectorPoints(a_insh,a_args,a_gv.get_omanager(),*_dac,"WCDetectorPoint",_dac->event().wc_points());
+}
+inline void insh_FgdDetectorPoint_histo(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  histo_DetectorPoints(a_insh,a_args,a_gv.get_omanager(),*_dac,"FgdDetectorPoint",_dac->event().fgd_points());
+}
+
+inline void insh_FgdHit_histo(inlib::ishell& a_insh,const std::vector<std::string>& a_args,inlib::sg::gui_viewer& a_gv) {
+  dac* _dac = cast_dac(a_gv);
+  if(!_dac) return;
+  inlib::histo::h1d* h1d;
+  inlib::histo::h2d* h2d;
+  inlib::args _args(a_args);
+  hist_data<EsbFgdHit,EsbFgdHit_evaluator>
+        (a_insh,a_gv.get_omanager(),_args,_dac->event().fgd_hits(),_dac->event(),"FgdHit",true,h1d,h2d);
+}
+
+}
+
+#endif

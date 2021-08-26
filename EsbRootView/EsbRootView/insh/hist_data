@@ -1,0 +1,328 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file EsbRootView.license for terms.
+
+#ifndef EsbRootView_hist_data
+#define EsbRootView_hist_data
+
+#include "../event_model"
+
+#include <inlib/insh/ishell>
+#include <inlib/omanager>
+#include <inlib/args>
+#include <inlib/histo/h1d>
+#include <inlib/histo/h2d>
+#include <inlib/mathd>
+//#include <inlib/svar>
+
+namespace EsbRootView {
+
+template <class DATA,class EVALUATOR>
+inline void hist_data(inlib::ishell& a_insh,inlib::omanager& a_mgr,inlib::args& a_args,
+                      const std::vector<DATA*>& a_data,const one_event& a_event,
+                      const std::string& a_data_name,bool a_manage,
+                      inlib::histo::h1d*& a_h1d,inlib::histo::h2d*& a_h2d) {
+  static const std::string s_cmd = a_data_name+"_[histo,plot]";
+  a_h1d = 0;
+  a_h2d = 0;
+  //////////////////////////////////////
+  //// get args : //////////////////////
+  //////////////////////////////////////
+  inlib::args& _args = a_args;
+
+  std::string scut;
+  INLIB_ISHELL_GET_ARG_STRING(cut)
+  std::string sxfill;
+  INLIB_ISHELL_GET_ARG_STRING(xfill)
+  std::string syfill;
+  INLIB_ISHELL_GET_ARG_STRING(yfill)
+  std::string stitle;
+  INLIB_ISHELL_GET_ARG_STRING(title)
+  std::string sname;
+  INLIB_ISHELL_GET_ARG_STRING(name)
+  std::string shisto_name;
+  INLIB_ISHELL_GET_ARG_STRING(histo_name)
+
+  bool no_warn;
+  INLIB_ISHELL_IS_ARG(no_warn)
+  bool warn = no_warn?false:true;
+
+  std::string sfilling;  //deprecated.
+  INLIB_ISHELL_GET_ARG_STRING(filling)
+  if(sxfill.empty()) sxfill = sfilling;
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+
+  std::string title;
+  if(stitle.size()) {
+    title = stitle;
+  } else {
+    title = a_data_name+" ";
+    if(scut.size()) title += scut+" ";
+    if(sxfill.size() && syfill.empty()) {
+      title += sxfill;
+    } else if(sxfill.size() && syfill.size()) {
+      title += syfill+" vs "+sxfill;
+    }
+  }
+
+  if(shisto_name.empty()) shisto_name = sname;
+  if(a_manage) {
+    if(shisto_name.empty()) {
+      a_insh.warn(s_cmd+": no histo name given.");
+      return;
+    }
+  }
+//if(shisto_name.size()) {
+//  if(!inlib::is_C_variable(shisto_name)) {
+//    a_insh.warn(s_cmd+": histo name "+inlib::sout(shisto_name)+" must have the syntax of a C variable.");
+//    return;
+//  }
+//}
+
+  //////////////////////////////////////
+  //////////////////////////////////////
+  //////////////////////////////////////
+  EVALUATOR _eval_cut(a_insh.out(),scut,a_event);
+  if(!_eval_cut.is_valid()) {
+    a_insh.warn(s_cmd+": bad script "+inlib::sout(scut)+" for cut evaluator.");
+    return;
+  }
+
+  std::vector<DATA*> cut_data;
+  if(scut.empty()) {
+    cut_data = a_data;
+  } else {
+    bool ok;
+    inlib_typename_vforcit(DATA*,a_data,it) {
+      if(!_eval_cut.accept(*(*it),ok)) {cut_data.clear();break;}
+      if(ok) cut_data.push_back(*it);
+    }
+  }
+
+  if(sxfill.size() && syfill.empty()) {
+    unsigned int xbins = 100;
+    INLIB_ISHELL_GET_ARG_UINT(xbins)
+
+    EVALUATOR _eval_x_filling(a_insh.out(),sxfill,a_event);
+    if(!_eval_x_filling.is_valid()) {
+      a_insh.warn(s_cmd+": bad script "+inlib::sout(sxfill)+" for x_filling evaluator.");
+      return;
+    }
+
+    double xmin;
+    bool have_xmin = _args.find("-xmin",xmin);
+    if(have_xmin) _args.remove("-xmin");
+    
+    double xmax;
+    bool have_xmax = _args.find("-xmax",xmax);
+    if(have_xmax) _args.remove("-xmax");
+
+    INLIB_ISHELL_ARGS_UNEXPECTED
+    
+    if(!have_xmin || !have_xmax) {
+      double _min,_max;
+      if(!_eval_x_filling.evaluate_double_min_max(cut_data,_min,_max)) {
+        a_insh.warn(s_cmd+": min_max() failed.");
+        return;
+      }
+      if(!have_xmin) xmin = _min;
+      if(!have_xmax) xmax = _max;
+    }
+
+    if(xmax<=xmin) {
+      a_insh.warn(s_cmd+": xmax <= xmin.");
+      return;
+    }
+
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+
+    inlib::histo::h1d* h = new inlib::histo::h1d(title,xbins,xmin,xmax);
+
+    double dvalue;
+    inlib_typename_vforcit(DATA*,cut_data,it) {
+      if(!_eval_x_filling.evaluate_double(*(*it),dvalue)) {}
+      h->fill(dvalue);
+    }
+
+    if(a_manage) a_mgr.manage_object(h,shisto_name,true,true,warn);
+    a_h1d = h;
+
+  } else if(sxfill.size() && syfill.size()) {
+    unsigned int xbins = 100;
+    INLIB_ISHELL_GET_ARG_UINT(xbins)
+
+    EVALUATOR _eval_x_filling(a_insh.out(),sxfill,a_event);
+    if(!_eval_x_filling.is_valid()) {
+      a_insh.warn(s_cmd+": bad script "+inlib::sout(sxfill)+" for x_filling evaluator.");
+      return;
+    }
+
+    double xmin;
+    bool have_xmin = _args.find("-xmin",xmin);
+    if(have_xmin) _args.remove("-xmin");
+    
+    double xmax;
+    bool have_xmax = _args.find("-xmax",xmax);
+    if(have_xmax) _args.remove("-xmax");
+
+    if(!have_xmin || !have_xmax) {
+      double _min,_max;
+      if(!_eval_x_filling.evaluate_double_min_max(cut_data,_min,_max)) {
+        a_insh.warn(s_cmd+": min_max() failed.");
+        return;
+      }
+      if(!have_xmin) xmin = _min;
+      if(!have_xmax) xmax = _max;
+    }
+
+    if(xmax<=xmin) {
+      a_insh.warn(s_cmd+": xmax <= xmin.");
+      return;
+    }
+
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+    unsigned int ybins = 100;
+    INLIB_ISHELL_GET_ARG_UINT(ybins)
+    
+    EVALUATOR _eval_y_filling(a_insh.out(),syfill,a_event);
+    if(!_eval_y_filling.is_valid()) {
+      a_insh.warn(s_cmd+": bad script "+inlib::sout(syfill)+" for y_filling evaluator.");
+      return;
+    }
+
+    double ymin;
+    bool have_ymin = _args.find("-ymin",ymin);
+    if(have_ymin) _args.remove("-ymin");
+    
+    double ymax;
+    bool have_ymax = _args.find("-ymax",ymax);
+    if(have_ymax) _args.remove("-ymax");
+
+    INLIB_ISHELL_ARGS_UNEXPECTED
+
+    if(!have_ymin || !have_ymax) {
+      double _min,_max;
+      if(!_eval_y_filling.evaluate_double_min_max(cut_data,_min,_max)) {
+        a_insh.warn(s_cmd+": min_max() failed.");
+        return;
+      }
+      if(!have_ymin) ymin = _min;
+      if(!have_ymax) ymax = _max;
+    }
+
+    if(ymax<=ymin) {
+      a_insh.warn(s_cmd+": ymax <= ymin.");
+      return;
+    }
+
+    //////////////////////////////////////
+    //////////////////////////////////////
+    //////////////////////////////////////
+
+    inlib::histo::h2d* h = new inlib::histo::h2d(title,xbins,xmin,xmax,ybins,ymin,ymax);
+
+    double x_value,y_value;
+    inlib_typename_vforcit(DATA*,cut_data,it) {
+      if(!_eval_x_filling.evaluate_double(*(*it),x_value)) {}
+      if(!_eval_y_filling.evaluate_double(*(*it),y_value)) {}
+      h->fill(x_value,y_value);
+    }
+
+    if(a_manage) a_mgr.manage_object(h,shisto_name,true,true,warn);
+    a_h2d = h;
+
+  } else if(sxfill.empty() && syfill.empty()) {
+    a_insh.warn(s_cmd+": no filling script given.");
+    return;
+  } else {
+    a_insh.warn(s_cmd+": yfill without xfill given.");
+    return;
+  }
+
+}
+
+}
+
+#include "../dac"
+
+namespace EsbRootView {
+
+inline inlib::histo::h2d* hist2D_DetectorPoints(inlib::ishell& a_insh,dac& a_dac,const std::vector<EsbDetectorPoint*>& a_points) {
+  std::ostream& out = a_insh.out();
+
+  //////////////////////////////////////////////////////////
+  /// create and fill histo : //////////////////////////////
+  //////////////////////////////////////////////////////////
+  // from EsbRoot/display_event_ND.C.
+
+  double wc_radius = a_dac.wc_radius();
+  double wc_length = a_dac.wc_length();
+
+  std::string title;
+  inlib::sprintf(title,80,"Event #%lu",a_dac.event_index());
+
+  inlib::histo::h2d* hEvent =
+    new inlib::histo::h2d(title,
+                          100, -wc_radius-50, wc_radius + wc_length + 2*wc_radius + 50,
+                          100, -wc_radius*inlib::pi()-50, wc_radius*inlib::pi()+300);
+
+  inlib::mat4d wc_inv;
+  a_dac.wc_matrix().invert(wc_inv);
+
+  inlib_vforcit(EsbDetectorPoint*,a_points,it) {
+    EsbDetectorPoint* point = *it;
+
+    double xP = point->GetX();
+    double yP = point->GetY();
+    double zP = point->GetZ();
+    double wP = 1;
+    wc_inv.mul_4(xP,yP,zP,wP);
+
+    // Find the location of the point
+    double epsilon = 0.2;  // Can't be too small, for Fgd some points are at 0.1 distance from end cap.
+    int location;
+    if(!get_location(wc_radius,wc_length,epsilon,xP,yP,zP,location)) {
+      out << "hist2D_DetectorPoint : point is not on detector edge :" << std::endl;
+      double rP = ::sqrt(xP*xP + yP*yP);
+      out << "  front epsil " << ::fabs(zP - wc_length/2.0) << std::endl;
+      out << "  back epsil "  << ::fabs(zP + wc_length/2.0) << std::endl;
+      out << "  side epsil "  << ::fabs(rP - wc_radius) << std::endl;
+      point->dump(out);
+
+      a_insh.warn("point not on detector edge. geom/event mismatch.",false);
+      delete hEvent;
+      return 0;
+      //continue;
+    }
+
+    // Now we need to find out where to fill the hit
+    double x=0, y=0;
+
+    if(location == 3) { // back. Ellipse at left.
+
+      x = -xP;
+      y =  yP;
+    } else if (location == 1) { // front. Ellipse at right.
+
+      x = xP + wc_length + 2*wc_radius;
+      y = yP;
+    } else if (location == 2) { // frontside
+
+      x = zP + wc_radius + wc_length/2.0;
+      y = ::atan2(yP, -xP) * wc_radius;
+    }
+
+    hEvent->Fill(x, y);
+  }
+
+  return hEvent;
+}
+
+}
+
+#endif
