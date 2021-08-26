@@ -9,11 +9,13 @@
     if(inlib::get_env("EXLIB_RES_DIR",EXLIB_RES_DIR) && inlib::dir::is_a(EXLIB_RES_DIR)) {
       res_dir = EXLIB_RES_DIR;
     } else {
-      res_dir = ".";
-     {std::string path = "."+inlib::sep()+"res";
-      if(inlib::dir::is_a(path)) res_dir = path;}
-     {std::string path = ".."+inlib::sep()+"res";
-      if(inlib::dir::is_a(path)) res_dir = path;}
+      res_dir = "."+inlib::sep()+"res";
+      if(!inlib::dir::is_a(res_dir)) {
+        res_dir = ".."+inlib::sep()+"res";
+        if(!inlib::dir::is_a(res_dir)) {
+          res_dir = ".";
+        }
+      }
     }
     inlib::env_append_path("EXLIB_FONT_PATH",res_dir);}
 
