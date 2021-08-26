@@ -11,7 +11,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 #include <inlib/args>
-#include <inlib/file>
+#include <inlib/fileis>
 
 #include <inlib/rroot/file>
 #include <inlib/rroot/fac>
@@ -26,12 +26,12 @@
 #include <exlib/X11/plotter>
 #include <inlib/sg/plotter_style>
 #include <exlib/xml/xml_style>
-#include <inlib/xml/wrap_viewplot_style> // inlib/xml/viewplot.style file embeded in an inline function.
+#include <inlib/xml/wrap_viewplot_fonts_microsoft_style> // inlib/xml/viewplot.style file embeded in an inline function.
 
 inline bool load_embedded_styles(inlib::xml::styles& a_styles) {
   std::string ss;
   unsigned int linen;
-  const char** lines = viewplot_style(linen);
+  const char** lines = viewplot_fonts_microsoft_style(linen);
   for(unsigned int index=0;index<linen;index++) {
     std::string s = lines[index];
     inlib::replace(s,"@@double_quote@@","\"");
@@ -271,19 +271,19 @@ int main(int argc,char** argv) {
 
   sgp.add_primitive
     (new inlib::sg::plottable_text("BACK",0,rND*inlib::pi()+200,
-                                   text_height,inlib::sg::plottable_text::text_enforce_height,
+                                   text_height,inlib::sg::text_enforce_height,
                                    0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
-                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap));
+                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap,false,inlib::colorf_white(),0));
   sgp.add_primitive
     (new inlib::sg::plottable_text("SIDE",rND+lND/2,rND*inlib::pi()+200,
-                                   text_height,inlib::sg::plottable_text::text_enforce_height,
+                                   text_height,inlib::sg::text_enforce_height,
                                    0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
-                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap));
+                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap,false,inlib::colorf_white(),0));
   sgp.add_primitive
     (new inlib::sg::plottable_text("FRONT",rND+lND+rND,rND*inlib::pi()+200,
-                                   text_height,inlib::sg::plottable_text::text_enforce_height,
+                                   text_height,inlib::sg::text_enforce_height,
                                    0,'C','M',   //22 in ROOT is for horizontal/center and vertical/top.
-                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap));
+                                   inlib::sg::font_arialbd_ttf(),inlib::colorf_black(),1,true,true,1,inlib::sg::font_pixmap,false,inlib::colorf_white(),0));
 
   sgp.set_axes_font_modeling(inlib::sg::font_pixmap);
   
