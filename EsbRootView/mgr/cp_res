@@ -4,15 +4,34 @@ bush_home=`pwd`/../../bush
 
 #save_dir=`pwd`
 
-#/////////////////////////////////////////////////////////////
-#/// std comres : ////////////////////////////////////////////
-#/////////////////////////////////////////////////////////////
 ${bush_home}/find_rm ../comres '*.*'
+
+#/////////////////////////////////////////////////////////////
+#/// from ioda : /////////////////////////////////////////////
+#/////////////////////////////////////////////////////////////
 
 . ../../ioda/mgr/cp_std
 
+files="${files} pawdemo.root"
+files="${files} pawdemo.insh"
+
+files="${files} aleph.root"
+files="${files} aleph.insh"
+
 for file in ${files} ; do
   /bin/cp ../../ioda/res/${file} ../comres/.
+done
+
+/bin/cp ../../ioda/res/ioda.style ../comres/EsbRootView.style
+
+#/////////////////////////////////////////////////////////////
+#/// from inlib : ////////////////////////////////////////////
+#/////////////////////////////////////////////////////////////
+
+. ../../inexlib/inlib/mgr/cp_insh
+
+for file in ${files} ; do
+  /bin/cp ../../inexlib/inlib/inlib/insh/scripts/${file} ../comres/.
 done
 
 #/////////////////////////////////////////////////////////////
@@ -21,14 +40,29 @@ done
 
 files="EsbRootView.ftp"
 files="${files} icon.jpg favicon.ico"
-files="${files} EsbRootView.style"
 
 #/////////////////////////////////////////////////////////////
 #/// insh : //////////////////////////////////////////////////
 #/////////////////////////////////////////////////////////////
+files="${files} about.insh"
+files="${files} init.insh"
 files="${files} is_neard.insh"
 files="${files} geo_infos.insh"
+files="${files} reset.insh"
 
+files="${files} gui_main.insh"
+files="${files} gui_startups.insh"
+files="${files} gui_vis_event_items.insh"
+files="${files} gui_plot_items.insh"
+files="${files} gui_event_plot_MCTracks.insh"
+files="${files} gui_event_plot_WCDetectorPoints.insh"
+files="${files} gui_event_plot_FgdDetectorPoints.insh"
+files="${files} gui_event_plot_FgdHits.insh"
+files="${files} gui_scene_anims.insh"
+files="${files} gui_neard.insh"
+files="${files} gui_fard.insh"
+
+files="${files} neard_setup.insh"
 files="${files} neard_set_camera.insh"
 files="${files} neard_add_floor.insh"
 files="${files} neard_add_avatars.insh"
@@ -36,6 +70,7 @@ files="${files} neard_add_axes.insh"
 files="${files} neard_add_geometry.insh"
 files="${files} neard_startup.insh"
 
+files="${files} fard_setup.insh"
 files="${files} fard_set_camera.insh"
 files="${files} fard_add_floor.insh"
 files="${files} fard_add_avatars.insh"
@@ -43,18 +78,22 @@ files="${files} fard_add_axes.insh"
 files="${files} fard_add_geometry.insh"
 files="${files} fard_startup.insh"
 
+files="${files} fgd_setup.insh"
 files="${files} fgd_add_geometry.insh"
 files="${files} fgd_startup.insh fgd_event.insh fgd_anim.insh"
+
+files="${files} fgd_hit_setup.insh"
 files="${files} fgd_hit_startup.insh fgd_hit_event.insh fgd_hit_anim.insh"
 files="${files} fgdpoint_anim.insh"
 files="${files} fgdhit_duplicate.insh fgdhit_wire_frame.insh"
 
 files="${files} smoke_ring_anim.insh"
+files="${files} web_get_event.insh"
 
 #/////////////////////////////////////////////////////////////
 #/////////////////////////////////////////////////////////////
 files="${files} colors.insh cuts.insh consts.insh"
-files="${files} event.insh anim.insh"
+files="${files} event.insh anim.insh anim_30nsecs.insh"
 files="${files} mctrack_primaries.insh mctrack_cone.insh mctrack_cone_detector.insh"
 files="${files} mctrack_arrow.insh"
 files="${files} mctrack_wcpoint.insh"
@@ -72,8 +111,6 @@ files="${files} mctrack_cherenkov_not_secondary_mother_pdg.insh"
 files="${files} wcpoint_hedgehog.insh"
 
 files="${files} mctrack_histo.insh"
-
-files="${files} gui_event_model.insh"
 
 files="${files} eiffel_tower.insh"
 files="${files} debug.insh"

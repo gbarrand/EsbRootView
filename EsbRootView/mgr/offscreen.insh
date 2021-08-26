@@ -1,16 +1,22 @@
+#!insh
 
+init.insh
 
 res_dir=`app_dir -res`
+doc_dir=`app_dir -doc`
 sep=`sys_file_sep`
 
 #//////////////////////////////////////////////
 #//////////////////////////////////////////////
 #/// neard : //////////////////////////////////
 #//////////////////////////////////////////////
-. ${res_dir}${sep}neard_startup.insh
+cp ${res_dir}${sep}neard_geo_full.root ${doc_dir}${sep}geo_full.root
+cp ${res_dir}${sep}neard_evetest.root  ${doc_dir}${sep}evetest.root
+cp ${res_dir}${sep}event.insh          ${doc_dir}${sep}event.insh
+${res_dir}${sep}neard_startup.insh
 
 event_next -no_exec
-. ${res_dir}${sep}event.insh
+${res_dir}${sep}event.insh
 
 scene_write_to_paper out_neard_ortho.png
 scene_write_to_paper -format=inzb_ps out_neard_ortho.ps
@@ -18,7 +24,7 @@ scene_write_to_paper -format=inzb_ps out_neard_ortho.ps
 event_next -no_exec
 event_next -no_exec
 event_next -no_exec
-. ${res_dir}${sep}event.insh
+${res_dir}${sep}event.insh
 
 camera_swap_kind
 camera_rotate -at_focal -y -deg -angle=125
@@ -28,12 +34,29 @@ scene_write_to_paper -format=inzb_ps out_neard_perspective.ps
 
 #//////////////////////////////////////////////
 #//////////////////////////////////////////////
+${res_dir}${sep}neard_startup.insh
+event_next -no_exec
+${res_dir}${sep}mctrack_arrow.insh
+camera_zoom 0.2
+camera_zoom 0.2
+camera_zoom 0.4
+plots_hide
+gui_hide_console
+scene_light_off  # cones not drawn in .png,.ps if light on!
+scene_write_to_paper out_neard_mctrack_arrow.png
+scene_write_to_paper -format=inzb_ps out_neard_mctrack_arrow.ps
+
+#//////////////////////////////////////////////
+#//////////////////////////////////////////////
 #/// fard : ///////////////////////////////////
 #//////////////////////////////////////////////
-. ${res_dir}${sep}fard_startup.insh
+cp ${res_dir}${sep}fard_geo_full.root ${doc_dir}${sep}geo_full.root
+cp ${res_dir}${sep}fard_evetest.root  ${doc_dir}${sep}evetest.root
+${res_dir}${sep}fard_startup.insh
 
 event_next -no_exec
-. ${res_dir}${sep}event.insh
+event_next -no_exec
+${res_dir}${sep}event.insh
 
 scene_write_to_paper out_fard_ortho.png
 scene_write_to_paper -format=inzb_ps out_fard_ortho.ps
@@ -48,18 +71,20 @@ scene_write_to_paper -format=inzb_ps out_fard_perspective.ps
 #//////////////////////////////////////////////
 #/// fgd : ////////////////////////////////////
 #//////////////////////////////////////////////
-#. ${res_dir}${sep}fgd_startup.insh #have fgd geometry in wire_frame in the below:
 scene_clear_static
 scene_clear_dynamic
 scene_set_clear_color black
 plots_show
-. neard_set_camera.insh
+neard_set_camera.insh
 app_open_geometry_file -doc_res fgd_geo_full.root
-. neard_add_geometry.insh
-. fgd_add_geometry.insh
-. neard_add_floor.insh
-. neard_add_avatars.insh
-. neard_add_axes.insh
+neard_add_geometry.insh
+#fgd_add_geometry.insh
+alias geo_vis='scene_add_rroot_geo_volume -geo=geo_manager'
+geo_vis -modeling=wire_frame -color='0.75 0.75 0.75 1' -min_depth=0 -max_depth=1 'Esb/SuperFGD'
+unalias geo_vis
+neard_add_floor.insh
+neard_add_avatars.insh
+neard_add_axes.insh
 #//////////////////////////////////////////////
 
 camera_zoom 0.5  # zoom in.
@@ -70,7 +95,7 @@ app_open_event_file -doc_res fgd_evetest.root
 gui_hide_main_menu
 
 event_next -no_exec
-. ${res_dir}${sep}fgd_event.insh
+${res_dir}${sep}fgd_event.insh
 
 camera_rotate -at_focal -y -deg -angle=90
 
@@ -79,17 +104,17 @@ scene_write_to_paper -format=inzb_ps out_fgd_ortho.ps
 
 #//////////////////////////////////////////////
 #//////////////////////////////////////////////
-#/// fgd_hist : ///////////////////////////////
+#/// fgd_hit : ////////////////////////////////
 #//////////////////////////////////////////////
 scene_clear_static
 scene_clear_dynamic
 scene_set_clear_color white
 plots_show
-. neard_set_camera.insh
+neard_set_camera.insh
 app_open_geometry_file -doc_res fgd_geo_full.root
-. neard_add_geometry.insh
-. fgd_add_geometry.insh
-. neard_add_floor.insh
+neard_add_geometry.insh
+#fgd_add_geometry.insh
+neard_add_floor.insh
 #//////////////////////////////////////////////
 
 camera_set_ortho 50
@@ -110,19 +135,21 @@ app_open_event_file -doc_res fgd_dig.root
 gui_hide_main_menu
 
 event_next -no_exec
-#. ${res_dir}${sep}fgd_hit_event.insh
+${res_dir}${sep}fgd_hit_event.insh
+scene_write_to_paper out_fgd_hit_cube.png
+scene_write_to_paper -format=inzb_ps out_fgd_hit_cube.ps
 
+scene_clear_dynamic
 event_index=`event_index`
 gui_show_console ${event_index}
 
-event_vis FgdDetectorPoint -pickable=true -color=blue
+FgdDetectorPoint_vis -pickable=true -color=blue
 
-#event_vis FgdHit -modeling=cube -color=skyblue    # FgdHits represented as cubes in solid.
-#event_vis FgdHit -color=skyblue    # FgdHits represented as cubes in solid.
-event_vis FgdHit -cut=photoE!=0 -modeling=cube -coloring=photoE -painting=violet_to_red -cube_size=eval(photoE)
+#FgdHit_vis -modeling=cube -color=skyblue    # FgdHits represented as cubes in solid.
+#FgdHit_vis -color=skyblue    # FgdHits represented as cubes in solid.
+FgdHit_vis -cut=photoE!=0 -modeling=cube -coloring=photoE -painting=violet_to_red -cube_size=eval(photoE)
 
-event_plot FgdHit -cut=photoE!=0 -filling=photoE
-
+FgdHit_plot -cut=photoE!=0 -filling=photoE
 
 scene_write_to_paper out_fgd_hit_ortho.png
 scene_write_to_paper -format=inzb_ps out_fgd_hit_ortho.ps

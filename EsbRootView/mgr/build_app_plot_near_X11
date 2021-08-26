@@ -41,6 +41,7 @@ use_zlib=yes
 #//////////////////////////////////////////////////////
 
 objs=
+app=plot_near_X11
 app_exe=plot_near_X11
 app_src=../X11/plot_near.cpp
 

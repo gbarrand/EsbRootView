@@ -6,6 +6,16 @@
 bush_home=../../bush
 
 . ${bush_home}/args
+
+items="${build_args}"
+build_args=
+for item in ${items} ; do
+  case ${item} in
+    -macos_metal) build_args="${build_args} ${item} -c++11";;
+    -*) build_args="${build_args} ${item}";;
+  esac
+done
+
 . ${bush_home}/app_header_use
 
 #//////////////////////////////////////////////////////
@@ -27,12 +37,16 @@ if [ ${build_visual} = yes ] ; then
   cppflags="${cppflags} -DEXLIB_APP_HAS_TERM -DEXLIB_APP_TERM_INSH"
   use_Getline=yes
 fi
+#if [ ${build_macos_metal} = yes ] ; then
+#  cppflags="${cppflags} -DEXLIB_METAL_DRAW_WHEN_NEEDED"
+#fi
 
 #//////////////////////////////////////////////////////
 #//////////////////////////////////////////////////////
 #//////////////////////////////////////////////////////
 
 use_csz=yes
+cppflags="${cppflags} -DINLIB_USE_CSZ"
 
 . ${bush_home}/use/Getline
 . ${bush_home}/use/csz
