@@ -124,9 +124,6 @@ cd "${save_dir}"
 #///////////////////////////////////////////////////////////////
 if [ ${app} != softinex ] ; then
   wasm_from="${save_dir}/../mgr/bin_wasm/"
-  if [ -d ../mgr/bin_wasm_c++11 ] ; then
-    wasm_from="${save_dir}/../mgr/bin_wasm_c++11"
-  fi
   if [ -d ${wasm_from} ] ; then
     wasm_to="${web_dir}/wasm"
     /bin/rm -R -f ${wasm_to}

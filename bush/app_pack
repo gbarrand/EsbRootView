@@ -16,7 +16,7 @@ version="`${bush_home}/app_vers`"
 save_dir=`pwd`
 
 inlib_incs=./inlib_incs
-c++ -o ${inlib_incs} ${inlib_home}/apps/incs.cpp
+c++ -o ${inlib_incs} -I${inlib_home} ${inlib_home}/apps/incs.cpp
 use_status=$?;if [ ${use_status} != 0 ] ; then exit ${use_status};fi
 
 to=/tmp/${app}
@@ -109,12 +109,12 @@ fi
 
 items=
 items="${items} freetype jpeg png expat zip zlib csz"
-#items="${items} glutess"
 if [ ${app} = g4exa       ] ; then items="${items} AIDA";fi
 if [ ${app} = g4view      ] ; then items="${items} pythia8";fi
 if [ ${app} = TouchSky    ] ; then items="${items} cfitsio hdf5 wcslib lua";fi
 if [ ${app} = gopaw       ] ; then items="${items} KUIP Getline Python hdf5 cfitsio";fi
 if [ ${app} = EsbRootView ] ; then items="${items} Getline";fi
+if [ ${app} = MEMPHYS_vis ] ; then items="${items} Getline";fi
 if [ ${app} = ioda     ] ; then
   items="${items} CoinGL HEPVis"
   items="${items} graphviz Python lua"
@@ -214,7 +214,7 @@ if [ ${app} = MEMPHYS_vis ] ; then
   /bin/cp -R ../../MEMPHYS/MEMPHYS ${to}/MEMPHYS/.
   /bin/cp -R ../../MEMPHYS/source  ${to}/MEMPHYS/.
   /bin/cp ../doc/README_for_pack ${to}/README
-  /bin/cp ${bush_home}/app_README_g4 ${to}/README
+  #/bin/cp ${bush_home}/app_README_g4 ${to}/README
 fi
 
 if [ ${app} = TouchSky ] ; then
