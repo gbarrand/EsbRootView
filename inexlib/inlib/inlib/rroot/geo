@@ -54,7 +54,7 @@ public:
   }
 public:
   virtual void update_sg(std::ostream& a_out) {
-    begin_update_sg(a_out);
+    if(!begin_update_sg(a_out)) return;
 
     unsigned int depth = 0;
 

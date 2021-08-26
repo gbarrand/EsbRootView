@@ -8,9 +8,9 @@
 
 #include "../hep/polyhedron"
 #include "../mathd"
-#include "../vec3f"
-#include "../vec4f"
-#include "../rotf"
+#include "../lina/vec3f"
+#include "../lina/vec4f"
+#include "../lina/rotf"
 
 #include "geo_shapes"
 #include "geo_scaled_shape"

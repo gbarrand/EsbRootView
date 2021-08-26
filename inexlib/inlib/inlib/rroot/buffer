@@ -16,66 +16,19 @@
 #include <string>
 #include <vector>
 #include <ostream>
-
-// in INLIB_STL, we don't have (yet) a performant map.
-
-#ifdef inlib_stl_vector
-#define INLIB_RROOT_OBJ_MAP_HASH_TABLE
-//#define INLIB_RROOT_OBJ_MAP_OMAP
-#else
-#define INLIB_RROOT_OBJ_MAP_STD_MAP
-#endif
-
-#ifdef INLIB_RROOT_OBJ_MAP_STD_MAP
 #include <map>
-#endif
-#ifdef INLIB_RROOT_OBJ_MAP_OMAP
-#include "../omap"
-#endif
-#ifdef INLIB_RROOT_OBJ_MAP_HASH_TABLE
-#include "../hash_table"
-#include "../hash"
-#endif
 
 namespace inlib {
 namespace rroot {
 
 class buffer : public rbuf {
   typedef rbuf parent;
-
   static const std::string& s_class() {
     static const std::string s_v("inlib::rroot::buffer");
     return s_v;
   }
-
-#ifdef INLIB_RROOT_OBJ_MAP_STD_MAP
+private:
   typedef std::map<uint32,iro*> obj_map;
-#endif
-#ifdef INLIB_RROOT_OBJ_MAP_OMAP
-  typedef omap<uint32,iro*> obj_map;
-#endif
-#ifdef INLIB_RROOT_OBJ_MAP_HASH_TABLE
-  class obj_map : public hash_table<uint32,iro*> {
-    typedef hash_table<uint32,iro*> parent;
-  protected:
-    virtual unsigned int hash(const uint32& a_key) {
-      return hash(&a_key,sizeof(uint32));
-    }
-    virtual bool cmp(const uint32& a_key1,const uint32& a_key2) {
-      return a_key1==a_key2?true:false;
-    }
-  public:
-    obj_map():parent(){}
-    virtual ~obj_map(){}
-  private:
-    obj_map(const obj_map& a_from):parent(a_from){}
-    obj_map& operator=(const obj_map& a_from){
-      parent::operator=(a_from);
-      return *this;
-    }
-  };
-#endif
-
 public:
   buffer(std::ostream& a_out,bool a_byte_swap,uint32 a_size,char* a_buffer,uint32 a_klen,bool a_verbose)
   :parent(a_out,a_byte_swap,a_buffer+a_size,m_pos)
