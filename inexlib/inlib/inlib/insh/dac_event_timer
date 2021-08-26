@@ -1,0 +1,133 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_insh_dac_event_timer
+#define inlib_insh_dac_event_timer
+
+// dac is for data accessor.
+
+#include "ishell"
+#include "../sg/view_evd"
+#include "../event_timer"
+
+#ifdef INLIB_MEM
+#include "../mem"
+#endif
+
+namespace inlib {
+
+template <class DAC>
+class dac_event_timer : public event_timer {
+  typedef event_timer parent;
+public:
+  INLIB_T_SCLASS(DAC,inlib::dac_event_timer)
+  virtual void* cast(const std::string& a_class) const {
+    if(void* p = cmp_cast<dac_event_timer>(this,a_class)) return p;
+    return parent::cast(a_class);
+  }
+public:
+  virtual void start() {
+    m_event_count = 0;
+    sg::view_evd* _evd = sg::cast_view_evd(m_gv);
+    if(!_evd) return;
+    m_event_start = _evd->event_index();
+    parent::start();
+  }
+
+  virtual void action() {
+    sg::view_evd* _evd = sg::cast_view_evd(m_gv);
+    if(!_evd) {stop();return;}
+
+    if(m_event_count>=m_wanted_nevent) {
+      stop();
+      return;
+    }
+
+    if(_evd->event_index()>=m_number) {
+      if(m_bof) {
+        _evd->event_index() = 0;
+      } else {
+        stop();
+        return;
+      }
+    }
+
+   {std::string smsg;
+    if(!m_dac.read_one_event(_evd->event_index(),smsg,m_gv.verbose())) {
+      m_gv.map_warn(smsg);
+      stop();
+      return;
+    }}
+
+    m_insh.exec_line_reset_to_stop("event.insh");
+  //if(m_insh.to_stop()) {stop();return;}
+
+    _evd->event_index()++;
+    m_event_count++;
+  }
+public:
+  dac_event_timer(DAC& a_dac,sg::gui_viewer& a_gv,ishell& a_insh,
+                  uint64 a_number,unsigned int a_wanted_nevent,bool a_bof,unsigned int a_interval)
+  :parent(a_interval)
+  ,m_dac(a_dac)
+  ,m_gv(a_gv)
+  ,m_insh(a_insh)
+  ,m_number(a_number)
+
+  ,m_wanted_nevent(a_wanted_nevent)
+  ,m_bof(a_bof)
+
+  ,m_event_start(0)
+  ,m_event_count(0)
+  {
+#ifdef INLIB_MEM
+    mem::increment(s_class().c_str());
+#endif
+  }
+  virtual ~dac_event_timer(){
+#ifdef INLIB_MEM
+    mem::decrement(s_class().c_str());
+#endif
+  }
+protected:
+  dac_event_timer(const dac_event_timer& a_from)
+  :parent(a_from)
+  ,m_dac(a_from.m_dac)
+  ,m_gv(a_from.m_gv)
+  ,m_insh(a_from.m_insh)
+  ,m_number(a_from.m_number)
+
+  ,m_wanted_nevent(a_from.m_wanted_nevent)
+  ,m_bof(a_from.m_bof)
+
+  ,m_event_start(0)
+  ,m_event_count(0)
+  {
+#ifdef INLIB_MEM
+    mem::increment(s_class().c_str());
+#endif
+  }
+  dac_event_timer& operator=(const dac_event_timer& a_from){
+    parent::operator=(a_from);
+    m_wanted_nevent = a_from.m_wanted_nevent;
+    m_bof = a_from.m_bof;
+
+    m_event_start = 0;
+    m_event_count = 0;
+    return *this;
+  }
+protected:
+  DAC& m_dac;
+  sg::gui_viewer& m_gv;
+  ishell& m_insh;
+  uint64 m_number;
+  unsigned int m_wanted_nevent;
+  bool m_bof;
+
+  unsigned int m_event_start;
+  unsigned int m_event_count;
+};
+
+}
+
+#endif

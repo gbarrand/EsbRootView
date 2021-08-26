@@ -1,0 +1,186 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_insh_dac_event
+#define inlib_insh_dac_event
+
+#include "ishell"
+#include "../sg/view_evd"
+#include "../cast_dac"
+
+#include "../sg/dac_opener"
+#include "guib"
+
+namespace inlib {
+
+template <class DAC>
+inline void insh_app_open_event_file(ishell& a_insh,const std::vector<std::string>& a_args,sg::gui_viewer& a_gv) {
+  static const std::string s_cmd("app_open_event_file");
+  args _args(a_args);
+  std::string path;
+  if(!insh_args_file(a_insh,a_gv,_args,s_cmd,path)) return;
+  sg::dac_opener<DAC> _opener;
+ {bool done;
+  if(!_opener.open(path,a_gv,args(),done)) {
+    a_insh.warn(s_cmd+" can't open "+inlib::sout(path));
+  }}
+}
+
+template <class DAC>
+inline void insh_event_number(ishell& a_insh,const std::vector<std::string>&,sg::gui_viewer& a_gv) {
+  DAC* _dac = cast_dac<DAC,sg::gui_viewer>(a_gv);
+  if(!_dac) {a_insh.warn("event_number : bad dac cast.");return;}
+  a_insh.out_num(_dac->number_of_events());
+}
+
+template <class DAC>
+inline void insh_event_time_min(ishell& a_insh,const std::vector<std::string>&,sg::gui_viewer& a_gv) {
+  DAC* _dac = cast_dac<DAC,sg::gui_viewer>(a_gv);
+  if(!_dac) {a_insh.warn("event_time_min : bad dac cast.");return;}
+  a_insh.out_num(_dac->event_time_min());
+}
+
+template <class DAC>
+inline void insh_event_time_max(ishell& a_insh,const std::vector<std::string>&,sg::gui_viewer& a_gv) {
+  DAC* _dac = cast_dac<DAC,sg::gui_viewer>(a_gv);
+  if(!_dac) {a_insh.warn("event_time_max : bad dac cast.");return;}
+  a_insh.out_num(_dac->event_time_max());
+}
+
+template <class DAC>
+inline void insh_event_index(ishell& a_insh,const std::vector<std::string>&,sg::gui_viewer& a_gv) {
+  DAC* _dac = cast_dac<DAC,sg::gui_viewer>(a_gv);
+  if(!_dac) {a_insh.warn("event_index : bad dac cast.");return;}
+  if(!_dac->has_events()) {a_insh.warn("event_index : no event.");return;}
+  a_insh.out_num(_dac->event_index());
+}
+
+template <class DAC>
+inline void insh_event_next(ishell& a_insh,const std::vector<std::string>& a_args,sg::gui_viewer& a_gv) {
+  static const std::string s_cmd("event_next");
+  DAC* _dac = cast_dac<DAC,sg::gui_viewer>(a_gv);
+  if(!_dac) return;
+  sg::view_evd* _evd = sg::cast_view_evd(a_gv);
+  if(!_evd) return;
+  uint64 available_events = _dac->number_of_events();
+  if(!available_events) {
+    a_insh.warn(s_cmd+": no event.");
+    return;
+  }
+  args _args(a_args);
+  unsigned int number = 1;
+  INLIB_ISHELL_GET_ARG_UINT(number)
+  bool no_exec = _args.is_arg("-no_exec");
+  for(unsigned int i=0;i<number;i++) {
+    if(_evd->event_index()>=(unsigned int)available_events) _evd->event_index() = 0;
+    std::string smsg;
+    if(!_dac->read_one_event(_evd->event_index(),smsg,a_gv.verbose())) {
+      a_gv.map_warn(smsg);
+      return;
+    }
+    if(no_exec) {
+    } else {
+      a_insh.exec_line_reset_to_stop("event.insh");
+      if(a_insh.to_stop()) {}
+    }
+    _evd->event_index()++;
+  }
+}
+
+}
+
+#include "dac_event_timer"
+
+namespace inlib {
+
+template <class DAC>
+inline void insh_event_start_anim(ishell& a_insh,const std::vector<std::string>& a_args,sg::gui_viewer& a_gv) {
+  static const std::string s_cmd("event_start_anim");
+  DAC* _dac = cast_dac<DAC,sg::gui_viewer>(a_gv);
+  if(!_dac) return;
+  sg::view_evd* _evd = sg::cast_view_evd(a_gv);
+  if(!_evd) return;
+  args _args(a_args);
+  unsigned int start_event;
+  _args.find<unsigned int>("-start",start_event,0);  
+  unsigned int wanted_nevent;
+  _args.find<unsigned int>("-number",wanted_nevent,1);  
+  bool bof;
+  _args.find("-bof",bof,false);  
+  unsigned int sleep;
+  _args.find<unsigned int>("-sleep",sleep,0);
+  
+  uint64 number = _dac->number_of_events();
+  if(!number) {
+    a_insh.warn(s_cmd+": no event in file.");
+    return;
+  }
+
+  if(!wanted_nevent) {
+    a_insh.warn(s_cmd+": nothing to do.");
+    return;
+  }
+
+  _evd->event_index() = start_event;
+
+  a_gv.stop_event_anim();
+
+  dac_event_timer<DAC>* timer =
+    new dac_event_timer<DAC>(*_dac,a_gv,a_insh,number,wanted_nevent,bof,sleep);
+
+  a_gv.set_event_anim(timer);
+}
+
+}
+
+#include <inlib/insh/ishell_args_gui_viewer_cmd>
+
+#define INLIB_INSH_DAC_EVENT_ADDS(a__insh,a__viewer)\
+/*INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,open_default_file,\
+    inlib::insh_open_default_file,inlib::insh::no_help())*/\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_next,\
+    inlib::insh_event_next<dac>,\
+"event_next: event_next [-number]\n\
+  Get next event in file and source the event.insh script.\n\
+  -no_exec to not source event.insh.\n\
+  -number=uint do it number times (default is 1).\n\
+")\
+/*INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,next_event,\
+    inlib::insh_event_next<dac>,\
+"next_event: next_event [-number]\n\
+  Same as event_next.\n\
+")*/\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_start_anim,\
+    inlib::insh_event_start_anim<dac>,\
+"event_start_anim: event_start_anim [-start,-number,-bof,-sleep]\n\
+  Loop on events by executing the event.insh script.\n\
+  -start=uint event index to start with (default 0).\n\
+  -number=uint do it number times (default 1).\n\
+  -bof=bool if true, at end of file, return to begin of file (bof) (default false).\n\
+  -sleep=uint time, in msec, to sleep between each event (default 0).\n\
+  Use event_stop_anim to stop looping.\n\
+  Example:\n\
+    event_start_anim -start=0 -number=100 -bof=true -sleep=100\n\
+")\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_time_min,\
+    inlib::insh_event_time_min<dac>,\
+"event_time_min: event_time_min\n\
+  Print the event minimum time of data.\n\
+")\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_time_max,\
+    inlib::insh_event_time_max<dac>,\
+"event_time_max: event_time_max\n\
+  Print the event maximum time of data.\n\
+")\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_number,\
+    inlib::insh_event_number<dac>,\
+"event_number: event_number\n\
+  Print the number of events.\n\
+")\
+  INLIB_INSH_ADD_ISHELL_ARGS_GUI_VIEWER_CMD(a__insh,a__viewer,event_index,\
+    inlib::insh_event_index<dac>,\
+"event_index: event_index\n\
+  Print the event index.\n\
+")
+
+#endif
