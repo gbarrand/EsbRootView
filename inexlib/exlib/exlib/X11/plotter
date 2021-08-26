@@ -18,6 +18,7 @@
 #include <inlib/sg/cloud2plot_cp>
 
 #include <inlib/sys/dir>
+#include <inlib/path_env>
 
 namespace exlib {
 namespace X11 {

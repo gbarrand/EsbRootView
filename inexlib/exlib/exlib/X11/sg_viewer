@@ -12,6 +12,8 @@
 
 #include "simple_dispatcher"
 
+#include <inlib/sg/device_interactor>
+
 namespace exlib {
 namespace X11 {
 
@@ -21,6 +23,37 @@ private:
   class dispatcher : public simple_dispatcher {
     typedef simple_dispatcher parent;
   public:
+    virtual bool dispatch(XEvent& a_event) {
+      if(parent::dispatch(a_event)) return true;
+      if(a_event.type==ButtonPress && a_event.xbutton.button==1) {
+        if(!m_sg_viewer.device_interactor()) return false;
+        inlib::sg::mouse_down_event event(a_event.xbutton.x,a_event.xbutton.y);
+        m_sg_viewer.device_interactor()->mouse_press(event);
+        return true;
+      } else if(a_event.type==ButtonRelease && a_event.xbutton.button==1) {
+        if(!m_sg_viewer.device_interactor()) return false;
+        inlib::sg::mouse_up_event event(a_event.xbutton.x,a_event.xbutton.y);
+        m_sg_viewer.device_interactor()->mouse_release(event);
+        return true;
+      } else if(a_event.type==MotionNotify) {
+        if(!m_sg_viewer.device_interactor()) return false;
+        if((a_event.xmotion.state & Button1MotionMask)==Button1MotionMask) {
+          inlib::sg::mouse_move_event event(a_event.xmotion.x,a_event.xmotion.y,0,0,false);
+          m_sg_viewer.device_interactor()->mouse_move(event);
+        }
+      } else if((a_event.type==ButtonPress)&&(a_event.xbutton.button==4)) { // mouse scrollwheel down :
+        if(!m_sg_viewer.device_interactor()) return false;
+        inlib::sg::wheel_rotate_event event(8);  //8=cooking.
+        m_sg_viewer.device_interactor()->wheel_rotate(event);
+        return true;
+      } else if((a_event.type==ButtonPress)&&(a_event.xbutton.button==5)) { // mouse scrollwheel up :
+        if(!m_sg_viewer.device_interactor()) return false;
+        inlib::sg::wheel_rotate_event event(-8);  //8=cooking.
+        m_sg_viewer.device_interactor()->wheel_rotate(event);
+        return true;
+      }
+      return false;
+    }
     virtual void win_render() {m_sg_viewer.win_render();}
     virtual void set_size(unsigned int a_width,unsigned int a_height) {m_sg_viewer.set_size(a_width,a_height);}
     virtual dispatcher* copy() const {return new dispatcher(*this);}
@@ -50,6 +83,7 @@ public:
   :parent(a_session.out(),a_width,a_height)
   ,m_session(a_session)
   ,m_win(0)
+  ,m_interactor(0)
   {
     if(!m_session.display()) return; //throw
     m_win = m_session.create_window(a_win_title.c_str(),a_x,a_y,a_width,a_height);
@@ -63,11 +97,12 @@ public:
       m_session.sync();
     }
   }
-public:
+protected:
   sg_viewer(const sg_viewer& a_from)
   :parent(a_from)
   ,m_session(a_from.m_session)
   ,m_win(a_from.m_win)
+  ,m_interactor(0)
   {}
   sg_viewer& operator=(const sg_viewer& a_from){
     parent::operator=(a_from);
@@ -98,9 +133,13 @@ public:
     }
   }
 
+public:
+  void set_device_interactor(inlib::sg::device_interactor* a_interactor) {m_interactor = a_interactor;}
+  inlib::sg::device_interactor* device_interactor() {return m_interactor;}
 protected:
   session& m_session;
-  Window m_win;
+  Window m_win;  
+  inlib::sg::device_interactor* m_interactor;
 };
 
 }}
