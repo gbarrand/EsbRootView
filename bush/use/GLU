@@ -2,21 +2,25 @@
 # See the file bush.license for terms.
 
 if [ "${use_GLU}" = "yes" ] ; then
-  if [ ${build_visual} = "yes" ] ; then
-    libs="${libs} glu32.lib"
-  elif [ ${build_sdk_android} = "yes" ] ; then
-    echo dummy > /dev/null
-  elif [ `uname` = Darwin ] ; then
-    cppflags="${cppflags} -I/opt/local/include"
-    ccflags="${ccflags} -I/opt/local/include"
-    libs="${libs} /opt/local/lib/libGLU.dylib"
-  else
-    inc_dirs="/usr/include"
-    inc_to_find=GL/glu.h
-    . ${bush_home}/find_inc
 
-    lib_dirs="/usr/${lib} /usr/lib/x86_64-linux-gnu"
-    lib_to_find=GLU
-    . ${bush_home}/find_lib
+  if [ ${build_enforce_glx} = yes ] ; then
+    use_GLUX=yes
+  elif [ ${build_enforce_agl} = yes ] ; then
+    use_AGLU=yes
+  elif [ ${build_enforce_wgl} = yes ] ; then
+    use_WGLU=yes
+  else
+    if [ ${build_visual} = "yes" ] ; then
+      use_WGLU=yes
+    elif [ `uname` = Darwin ] ; then
+      use_AGLU=yes
+    else
+      use_GLUX=yes
+    fi
   fi
+
+  . ${bush_home}/use/GLUX
+  . ${bush_home}/use/WGLU
+  . ${bush_home}/use/AGLU
+
 fi

@@ -2,21 +2,15 @@
 # See the file bush.license for terms.
 
 if [ "${use_AGL}" = "yes" ] ; then
-  if [ `uname` = Darwin ] ; then
-    ccflags="${ccflags} -DGL_SILENCE_DEPRECATION"  # since 10.14 (Mojave). Sigh.
-    ccflags="${ccflags} -DBUSH_USE_AGL"
 
-    cppflags="${cppflags} -DGL_SILENCE_DEPRECATION"  # since 10.14 (Mojave). Sigh.
-    cppflags="${cppflags} -DBUSH_USE_AGL"
+  ccflags="${ccflags} -DGL_SILENCE_DEPRECATION"  # since 10.14 (Mojave). Sigh.
+  cppflags="${cppflags} -DGL_SILENCE_DEPRECATION"  # since 10.14 (Mojave). Sigh.
 
-    if [ "${build_ios}" = "yes" -o "${build_ios_gnu}" = "yes" -o "${build_iossim}" = "yes" ] ; then
-      libs="${libs} -framework OpenGLES"
-    else
-      libs="${libs} -framework OpenGL"
-      libs="${libs} -framework CoreFoundation" # CF functions.
-    fi
+  if [ "${build_ios}" = "yes" -o "${build_ios_gnu}" = "yes" -o "${build_iossim}" = "yes" ] ; then
+    libs="${libs} -framework OpenGLES"
   else
-    echo 'bush/use/AGL : only valid on Darwin.'
-    exit
+    libs="${libs} -framework OpenGL"
+    libs="${libs} -framework CoreFoundation" # CF functions.
   fi
+
 fi
