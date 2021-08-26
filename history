@@ -1,3 +1,13 @@
+4.0.0: full insh scripting, including the GUI central panel.
+- EsbRootView/main contains now mainly the declaration of insh commands.
+- insh : directory containing the specific EsbRootView insh commands.
+- res/gui_main.insh and related insh gui scripts.
+- inlib/lina.
+- [inlib,exlib]/insh : directories gathering all insh related materials.
+
+3.0.1 :
+ - mgr/offscreen.insh : handle new fard geom. Correct fgd geom vis.
+
 3.0.0 :
  - have [fard,neard]_add_geometry.insh.
  - have [fard,neard]_add_axes.insh.
