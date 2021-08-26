@@ -2,6 +2,6 @@
 
 . mctrack_wcpoint.insh
 
-event_plot WCDetectorPoint -modeling=detector
+WCDetectorPoint_plot -modeling=detector
 
-event_vis FgdDetectorPoint -pickable=true -color=skyblue
+FgdDetectorPoint_vis -pickable=true -color=skyblue

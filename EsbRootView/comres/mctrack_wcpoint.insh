@@ -7,16 +7,19 @@ event_index=`event_index`
 gui_show_console ${event_index}
 
 scene_clear_dynamic
+scene_add_plots_clearer -dynamic
 
 #pickable='-pickable=true'
 pickable=
 
-event_vis MCTrack -cut=${cut_first} -color=${mc_ophoton_first_color} ${pickable}
-event_vis WCDetectorPoint -cut=${cut_first} -color=${wc_ophoton_first_color} ${pickable} -point_size=1
+MCTrack_vis -cut=${cut_first} -color=${mc_ophoton_first_color} ${pickable}
+WCDetectorPoint_vis -cut=${cut_first} -color=${wc_ophoton_first_color} ${pickable} -point_size=1
 
-event_vis MCTrack -cut=${cut_second} -color=${mc_ophoton_second_color} ${pickable}
-event_vis WCDetectorPoint -cut=${cut_second} -color=${wc_ophoton_second_color} ${pickable} -point_size=1
+MCTrack_vis -cut=${cut_second} -color=${mc_ophoton_second_color} ${pickable}
+WCDetectorPoint_vis -cut=${cut_second} -color=${wc_ophoton_second_color} ${pickable} -point_size=1
 
-#event_vis MCTrack -cut=pdg!=50000050 -color=orange ${pickable}
-#event_vis WCDetectorPoint -cut=(pdg!=50000050) -color=seagreen ${pickable} -point_size=10
+#MCTrack_vis -cut=pdg!=50000050 -color=orange ${pickable}
+#WCDetectorPoint_vis -cut=(pdg!=50000050) -color=seagreen ${pickable} -point_size=10
 
+unset event_index
+unset pickable

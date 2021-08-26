@@ -1,26 +1,20 @@
 #!insh
 
-scene_clear_static
-scene_clear_dynamic
-scene_clear_static_blend
+init.insh
 
 scene_set_clear_color white
-
-plots_show
-gui_set_picking_mode
-
 scene_blend_on
 
-. neard_set_camera.insh
+neard_set_camera.insh
 #camera_set_da 0.005
 camera_set_dx 1  # step when panning. Adapt it to fgd.
 
 app_open_geometry_file -doc geo_full.root
 
-. neard_add_geometry.insh
-. fgd_add_geometry.insh
+neard_add_geometry.insh
+fgd_add_geometry.insh
 
-. neard_add_floor.insh
+neard_add_floor.insh
 
 app_open_event_file -doc digi.root
 

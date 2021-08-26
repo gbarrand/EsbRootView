@@ -6,11 +6,14 @@ scene_add_show_time_anim -dynamic
 #window_render
 #system 'sleep 2'  # used when recording to have time to hide the gui before anim starts.
 
-. mctrack_wcpoint_anim.insh
+mctrack_wcpoint_anim.insh
 
-. smoke_ring_anim.insh
+smoke_ring_anim.insh
 
-#. mu_nu_e_nu_mu_anim.insh
-#. mctrack_mu_prim_e_secon_points.insh
+#mu_nu_e_nu_mu_anim.insh
+#mctrack_mu_prim_e_secon_points.insh
 
-#. cone_anim.insh  # since there is some transparency, it must come at end.
+#cone_anim.insh  # since there is some transparency, it must come at end.
+
+# to anim the first 30 nsecs:
+#scene_start_anim -time_max=30

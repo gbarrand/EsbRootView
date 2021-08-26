@@ -11,6 +11,8 @@
 # The original format is .vrml. It had been converted to .bsg by using a softinex program able
 # to read this format by using the Coin3D library.
 
+alias geo_field='rroot_geo_field -geo=geo_manager'
+
 wc_dz=`geo_field wc dz`
 
 sarah_feet=-132.262  # scaled by 0.1
@@ -28,3 +30,11 @@ scene_read_bsg -file=avatar_sarah.bsg -translate="${tx} ${ty} ${tz}" -rotate="0 
 # have a green plant for sarah :
 scene_read_bsg -file=avatar_plant.bsg -translate="4060 -${wc_dz} 4030" -rotate='0 1 0 -1.570796' -scale=0.03
 
+unset wc_dz
+unset sarah_feet
+unset tx
+unset ty
+unset tz
+unset angle
+
+unalias geo_field

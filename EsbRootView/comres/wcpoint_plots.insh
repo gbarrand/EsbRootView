@@ -5,28 +5,31 @@
 gui_hide_console
 gui_hide_camera_menu
 
-plots_full_window
+scene_clear_dynamic
+scene_clear_static
+scene_clear_static_blend
+
+plots_map_viewer
 
 plots_set_grid 2 2
 
 plots_set_current_plotter 0
-event_plot WCDetectorPoint -cut=${cut_first} -xfill=time
+WCDetectorPoint_plot -cut=${cut_first} -xfill=time
 plotter_set_field title_box_width 0.6
 plotter_set_field title_box_height 0.08
 
 plots_set_current_plotter 1
-event_plot WCDetectorPoint -cut=${cut_first} -xfill=p
-#event_plot WCDetectorPoint -cut=${cut_first} -xfill=p -yfill=time
+WCDetectorPoint_plot -cut=${cut_first} -xfill=p
+#WCDetectorPoint_plot -cut=${cut_first} -xfill=p -yfill=time
 plotter_set_field title_box_width 0.6
 plotter_set_field title_box_height 0.08
 
 plots_set_current_plotter 2
-event_plot WCDetectorPoint -cut=${cut_second} -xfill=time
+WCDetectorPoint_plot -cut=${cut_second} -xfill=time
 plotter_set_field title_box_width 0.6
 plotter_set_field title_box_height 0.08
 
 plots_set_current_plotter 3
-event_plot WCDetectorPoint -cut=${cut_second} -xfill=p
+WCDetectorPoint_plot -cut=${cut_second} -xfill=p
 plotter_set_field title_box_width 0.6
 plotter_set_field title_box_height 0.08
-

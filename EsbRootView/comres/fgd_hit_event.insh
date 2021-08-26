@@ -2,44 +2,13 @@
 
 event_index=`event_index`
 gui_show_console ${event_index}
+unset event_index
 
 scene_clear_dynamic
 
-event_vis FgdDetectorPoint -pickable=true -color=blue
+FgdDetectorPoint_vis -pickable=true -color=blue
 
-event_vis FgdHit -modeling=cube -color=skyblue    # FgdHits represented as cubes in solid.
+FgdHit_vis -modeling=cube -color=skyblue -cube_size=0.99  # FgdHits represented as cubes in solid.
 
-event_plot FgdHit -cut=photoE!=0 -xfill=photoE
-
-return
-#/////////////////////////////////////////////////
-#//////// cubes in wire frame : //////////////////
-#/////////////////////////////////////////////////
-event_vis FgdHit -cut=photoE!=0 -modeling=cube -coloring=photoE -painting=violet_to_red -cube_size=eval(photoE)
-
-#event_vis FgdHit -unique_at_pos=true -unique_verbose=true -cut=photoE!=0 -modeling=cube -coloring=photoE -painting=violet_to_red -cube_size=eval(photoE)
-
-return
-#//////////////////////////////////////////////////////////////////////////
-#//////// cubes in solid colored according added at pos : /////////////////
-#//////////////////////////////////////////////////////////////////////////
-
-event_vis FgdHit -unique_at_pos=true -cut=(photoE!=0)&&(added==0) -modeling=cube -color=skyblue
-event_vis FgdHit -unique_at_pos=true -cut=(photoE!=0)&&(added==1) -modeling=cube -color=green
-event_vis FgdHit -unique_at_pos=true -cut=(photoE!=0)&&(added>1)  -modeling=cube -color=red
-
-return
-#//////////////////////////////////////////////////////////////////////////
-#/// example of other commands : ///////////////////////////////////////////
-#//////////////////////////////////////////////////////////////////////////
-
-event_vis FgdDetectorPoint -cut=pdg==22 -pickable=true -color=blue
-event_vis FgdDetectorPoint -cut=pdg!=22 -pickable=true -color=blue -point_size=4
-
-event_vis FgdHit -point_size=2
-event_vis FgdHit -cut=photoE!=0 -modeling=cube   # cubes will be in solid
-
-event_stats FgdHit -cut=photoE!=0 mppcx mppcy mppcz photoE
-
-event_plot FgdHit -xfill=photoE
+FgdHit_plot -cut=photoE!=0 -xfill=photoE
 

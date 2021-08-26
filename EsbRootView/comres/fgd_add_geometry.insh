@@ -1,3 +1,8 @@
 #!insh
 
-scene_add_geo_volume -style=fgd_geo -placement=static_blend -min_depth=0 -max_depth=1 'Esb/SuperFGD'
+alias geo_vis='scene_add_rroot_geo_volume -geo=geo_manager'
+
+geo_vis -color='0.75 0.75 0.75 0.3' -modeling=solid -placement=static_blend -min_depth=0 -max_depth=1 'Esb/SuperFGD'
+
+unalias geo_vis
+

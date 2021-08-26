@@ -1,25 +1,17 @@
 #!insh
 
-scene_clear_static
-scene_clear_dynamic
+init.insh
 
-scene_set_clear_color black
-scene_blend_off
-scene_clear_static_blend
-
-plots_show
-gui_set_picking_mode
-
-. fard_set_camera.insh
-plots_set_layout_factors 0.34 0.39 0.3 0.2
+fard_set_camera.insh
+plots_set_layout 0.34 0.39 0.3 0.2
 
 app_open_geometry_file -doc geo_full.root
 
-. fard_add_geometry.insh
+fard_add_geometry.insh
 
-. fard_add_floor.insh
-. fard_add_avatars.insh
-. fard_add_axes.insh
+fard_add_floor.insh
+fard_add_avatars.insh
+fard_add_axes.insh
 
 app_open_event_file -doc evetest.root
 

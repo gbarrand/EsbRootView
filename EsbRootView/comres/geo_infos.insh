@@ -1,10 +1,17 @@
 #!insh
 
+alias geo_field='rroot_geo_field -geo=geo_manager'
+
 wc_rmax=`geo_field wc rmax`
 wc_dz=`geo_field wc dz`
-
 wc_length=`calc 2*${wc_dz}`
 
 gui_text "wc cylinder radius ${wc_rmax} m" "wc cylinder length ${wc_length} m"
 
 gui_show_main_menu
+
+unset wc_rmax
+unset wc_dz
+unset wc_length
+
+unalias geo_field

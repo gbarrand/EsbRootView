@@ -1,5 +1,7 @@
 #!insh
 
+alias geo_field='rroot_geo_field -geo=geo_manager'
+
 wc_rmax=`geo_field wc rmax`
 axis_max=`calc 2*${wc_rmax}`
 
@@ -7,3 +9,7 @@ axis_max=`calc 2*${wc_rmax}`
 
 scene_add_axes -color=green -translate="-${wc_rmax} -${wc_rmax} 0" -rotate='1 0 0 0' -scale=${axis_max} -x_title='x(cm)' -x_width=1 -x_min=0 -x_max=${axis_max} -y_title='y(cm)' -y_width=1 -y_min=0 -y_max=${axis_max} -z_title='z(cm)' -z_width=1 -z_min=0 -z_max=${axis_max}
 
+unset wc_rmax
+unset axis_max
+
+unalias geo_field

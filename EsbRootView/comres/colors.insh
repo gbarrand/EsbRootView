@@ -1,4 +1,5 @@
-#!insh
+
+# must be sourced.
 
 primary_color=yellow
 

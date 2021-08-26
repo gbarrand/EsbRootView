@@ -1,4 +1,4 @@
 #!insh
 
-event_vis FgdDetectorPoint -color=skyblue -anim=true
+FgdDetectorPoint_vis -color=skyblue -anim=true
 

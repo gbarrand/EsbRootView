@@ -2,13 +2,17 @@
 
 
 histo_create -no_warn -xbins=100 -xmin=0 -xmax=1e-7 h_mctrack_p_2
-event_hfill MCTrack -name=h_mctrack_p_2 -xfill=p
+MCTrack_hfill -name=h_mctrack_p_2 -xfill=p
 
-#event_histo MCTrack -name=h_mctrack_t_p -xfill=p -yfill=t
+#MCTrack_histo -name=h_mctrack_t_p -xfill=p -yfill=t
 histo_create -no_warn -class=h2d -xbins=100 -xmin=0 -xmax=1e-7 -ybins=100 -ymin=0 -ymax=1 h_mctrack_t_p_2
-event_hfill MCTrack -name=h_mctrack_t_p_2 -xfill=p -yfill=t
+MCTrack_hfill -name=h_mctrack_t_p_2 -xfill=p -yfill=t
 
-plots_full_window
+scene_clear_dynamic
+scene_clear_static
+scene_clear_static_blend
+
+plots_map_viewer
 plots_set_grid 2 2
 
 plots_set_current_plotter 0

@@ -4,12 +4,16 @@
 
 # mu
 c_muon_water=${c_light_water}  #???
-event_vis MCTrack -cut=pdg==13&&mother_id==-1 -color=yellow -line_width=4 -modeling=firework -persistent=true -speed=${c_muon_water}
+MCTrack_vis -cut=pdg==13&&mother_id==-1 -color=yellow -line_width=4 -modeling=firework -persistent=true -speed=${c_muon_water}
 # nu_mu
-event_vis MCTrack -cut=pdg==14&&is_secondary==true -color=red -line_width=2 -modeling=firework  -persistent=true -speed=${c_light_vacuum}
+MCTrack_vis -cut=pdg==14&&is_secondary==true -color=red -line_width=2 -modeling=firework  -persistent=true -speed=${c_light_vacuum}
 
 # e
 c_electron_water=${c_light_water}  #???
-event_vis MCTrack -cut=pdg==11&&is_secondary==true -color=magenta -line_width=4 -modeling=firework -persistent=true -speed=${c_electron_water}
+MCTrack_vis -cut=pdg==11&&is_secondary==true -color=magenta -line_width=4 -modeling=firework -persistent=true -speed=${c_electron_water}
 # nu_e
-event_vis MCTrack -cut=pdg==-12&&is_secondary==true -color=red -line_width=2 -modeling=firework  -persistent=true -speed=${c_light_vacuum}
+MCTrack_vis -cut=pdg==-12&&is_secondary==true -color=red -line_width=2 -modeling=firework  -persistent=true -speed=${c_light_vacuum}
+
+
+unset c_muon_water
+unset c_electron_water

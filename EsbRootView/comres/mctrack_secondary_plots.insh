@@ -5,7 +5,11 @@
 gui_hide_console
 gui_hide_camera_menu
 
-plots_full_window
+scene_clear_dynamic
+scene_clear_static
+scene_clear_static_blend
+
+plots_map_viewer
 
 plots_set_grid 2 2
 
@@ -14,7 +18,7 @@ plots_set_grid 2 2
 #//////////////////////////////////////////////////////////////////////
 
 plots_set_current_plotter 0
-event_plot MCTrack -cut=${cut_first} -xfill=t
+MCTrack_plot -cut=${cut_first} -xfill=t
 #plotter_set_field bins_style.0.color blue
 
 plotter_set_field title_box_width 0.6
@@ -24,7 +28,7 @@ plotter_set_field title_box_height 0.08
 #//////////////////////////////////////////////////////////////////////
 #//////////////////////////////////////////////////////////////////////
 plots_set_current_plotter 1
-event_plot MCTrack -cut=${cut_first} -xfill=p
+MCTrack_plot -cut=${cut_first} -xfill=p
 
 plotter_set_field title_box_width 0.5
 plotter_set_field title_box_height 0.08
@@ -33,7 +37,7 @@ plotter_set_field title_box_height 0.08
 #//////////////////////////////////////////////////////////////////////
 #//////////////////////////////////////////////////////////////////////
 plots_set_current_plotter 2
-event_plot MCTrack -cut=${cut_first} -xfill=t -yfill=p
+MCTrack_plot -cut=${cut_first} -xfill=t -yfill=p
 
 plotter_set_field title_box_width 0.5
 plotter_set_field title_box_height 0.08

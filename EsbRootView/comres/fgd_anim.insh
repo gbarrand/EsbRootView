@@ -4,8 +4,8 @@
 
 scene_add_show_time_anim -dynamic
 
-event_vis MCTrack -cut=${cut_first} -color=${mc_ophoton_first_color} -modeling=firework  # firework is an anim.
-event_vis MCTrack -cut=${cut_second} -color=${mc_ophoton_second_color} -modeling=firework
+MCTrack_vis -cut=${cut_first} -color=${mc_ophoton_first_color} -modeling=firework  # firework is an anim.
+MCTrack_vis -cut=${cut_second} -color=${mc_ophoton_second_color} -modeling=firework
 
 . fgdpoint_anim.insh
 

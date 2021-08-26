@@ -2,6 +2,12 @@
 
 . colors.insh
 
-event_vis MCTrack -cut=(mother_id==-1) -color=${primary_color} -point_size=6 -modeling=arrow -arrow_text_scale=6
-#-arrow_radius=10
+arrow_opts="-modeling=arrow"
+arrow_opts="${arrow_opts} -arrow_length=10"
+arrow_opts="${arrow_opts} -arrow_radius=0.05"
+arrow_opts="${arrow_opts} -arrow_text_scale=6"
+arrow_opts="${arrow_opts} -arrow_text_pos=0.3"
+arrow_opts="${arrow_opts} -arrow_base_tube=false"  #then arrow base is a cone.
+
+MCTrack_vis -cut=(mother_id==-1) -color=${primary_color} -point_size=6 ${arrow_opts}
 

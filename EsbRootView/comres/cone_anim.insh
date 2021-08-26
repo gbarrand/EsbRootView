@@ -1,29 +1,16 @@
 #!insh
 
 . colors.insh
+. cuts.insh
 . consts.insh
 
 scene_blend_on
 
-cut_first="(pdg==50000050)&&(is_secondary==true)"
-
 color_a=`app_color_value -rgb ${mc_ophoton_first_color}`
 color_a="${color_a} 0.5"
-event_vis MCTrack -cut=${cut_first} -color="${color_a}" -modeling=cone_detector -anim=true -speed=${c_light_water}
-
-cut_second="(pdg==50000050)&&(is_secondary==false)"
+MCTrack_vis -cut=${cut_first} -color="${color_a}" -modeling=cone_detector -anim=true -speed=${c_light_water}
 
 color_a=`app_color_value -rgb ${mc_ophoton_second_color}`
 color_a="${color_a} 0.5"
-event_vis MCTrack -cut=${cut_second} -color="${color_a}" -modeling=cone_detector -anim=true -speed=${c_light_water}
-
-return
-# cone without boolean operation on detector :
-. is_neard.insh
-elapsed=1000
-if [ ${geo_is_neard} = yes ] ; then
-  elapsed=100
-fi
-event_vis MCTrack -cut=${cut_first} -color="${color_a}" -modeling=cone -anim=true -time_cone_elapse=${elapsed}
-event_vis MCTrack -cut=${cut_second} -color="${color_a}" -modeling=cone -anim=true -time_cone_elapse=${elapsed}
+MCTrack_vis -cut=${cut_second} -color="${color_a}" -modeling=cone_detector -anim=true -speed=${c_light_water}
 

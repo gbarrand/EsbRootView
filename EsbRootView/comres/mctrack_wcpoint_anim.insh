@@ -4,11 +4,11 @@
 . cuts.insh
 . consts.insh
 
-event_vis MCTrack -cut=${cut_first} -color=${mc_ophoton_first_color} -anim=true -speed=${c_light_water}
-event_vis WCDetectorPoint -cut=${cut_first} -color=${wc_ophoton_first_color} -anim=true -point_size=2
+MCTrack_vis -cut=${cut_first} -color=${mc_ophoton_first_color} -anim=true -speed=${c_light_water}
+WCDetectorPoint_vis -cut=${cut_first} -color=${wc_ophoton_first_color} -anim=true -point_size=2
 
-event_vis MCTrack -cut=${cut_second} -color=${mc_ophoton_second_color} -anim=true -speed=${c_light_water}
-event_vis WCDetectorPoint -cut=${cut_second} -color=${wc_ophoton_second_color} -anim=true -point_size=2
+MCTrack_vis -cut=${cut_second} -color=${mc_ophoton_second_color} -anim=true -speed=${c_light_water}
+WCDetectorPoint_vis -cut=${cut_second} -color=${wc_ophoton_second_color} -anim=true -point_size=2
 
-#event_vis WCDetectorPoint -cut=pdg==50000050 -color=green -anim=true
-#event_vis MCTrack -cut=pdg==50000050 -color=red -anim=true -speed=${c_light_water}
+#WCDetectorPoint_vis -cut=pdg==50000050 -color=green -anim=true
+#MCTrack_vis -cut=pdg==50000050 -color=red -anim=true -speed=${c_light_water}

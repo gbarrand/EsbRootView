@@ -1,26 +1,16 @@
 #!insh
 
-# this file is sourced from the app (avoid the exit command here).
+init.insh
 
-scene_clear_static
-scene_clear_dynamic
-scene_clear_static_blend
-
-scene_set_clear_color black
-scene_blend_off
-
-plots_show
-gui_set_picking_mode
-
-. neard_set_camera.insh
+neard_set_camera.insh
 
 app_open_geometry_file -doc geo_full.root
 
-. neard_add_geometry.insh
+neard_add_geometry.insh
 
-. neard_add_floor.insh
-. neard_add_avatars.insh
-. neard_add_axes.insh
+neard_add_floor.insh
+neard_add_avatars.insh
+neard_add_axes.insh
 
 app_open_event_file -doc evetest.root
 

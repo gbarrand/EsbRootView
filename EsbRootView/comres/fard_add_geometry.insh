@@ -1,3 +1,10 @@
 #!insh
 
-scene_add_geo_volume -style=fard_geo -min_depth=0 -max_depth=2 wc
+alias geo_vis='scene_add_rroot_geo_volume -geo=geo_manager'
+
+opts=
+opts="${opts} -color=lightgrey"
+
+geo_vis ${opts} -min_depth=0 -max_depth=2 wc
+
+unalias geo_vis

@@ -2,26 +2,12 @@
 
 unique_args="-unique_at_pos=true -unique_verbose=true"
 
-event_vis FgdHit -cut=(photoE!=0)&&(added==0) -modeling=cube -color=green ${unique_args}
-event_vis FgdHit -cut=(photoE!=0)&&(added==1) -modeling=cube -color=blue  ${unique_args}
-event_vis FgdHit -cut=(photoE!=0)&&(added>1)  -modeling=cube -color=red   ${unique_args}
+FgdHit_vis -cut=(photoE!=0)&&(added==0) -modeling=cube -color=green ${unique_args}
+FgdHit_vis -cut=(photoE!=0)&&(added==1) -modeling=cube -color=blue  ${unique_args}
+FgdHit_vis -cut=(photoE!=0)&&(added>1)  -modeling=cube -color=red   ${unique_args}
+
+unset unique_args
 
 echo 'green 1, blue 2, red >=3 FgdHits at same position.'
 gui_show_console 'green 1, blue 2, red >=3 FgdHits at same position.'
-
-return
-
-#/////////////////////////////////////////////////////////////////////////////////////////////
-#/////////////////////////////////////////////////////////////////////////////////////////////
-#/////////////////////////////////////////////////////////////////////////////////////////////
-event_vis FgdHit -cut=photoE!=0 -modeling=cube -coloring=photoE -painting=violet_to_red -cube_size=eval(photoE)
-event_vis FgdHit -cut=photoE==0 -color=lightgrey
-
-event_stats FgdHit -cut=photoE!=0 mppcx mppcy mppcz photoE
-event_plot FgdHit -cut=photoE!=0 -xfill=photoE
-
-event_count FgdHit
-event_count FgdHit -cut=photoE!=0
-
-event_print FgdHit -cut=photoE!=0 mppcx mppcy mppcz photoE
 

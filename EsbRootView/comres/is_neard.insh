@@ -1,4 +1,7 @@
-#!insh
+
+# it must be sourced.
+
+alias geo_field='rroot_geo_field -geo=geo_manager'
 
 wc_rmax=`geo_field wc rmax`
 iwc_rmax=`calc toint(${wc_rmax})`
@@ -9,3 +12,8 @@ if [ ${iwc_rmax} -ge 500 ] ; then
 fi
 
 #echo ${geo_is_neard}
+
+unset wc_rmax
+unset iwc_rmax
+
+unalias geo_field

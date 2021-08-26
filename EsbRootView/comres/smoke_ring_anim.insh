@@ -1,12 +1,15 @@
 #!insh
 
+. colors.insh
+. cuts.insh
 . consts.insh
 
 opts="-modeling=firework -speed=${c_light_water} -absorption_length=${absorption_length_water}"
 
-event_vis MCTrack -cut=${cut_first}&&(det_point==true) -color=${mc_ophoton_first_color} ${opts}
-event_vis MCTrack -cut=${cut_first}&&(det_point==false) -color=${mc_ophoton_first_color} ${opts} -dcut=true
+MCTrack_vis -cut=${cut_first}&&(det_point==true) -color=${mc_ophoton_first_color} ${opts}
+MCTrack_vis -cut=${cut_first}&&(det_point==false) -color=${mc_ophoton_first_color} ${opts} -dcut=true
 
-event_vis MCTrack -cut=${cut_second}&&(det_point==true) -color=${mc_ophoton_second_color} ${opts}
-event_vis MCTrack -cut=${cut_second}&&(det_point==false) -color=${mc_ophoton_second_color} ${opts} -dcut=true
+MCTrack_vis -cut=${cut_second}&&(det_point==true) -color=${mc_ophoton_second_color} ${opts}
+MCTrack_vis -cut=${cut_second}&&(det_point==false) -color=${mc_ophoton_second_color} ${opts} -dcut=true
 
+unset opts

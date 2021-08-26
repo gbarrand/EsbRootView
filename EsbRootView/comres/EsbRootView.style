@@ -1,61 +1,6 @@
 <styles>
 
   <!-- //////////////////////////////////////////////// -->
-  <!-- /// detector : ///////////////////////////////// -->
-  <!-- //////////////////////////////////////////////// -->
-  <style name="neard_geo">
-    <color>lightgrey</color>
-  </style>
-  <style name="fard_geo">
-    <color>lightgrey</color>
-  </style>
-  <style name="fgd_geo">
-<!--
-    <color>cyan</color>
--->
-    <modeling>solid</modeling>
-    <color>0.75 0.75 0.75 0.3</color>
-  </style>
-  <!-- //////////////////////////////////////////////// -->
-  <!-- /// event : //////////////////////////////////// -->
-  <!-- //////////////////////////////////////////////// -->
-  <style name="MCTrack">
-    <color>red</color>
-    <point_size>1</point_size>
-  </style>
-  <style name="MCTrack_arrow">   <!-- if MCTrack modeling is "arrow". -->
-    <length>10</length>
-    <radius>0.05</radius>
-    <text_scale>4</text_scale>
-    <text_pos>0.3</text_pos>
-    <base_tube>false</base_tube>
-  </style>
-
-  <style name="WCDetectorPoint">
-    <color>green</color>
-    <point_size>1</point_size>
-  </style>
-
-  <style name="FgdDetectorPoint">
-    <color>skyblue</color>
-    <point_size>1</point_size>
-  </style>
-
-  <style name="FgdHit">
-    <color>blue</color>
-    <point_size>1</point_size>
-  </style>
-  <style name="FgdHit_cube"> <!-- if FgdHit modeling is "cube". -->
-    <color>orange</color>
-    <size>0.99</size>
-  </style>
-  <!-- //////////////////////////////////////////////// -->
-  <!-- //////////////////////////////////////////////// -->
-  <!-- //////////////////////////////////////////////// -->
-  <style name="inlib_hep_particle">  <!-- to quiet insh/particle_print -->
-    <options/>
-  </style>
-  <!-- //////////////////////////////////////////////// -->
   <!-- /// user interface : /////////////////////////// -->
   <!-- //////////////////////////////////////////////// -->
   <alias name="gui">gui_ArcheryTune</alias>
@@ -228,7 +173,8 @@
 
     <style name="background_style">
       <visible>true</visible>
-      <back_color>ROOT/grey19</back_color>
+ <!-- <back_color>ROOT/grey19</back_color> -->
+      <back_color>white</back_color>
       <!-- border : -->
       <color>black</color>
       <line_width>0.003</line_width> <!-- 0 = no border. In % of width -->
@@ -436,8 +382,17 @@
       <front_face>cw</front_face>
       <smoothing>true</smoothing>
     </style>
-
-
+    <!--
+    <style name="legends_style.0">
+      <back_color>ROOT/grey19</back_color>
+      <back_shadow>0.015</back_shadow>
+      <color>black</color>
+      <font>arialbd.ttf</font>
+      <font_modeling>font_pixmap</font_modeling>
+      <front_face>cw</front_face>
+      <smoothing>true</smoothing>
+    </style>
+    -->
     <style name="bins_style.0">
       <modeling>top_lines</modeling>
       <color>black</color>
@@ -699,5 +654,4 @@
       <color_mapping>black 0 cyan 5 green 10 orange 15 red</color_mapping>
     </style>
   </plotter_style>
-
 </styles>

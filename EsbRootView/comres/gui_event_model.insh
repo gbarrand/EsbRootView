@@ -2,11 +2,7 @@
 
 items=`event_model -items`
 
-#echo ${items}
-#gui_text ${items}
-#return
-
-cmd='gui_push_list'
+cmd=gui_push_list
 
 for item in ${items} ; do
   cmd="${cmd} ${item} 'gui_scroll_text `event_model ${item}`'"
@@ -16,3 +12,6 @@ eval ${cmd}
 
 gui_show_main_menu
 
+unset items
+unset cmd
+unset item
