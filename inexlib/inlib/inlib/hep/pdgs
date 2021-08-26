@@ -1,5 +1,5 @@
 // Copyright (C) 2010, Guy Barrand. All rights reserved.
-// See the file EsbRootView.license for terms.
+// See the file inlib.license for terms.
 
 #ifndef inlib_hep_pdgs
 #define inlib_hep_pdgs
@@ -10,10 +10,10 @@
 #include "../forit"
 #include "../sout"
 #include "../cstr"
+#include "../osprintf"
 
 #include <cstdio>
 #include <cstdlib>
-#include <ostream>
 
 namespace inlib {
 namespace hep {
@@ -22,15 +22,19 @@ class pdgs {
 #ifdef INLIB_MEM
   INLIB_SCLASS(inlib::hep::pdgs)
 #endif
+  static const unsigned int ltmp = 2048;
 public:
   pdgs(std::ostream& a_out)
   :m_out(a_out)
+  ,m_tmp(0)
   {
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
 #endif
+    m_tmp = new char[ltmp+1];
   }
   virtual ~pdgs() {
+    delete [] m_tmp;
 #ifdef INLIB_MEM
     mem::decrement(s_class().c_str());
 #endif
@@ -40,10 +44,12 @@ public:
   :m_out(a_from.m_out)
   ,m_particles(a_from.m_particles)
   ,m_version(a_from.m_version)
+  ,m_tmp(0)
   {
 #ifdef INLIB_MEM
     mem::increment(s_class().c_str());
 #endif
+    m_tmp = new char[ltmp+1];
   }
   pdgs& operator=(const pdgs& a_from){
     m_particles = a_from.m_particles;
@@ -445,8 +451,8 @@ public:
   }
 
 public:
-  void print_decay_channel(FILE* a_FILE,const decay_channel& a_dc) const {
-    ::fprintf(a_FILE,"%7i %5i %12.5e %5i  ",
+  void print_decay_channel(std::ostream& a_out,const decay_channel& a_dc) const {
+    osprintf(a_out,m_tmp,ltmp,"%7i %5i %12.5e %5i  ",
              int(a_dc.channel_number()),
              a_dc.matrix_element_code(),
              a_dc.branching_ratio(),
@@ -458,29 +464,29 @@ public:
         m_out << "inlib::hep::pdgs::print_decay_channel : daughter " << ic << " not found." << std::endl;
         continue;
       }
-      ::fprintf(a_FILE," %15s(%8i)",p->name().c_str(),ic);
+      osprintf(a_out,m_tmp,ltmp," %15s(%8i)",p->name().c_str(),ic);
     }
-    ::fprintf(a_FILE,"\n");
+    osprintf(a_out,m_tmp,ltmp,"\n");
   }
 
-  void print_particle(FILE* a_FILE,const particle& a_particle) const {
-    ::fprintf(a_FILE,"%-20s  %6d\t",a_particle.name().c_str(),a_particle.pdg_code());
+  void print_particle(std::ostream& a_out,const particle& a_particle) const {
+    osprintf(a_out,m_tmp,ltmp,"%-20s  %6d\t",a_particle.name().c_str(),a_particle.pdg_code());
     if (!a_particle.stable()) {
-      ::fprintf(a_FILE,"Mass:%9.4f Width (GeV):%11.4e\tCharge: %5.1f\n",
+      osprintf(a_out,m_tmp,ltmp,"Mass:%9.4f Width (GeV):%11.4e\tCharge: %5.1f\n",
                 a_particle.mass(),a_particle.width(),a_particle.charge());
     } else {
-      ::fprintf(a_FILE,"Mass:%9.4f Width (GeV): Stable\tCharge: %5.1f\n",
+      osprintf(a_out,m_tmp,ltmp,"Mass:%9.4f Width (GeV): Stable\tCharge: %5.1f\n",
                a_particle.mass(),a_particle.charge());
     }
     if(a_particle.decay_channels().size()) {
-      ::fprintf(a_FILE," Channel Code BranchingRatio Nd  ");
-      ::fprintf(a_FILE," ...................Daughters.................... \n");
+      osprintf(a_out,m_tmp,ltmp," Channel Code BranchingRatio Nd  ");
+      osprintf(a_out,m_tmp,ltmp," ...................Daughters.................... \n");
     }
-    inlib_vforcit(decay_channel,a_particle.decay_channels(),it) print_decay_channel(a_FILE,*it);
+    inlib_vforcit(decay_channel,a_particle.decay_channels(),it) print_decay_channel(a_out,*it);
   }
 
-  void print_as_root(FILE* a_FILE) const {
-    inlib_vforcit(particle,m_particles,it) print_particle(a_FILE,*it);
+  void print_as_root(std::ostream& a_out) const {
+    inlib_vforcit(particle,m_particles,it) print_particle(a_out,*it);
   }
 
 public:
@@ -531,6 +537,7 @@ protected:
   std::ostream& m_out;
   std::vector<particle> m_particles;
   std::string m_version;
+  char* m_tmp;
 };
 
 }}

@@ -19,6 +19,7 @@ public:
     static const std::string s_v("inlib::histo::c2d");
     return s_v;
   }
+  const std::string& s_cls() const {return s_class();}
 public:
   bool set_title(const std::string&);
   unsigned int dimension() const {return 2;}
@@ -37,6 +38,18 @@ public:
   double upper_edge_y() const { return m_histo ? m_histo->axis_y().upper_edge() : m_upper_y;}
   double value_x(unsigned int a_index) const { return m_histo ? 0 : m_xs[a_index];}
   double value_y(unsigned int a_index) const { return m_histo ? 0 : m_ys[a_index];}
+  bool value(unsigned int a_index,unsigned int a_axis,double& a_value) const {
+    if(a_axis==0) {
+      a_value = (m_histo ?0:m_xs[a_index]);
+      return true;
+    }
+    if(a_axis==1) {
+      a_value = (m_histo ?0:m_ys[a_index]);
+      return true;
+    }
+    a_value = 0;
+    return false;
+  }
   double weight(unsigned int a_index) const { return m_histo ? 0 : m_ws[a_index];}
   double mean_x() const {return m_histo ? m_histo->mean_x() : (m_Sw?m_Sxw/m_Sw:0);}
   double mean_y() const {return m_histo ? m_histo->mean_y() : (m_Sw?m_Syw/m_Sw:0);}

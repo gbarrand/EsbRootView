@@ -69,7 +69,7 @@ inline sg::return_action action_choose_file_and_options(sg::gui_viewer& a_gv,sg:
     const std::string& file = a_fch.value.value();
     const std::string& format = a_fch.format.value();
 
-    a_gv.insh().reset_to_stop();  //because of sg/insh_opener.
+  //a_gv.insh().reset_to_stop();  //because of sg/insh_opener.
 
     bool done;
     a_gv.opener().open(file,format,_args,done);

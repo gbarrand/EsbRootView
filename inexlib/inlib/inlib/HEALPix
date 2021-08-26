@@ -427,7 +427,7 @@ inline void xyf2loc(double a_x,double a_y,int a_face,double& a_z,double& a_phi,d
 
 }}
 
-#include "vec3d"
+#include "lina/vec3d"
 
 namespace inlib {
 namespace HEALPix { //warning : with this casing to avoid a clash with sg::healpix.

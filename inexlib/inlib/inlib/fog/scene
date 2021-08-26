@@ -11,7 +11,6 @@
 #include "readfile.h"
 
 #include "../sep"
-#include "../file"
 #include "../vmanip"
 #include "../sout"
 #include "../img"
@@ -607,7 +606,7 @@ protected:
             m_this.m_gsto_cols.resize(sz+ngsto);
             pcol = vec_data<float>(m_this.m_gsto_cols)+sz;}
 
-            gl::triangle_strip_to_triangles(_num,vec_data(coords),vec_data(norms),pxyz,pnms);
+            gl::triangle_strip_to_triangles_nms(_num,vec_data(coords),vec_data(norms),pxyz,pnms);
 
            {size_t npt = 3*ntri;
             for(size_t i=0;i<npt;i++) {
@@ -639,9 +638,7 @@ protected:
             m_this.m_gsto_bcols.resize(sz+ngsto);
             pcol = vec_data<float>(m_this.m_gsto_bcols)+sz;}
 
-            gl::triangle_strip_to_triangles(_num,
-                                            vec_data(bcoords),vec_data(bnorms),
-                                            pxyz,pnms);
+            gl::triangle_strip_to_triangles_nms(_num,vec_data(bcoords),vec_data(bnorms),pxyz,pnms);
 
            {size_t npt = 3*ntri;
             for(size_t i=0;i<npt;i++) {
@@ -677,7 +674,7 @@ protected:
             m_this.m_gsto_cols.resize(sz+ngsto);
             pcol = vec_data<float>(m_this.m_gsto_cols)+sz;}
 
-            gl::triangle_fan_to_triangles(_num,vec_data(coords),vec_data(norms),pxyz,pnms);
+            gl::triangle_fan_to_triangles_nms(_num,vec_data(coords),vec_data(norms),pxyz,pnms);
 
            {size_t npt = 3*ntri;
             for(size_t i=0;i<npt;i++) {
@@ -709,9 +706,7 @@ protected:
             m_this.m_gsto_bcols.resize(sz+ngsto);
             pcol = vec_data<float>(m_this.m_gsto_bcols)+sz;}
 
-            gl::triangle_fan_to_triangles(_num,
-                                          vec_data(bcoords),vec_data(bnorms),
-                                          pxyz,pnms);
+            gl::triangle_fan_to_triangles_nms(_num,vec_data(bcoords),vec_data(bnorms),pxyz,pnms);
 
            {size_t npt = 3*ntri;
             for(size_t i=0;i<npt;i++) {

@@ -21,6 +21,7 @@
 #include <vector>
 #include <ostream>
 #include <map>
+#include <cstddef> //ptrdiff_t
 
 namespace inlib {
 namespace wroot {
@@ -274,7 +275,8 @@ public:
   bool expand2(uint32 a_new_size) {return expand(mx<uint32>(2*m_size,a_new_size));} //CERN-ROOT logic.
 
   bool expand(uint32 a_new_size) {
-    diff_pointer_t len = m_pos-m_buffer;
+  //diff_pointer_t len = m_pos-m_buffer;
+    ptrdiff_t len = m_pos-m_buffer;
     if(!realloc<char>(m_buffer,a_new_size,m_size)) {
       m_out << "inlib::wroot::buffer::expand :"
             << " can't realloc " << a_new_size << " bytes."

@@ -1,5 +1,5 @@
 // Copyright (C) 2010, Guy Barrand. All rights reserved.
-// See the file EsbRootView.license for terms.
+// See the file inlib.license for terms.
 
 #ifndef inlib_hep_particle
 #define inlib_hep_particle

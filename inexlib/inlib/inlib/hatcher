@@ -46,8 +46,8 @@
  *
  */
 
-#include "vec3f"
-#include "vec2f"
+#include "lina/vec3f"
+#include "lina/vec2f"
 #include "mathf"
 #include <cfloat> // for FLT_MAX
 

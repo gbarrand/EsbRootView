@@ -19,18 +19,76 @@ public:
     static const std::string s_v("inlib::histo::c3d");
     return s_v;
   }
+  const std::string& s_cls() const {return s_class();}
 public:
-  bool set_title(const std::string&);
+  bool set_title(const std::string& a_title){
+    m_title = a_title;
+    if(m_histo) m_histo->set_title(a_title);
+    return true;
+  }
   unsigned int dimension() const {return 3;}
-  bool reset();
-  unsigned int entries() const;
+  bool reset() {
+    clear();
+    delete m_histo;
+    m_histo = 0;
+    return true;
+  }
+  unsigned int entries() const {
+    return m_histo ? m_histo->all_entries() : (unsigned int)m_ws.size();
+  }
 public:
   double sum_of_weights() const;
   bool convert_to_histogram();
   bool is_converted() const;
   bool scale(double);
 public:
-  bool fill(double,double,double,double = 1);
+  bool fill(double aX,double aY,double aZ,double aW = 1){
+    if(!m_histo && (m_limit!=UNLIMITED()) && ((int)m_xs.size()>=m_limit)){
+      convert_to_histogram();
+    }
+
+    if(m_histo) {
+      return m_histo->fill(aX,aY,aZ,aW);
+    } else {
+      if(m_xs.size()) {
+        m_lower_x = mn<double>(aX,m_lower_x);
+        m_upper_x = mx<double>(aX,m_upper_x);
+      } else {
+        m_lower_x = aX;
+        m_upper_x = aX;
+      }
+      if(m_ys.size()) {
+        m_lower_y = mn<double>(aY,m_lower_y);
+        m_upper_y = mx<double>(aY,m_upper_y);
+      } else {
+        m_lower_y = aY;
+        m_upper_y = aY;
+      }
+      if(m_zs.size()) {
+        m_lower_z = mn<double>(aZ,m_lower_z);
+        m_upper_z = mx<double>(aZ,m_upper_z);
+      } else {
+        m_lower_z = aZ;
+        m_upper_z = aZ;
+      }
+      m_xs.push_back(aX);
+      m_ys.push_back(aY);
+      m_zs.push_back(aZ);
+      m_ws.push_back(aW);
+      m_Sw += aW;
+      double xw = aX * aW;
+      m_Sxw += xw;
+      m_Sx2w += aX * xw;
+      double yw = aY * aW;
+      m_Syw += yw;
+      m_Sy2w += aY * yw;
+      double zw = aZ * aW;
+      m_Szw += zw;
+      m_Sz2w += aZ * zw;
+      return true;
+    }
+  }
+
   double lower_edge_x() const;
   double upper_edge_x() const;
   double lower_edge_y() const;
@@ -41,6 +99,22 @@ public:
   double value_y(unsigned int) const;
   double value_z(unsigned int) const;
   double weight(unsigned int) const;
+  bool value(unsigned int a_index,unsigned int a_axis,double& a_value) const {
+    if(a_axis==0) {
+      a_value = (m_histo ?0:m_xs[a_index]);
+      return true;
+    }
+    if(a_axis==1) {
+      a_value = (m_histo ?0:m_ys[a_index]);
+      return true;
+    }
+    if(a_axis==2) {
+      a_value = (m_histo ?0:m_zs[a_index]);
+      return true;
+    }
+    a_value = 0;
+    return false;
+  }
   double mean_x() const;
   double mean_y() const;
   double mean_z() const;
@@ -295,13 +369,6 @@ bool c3d::convert_to_histogram(){
 }
 
 inline
-bool c3d::set_title(const std::string& a_title){
-  m_title = a_title;
-  if(m_histo) m_histo->set_title(a_title);
-  return true;
-}
-
-inline
 bool c3d::scale(double a_scale) {
   if(m_histo) {
     return m_histo->scale(a_scale);
@@ -345,62 +412,6 @@ const h3d& c3d::histogram() const {
 }
 
 inline
-bool c3d::reset() {
-  clear();
-  delete m_histo;
-  m_histo = 0;
-  return true;
-}
-
-inline
-bool c3d::fill(double aX,double aY,double aZ,double aW){
-  if(!m_histo && (m_limit!=UNLIMITED()) && ((int)m_xs.size()>=m_limit)){
-    convert_to_histogram();
-  }
-
-  if(m_histo) {
-    return m_histo->fill(aX,aY,aZ,aW);
-  } else {
-    if(m_xs.size()) {
-      m_lower_x = mn<double>(aX,m_lower_x);
-      m_upper_x = mx<double>(aX,m_upper_x);
-    } else {
-      m_lower_x = aX;
-      m_upper_x = aX;
-    }
-    if(m_ys.size()) {
-      m_lower_y = mn<double>(aY,m_lower_y);
-      m_upper_y = mx<double>(aY,m_upper_y);
-    } else {
-      m_lower_y = aY;
-      m_upper_y = aY;
-    }
-    if(m_zs.size()) {
-      m_lower_z = mn<double>(aZ,m_lower_z);
-      m_upper_z = mx<double>(aZ,m_upper_z);
-    } else {
-      m_lower_z = aZ;
-      m_upper_z = aZ;
-    }
-    m_xs.push_back(aX);
-    m_ys.push_back(aY);
-    m_zs.push_back(aZ);
-    m_ws.push_back(aW);
-    m_Sw += aW;
-    double xw = aX * aW;
-    m_Sxw += xw;
-    m_Sx2w += aX * xw;
-    double yw = aY * aW;
-    m_Syw += yw;
-    m_Sy2w += aY * yw;
-    double zw = aZ * aW;
-    m_Szw += zw;
-    m_Sz2w += aZ * zw;
-    return true;
-  }
-}
-
-inline
 bool c3d::convert(
  const std::vector<double>& a_edges_x
 ,const std::vector<double>& a_edges_y
@@ -418,11 +429,6 @@ bool c3d::convert(
 inline
 double c3d::sum_of_weights() const {
   return (m_histo ? m_histo->sum_bin_heights() : m_Sw);
-}
-
-inline
-unsigned int c3d::entries() const {
-  return m_histo ? m_histo->all_entries() : (unsigned int)m_ws.size();
 }
 
 inline
