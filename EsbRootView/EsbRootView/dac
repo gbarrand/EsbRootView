@@ -1,8 +1,8 @@
 // Copyright (C) 2010, Guy Barrand. All rights reserved.
 // See the file EsbRootView.license for terms.
 
-#ifndef EsbRootView_sg_dac
-#define EsbRootView_sg_dac
+#ifndef EsbRootView_dac
+#define EsbRootView_dac
 
 //dac = data accessor
 
@@ -10,15 +10,14 @@
 
 #include <exlib/zlib>
 
-#include <inlib/sg/gui_viewer>
-
 #include <inlib/rroot/geo_manager>
 #include <inlib/rroot/tree_manip>
 #include <inlib/rroot/geo_tools>
 #include <inlib/rroot/fac>
 
+#include <inlib/path>
+
 #include <inlib/hep/load_pdg_table>
-#include <inlib/hep/pdg>
 
 namespace EsbRootView {
 
@@ -26,27 +25,21 @@ class dac {
 public:
   INLIB_SCLASS(EsbRootView::dac)
 public:
-  dac(inlib::sg::gui_viewer& a_gv)
-  :m_gv(a_gv)
-  ,m_geo_manager(a_gv.out())
+  dac(std::ostream& a_out)
+  :m__out(a_out)
+  ,m_geo_manager(a_out)
   ,m_geo_file()
-  ,m_factory(a_gv.out())
+  ,m_factory(a_out)
   ,m_event_file(0)
   ,m_tree(0)
-  ,m_pdgs(a_gv.out())
+  ,m_pdgs(a_out)
   ,m_one_event()
   ,m_wc_radius(0)
   ,m_wc_length(0)
+  ,m_event_index(0)
   {
     m_wc_matrix.set_identity();
     if(!inlib::hep::load_default_pdg_table(m_pdgs)) {}
-   {bool check_existing = true;
-    bool overwrite = false;
-    bool warn = true;
-    bool own = false; //important.
-    inlib::rroot::geo_manager* _geo_mgr = &m_geo_manager;
-    a_gv.object_manager().manage_object<inlib::rroot::geo_manager>
-      (_geo_mgr,"geo_manager",check_existing,overwrite,warn,own);}
   }
   virtual ~dac(){
     delete m_tree;
@@ -54,8 +47,8 @@ public:
   }
 protected:
   dac(const dac& a_from)
-  :m_gv(a_from.m_gv)
-  ,m_geo_manager(a_from.m_gv.out())
+  :m__out(a_from.m__out)
+  ,m_geo_manager(a_from.m__out)
   ,m_geo_file(a_from.m_geo_file)
   ,m_factory(a_from.m_factory)
   ,m_event_file(0)
@@ -63,6 +56,7 @@ protected:
   ,m_pdgs(a_from.m_pdgs)
   ,m_wc_radius(0)
   ,m_wc_length(0)
+  ,m_event_index(a_from.m_event_index)
   {
     m_wc_matrix.set_identity();
   }
@@ -73,21 +67,26 @@ protected:
     m_wc_radius = 0;
     m_wc_length = 0;
     m_wc_matrix.set_identity();
+    m_event_index = a_from.m_event_index;
     return *this;
   }
 public:
   ///////////////////////////////////////////////////////////////
   /// geometry : ////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////
+  const inlib::rroot::geo_manager& geo_manager() const {return m_geo_manager;}
+  inlib::rroot::geo_manager& geo_manager() {return m_geo_manager;}
+  
   bool is_geometry_file(const std::string& a_path)  {
-    inlib::rroot::file* rfile = new inlib::rroot::file(m_gv.out(),a_path,false);
+    inlib::rroot::file* rfile = new inlib::rroot::file(m__out,a_path,false);
     if(!rfile) return false;
     inlib::rroot::key* key = rfile->dir().find_key_from_class("TGeoManager");
     delete rfile;
     return key?true:false;
   }
 
-  bool open_geometry_file(const std::string& a_path)  {
+  bool open_geometry_file(const std::string& a_path,std::string& a_msg)  {
+    a_msg.clear();
     m_geo_manager.cleanup();
     m_wc_radius = 0;
     m_wc_length = 0;
@@ -96,10 +95,9 @@ public:
     m_geo_infos.clear();
 
     bool verbose = false;
-    inlib::rroot::file* rfile = new inlib::rroot::file(m_gv.out(),a_path,verbose);
+    inlib::rroot::file* rfile = new inlib::rroot::file(m__out,a_path,verbose);
     if(!rfile) {
-      m_gv.map_warn("can't open");
-      m_gv.show_console("no geometry");
+      a_msg = "can't open "+ a_path;
       return false;
     }
     rfile->add_unziper('Z',exlib::decompress_buffer);
@@ -107,7 +105,7 @@ public:
     inlib::rroot::key* key = rfile->dir().find_key_from_class("TGeoManager");
     if(!key) {
       delete rfile;
-      m_gv.map_warn("TGeoManager key not found.");
+      a_msg = "TGeoManager key not found";
       return false;
     }
 
@@ -115,13 +113,13 @@ public:
     char* buf = key->get_object_buffer(*rfile,sz);
     if(!buf) {
       delete rfile;
-      m_gv.map_warn("can't get data buffer TGeoManager key.");
+      a_msg = "can't get data buffer TGeoManager key";
       return false;
     }
 
-    inlib::rroot::buffer b(m_gv.out(),rfile->byte_swap(),sz,buf,key->key_length(),verbose);
+    inlib::rroot::buffer b(m__out,rfile->byte_swap(),sz,buf,key->key_length(),verbose);
 
-  //m_gv.out() << "debug : stream in geom..." << std::endl;
+  //m__out << "debug : stream in geom..." << std::endl;
 
     if(!m_geo_manager.stream(b)) {
       m_geo_manager.cleanup();
@@ -129,7 +127,7 @@ public:
       m_wc_length = 0;
       m_wc_matrix.set_identity();
       delete rfile;
-      m_gv.map_warn("streaming failed for TGeoManager.");
+      a_msg = "streaming failed for TGeoManager";
       return false;
     }
 
@@ -141,7 +139,24 @@ public:
       m_wc_radius = 0;
       m_wc_length = 0;
       m_wc_matrix.set_identity();
-      m_gv.map_warn("no master volume.");
+      a_msg = "no master volume";
+      return false;
+    }
+
+    if(!init_wc_size()) {
+      m_geo_manager.cleanup();
+      m_wc_radius = 0;
+      m_wc_length = 0;
+      m_wc_matrix.set_identity();
+      a_msg = "can't get wc size";
+      return false;
+    }
+    if(!init_wc_matrix()) {
+      m_geo_manager.cleanup();
+      m_wc_radius = 0;
+      m_wc_length = 0;
+      m_wc_matrix.set_identity();
+      a_msg = "can't get wc matrix";
       return false;
     }
 
@@ -149,15 +164,9 @@ public:
 
     get_geo_infos();
 
-    if(!init_wc_size() || !init_wc_matrix()) {
-      m_wc_radius = 0;
-      m_wc_length = 0;
-      m_wc_matrix.set_identity();
-    }
-
    {std::string stmp;
     if(!inlib::size_t2s(m_geo_manager.volumes().size(),stmp)){}
-    m_gv.show_console(stmp+" volumes");}
+    a_msg = stmp+" volumes";}
 
     return true;
   }
@@ -182,7 +191,7 @@ public:
 
   bool is_event_file(const std::string& a_path) {
     bool verbose = false;
-    inlib::rroot::file* rfile = new inlib::rroot::file(m_gv.out(),a_path,verbose);
+    inlib::rroot::file* rfile = new inlib::rroot::file(m__out,a_path,verbose);
     if(!rfile) return false;
     rfile->add_unziper('Z',exlib::decompress_buffer);
     inlib::rroot::key* key = rfile->dir().find_key(s_tree_cbmsim());
@@ -196,16 +205,16 @@ public:
     return tree_found;
   }
 
-  bool open_event_file(const std::string& a_path) {
+  bool open_event_file(const std::string& a_path,std::string& a_msg) {
+    a_msg.clear();
     reset_event_file();
     m_event_infos.clear();
     m_one_event.clear();
 
     bool verbose = false;
-    inlib::rroot::file* rfile = new inlib::rroot::file(m_gv.out(),a_path,verbose);
+    inlib::rroot::file* rfile = new inlib::rroot::file(m__out,a_path,verbose);
     if(!rfile) {
-      m_gv.map_warn("can't open");
-      m_gv.show_console("no events");
+      a_msg = "can't open "+a_path;
       return false;
     }
     rfile->add_unziper('Z',exlib::decompress_buffer);
@@ -215,26 +224,26 @@ public:
     bool map_objs = true;
     m_tree = inlib::rroot::find_tree(*m_event_file,m_factory,s_tree_cbmsim(),map_objs);
     if(!m_tree) {
-      m_gv.map_warn("tree "+s_tree_cbmsim()+" not found");
-      m_gv.show_console("no events");
       reset_event_file();
+      a_msg = "tree "+s_tree_cbmsim()+" not found";
       return false;
     }
 
    {std::string stmp;
     if(!inlib::num2s((inlib::uint64)m_tree->entries(),stmp)){}
-    m_gv.show_console(stmp+" events");}
+    a_msg = stmp+" events";}
 
     return true;
   }
 
-  bool read_one_event(unsigned int a_index) {
+  bool read_one_event(unsigned int a_index,std::string& a_msg,bool a_verbose) {
+    a_msg.clear();
     if(!m_tree) {
-      m_gv.map_warn("no tree");
+      a_msg = "no tree";
       return false;
     }
-    read_event(*m_tree,a_index,m_one_event,m_pdgs,m_wc_matrix,m_gv.verbose());
-    m_one_event.set_event_index(a_index);
+    read_event(*m_tree,a_index,m_one_event,m_pdgs,m_wc_matrix,a_verbose);
+    m_event_index = a_index;
     get_event_infos();
     return true;
   }
@@ -244,19 +253,25 @@ public:
     return m_tree->entries();
   }
 
-  inlib::sg::gui_viewer& gv() {return m_gv;}
   const one_event& event() const {return m_one_event;}
   const std::vector<std::string>& event_infos() const {return m_event_infos;}
 
+  bool has_events() const {return m_tree?true:false;}
+
+  unsigned int event_index() const {return m_event_index;}
   ///////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////
+  double event_time_min() const {return event().time_min();}
+  double event_time_max() const {return event().time_max();}
+
 protected:
   void reset_event_file() {
     delete m_tree;
     delete m_event_file;
     m_tree = 0;
     m_event_file = 0;
+    m_event_index = 0;
   }
   INLIB_CLASS_STRING_VALUE(tree_cbmsim,cbmsim)
 
@@ -288,7 +303,7 @@ protected:
     inlib::num2s(number_of_events(),sevents);
 
     std::string sevent_index;
-    inlib::num2s(m_one_event.event_index(),sevent_index);
+    inlib::num2s(m_event_index,sevent_index);
 
     std::string snumber_MCTracks;
     inlib::size_t2s(m_one_event.mc_tracks().size(),snumber_MCTracks);
@@ -365,7 +380,6 @@ protected:
         }
       }
     }
-    m_gv.map_warn("can't get wc size");
     m_wc_radius = 0;
     m_wc_length = 0;
     return false;
@@ -373,16 +387,15 @@ protected:
   bool init_wc_matrix() {
     if(m_geo_manager.master()) {
       bool found = false;
-      if(inlib::rroot::volume_get_matrix(m_gv.out(),*(m_geo_manager.master()),"wc",m_wc_matrix,found)) {
+      if(inlib::rroot::volume_get_matrix(m__out,*(m_geo_manager.master()),"wc",m_wc_matrix,found)) {
         if(found) return true;
       }
     }
-    m_gv.map_warn("can't get wc matrix");
     m_wc_matrix.set_identity();
     return false;
   }
 protected:
-  inlib::sg::gui_viewer& m_gv;
+  std::ostream& m__out; //double underscore to avoir inheritance clash with inlib::sg::viewer::m_out.
   inlib::rroot::geo_manager m_geo_manager;
   std::string m_geo_file;
   inlib::rroot::fac m_factory;
@@ -395,30 +408,12 @@ protected:
   double m_wc_radius;
   double m_wc_length;
   inlib::mat4d m_wc_matrix;
+  unsigned int m_event_index;
 };
 
-inline dac* cast_dac(inlib::sg::viewer& a_viewer) {
-  return inlib::safe_cast<inlib::sg::viewer,dac>(a_viewer);
-}
-
-inline bool get_location(double a_radius,double a_length,double a_epsilon,
-                         double a_x,double a_y, double a_z,
-                         int& a_location) {
-  double r = ::sqrt(a_x*a_x + a_y*a_y);
-  if(::fabs(a_z - a_length/2.0) < a_epsilon) { // front
-    a_location = 1;
-    return true;
-  }
-  if(::fabs(a_z + a_length/2.0) < a_epsilon) { // back
-    a_location = 3;
-    return true;
-  }
-  if (::fabs(r - a_radius) < a_epsilon) { // side
-    a_location = 2;
-    return true;
-  }
-  a_location = -1;
-  return false;
+template <class VIEWER>
+inline dac* cast_dac(VIEWER& a_viewer) {
+  return inlib::safe_cast<VIEWER,dac>(a_viewer);
 }
 
 }

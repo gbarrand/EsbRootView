@@ -10,6 +10,8 @@
 #include <inlib/cbk/popup>
 #include <inlib/sg/background>
 
+#include <inlib/sg/item_insh>
+
 namespace EsbRootView {
 
 inline inlib::sg::return_action action_event_infos(inlib::sg::gui_viewer& a_gv,const inlib::sg::pos_data& a_data) {
@@ -46,20 +48,21 @@ public:
   virtual void add_items(inlib::sg::ilist& a_list,int a_x,int a_y) const {
     inlib::sg::add_item(m_gv,a_list,"event infos",action_event_infos,inlib::sg::pos_data(true,a_x,a_y));
     inlib::sg::add_item(m_gv,a_list,"geo infos",action_geo_infos,inlib::sg::pos_data(true,a_x,a_y));
-    inlib::sg::add_item_insh(m_gv,a_list,"show plots","plots_show");
-    inlib::sg::add_item_insh(m_gv,a_list,"hide plots","plots_hide");
+    inlib::sg::add_item_insh(a_list,"show plots",m_insh,"plots_show");
+    inlib::sg::add_item_insh(a_list,"hide plots",m_insh,"plots_hide");
   }
 public:
   virtual inlib::sg::bcbk* copy() const {return new background_popup(*this);}
 public:
-  background_popup(inlib::sg::gui_viewer& a_gv)
-  :parent(inlib::sg::background::s_class(),0),m_gv(a_gv){}
+  background_popup(inlib::sg::gui_viewer& a_gv,inlib::ishell& a_insh)
+  :parent(inlib::sg::background::s_class(),0),m_gv(a_gv),m_insh(a_insh){}
   virtual ~background_popup(){}
 protected:
-  background_popup(const background_popup& a_from):parent(a_from),m_gv(a_from.m_gv){}
+  background_popup(const background_popup& a_from):parent(a_from),m_gv(a_from.m_gv),m_insh(a_from.m_insh){}
   background_popup& operator=(const background_popup& a_from){parent::operator=(a_from);return *this;}
 protected:
   inlib::sg::gui_viewer& m_gv;
+  inlib::ishell& m_insh;
 };
 
 }

@@ -9,14 +9,14 @@
 #include <inlib/S_STRING>
 #endif //INLIB_MEM
 
-#include <cmath>
-#include <cfloat>
-
 #include <inlib/hep/pdgs>
 #include <inlib/hep/pdg>
 #include <inlib/hep/spdg>
 #include <inlib/num2s>
-#include <inlib/mat4d>
+#include <inlib/lina/mat4d>
+
+#include <cmath>
+#include <cfloat>
 
 class EsbMCTrack {
 #ifdef INLIB_MEM
@@ -436,8 +436,7 @@ class one_event {
 #endif
 public:
   one_event()
-  :m_event_index(0)
-  ,m_time_min(DBL_MAX)
+  :m_time_min(DBL_MAX)
   ,m_time_max(-DBL_MAX)
   {
 #ifdef INLIB_MEM
@@ -457,7 +456,6 @@ protected:
   ,m_wc_points(a_from.m_wc_points)
   ,m_fgd_points(a_from.m_fgd_points)
   ,m_fgd_hits(a_from.m_fgd_hits)
-  ,m_event_index(a_from.m_event_index)
   ,m_time_min(a_from.m_time_min)
   ,m_time_max(a_from.m_time_max)
   {
@@ -470,7 +468,6 @@ protected:
     m_wc_points = a_from.m_wc_points;
     m_fgd_points = a_from.m_fgd_points;
     m_fgd_hits = a_from.m_fgd_hits;
-    m_event_index = a_from.m_event_index;
     m_time_min = a_from.m_time_min;
     m_time_max = a_from.m_time_max;
     return *this;
@@ -481,13 +478,11 @@ public:
     inlib::raw_clear(m_wc_points);
     inlib::raw_clear(m_fgd_points);
     inlib::raw_clear(m_fgd_hits);
-    m_event_index = 0;
   }
   const std::vector<EsbMCTrack*>& mc_tracks() const {return m_mc_tracks;}
   const std::vector<EsbDetectorPoint*>& wc_points() const {return m_wc_points;}
   const std::vector<EsbDetectorPoint*>& fgd_points() const {return m_fgd_points;}
   const std::vector<EsbFgdHit*>& fgd_hits() const {return m_fgd_hits;}
-  unsigned int event_index() const {return m_event_index;}
 
   double time_min() const {return m_time_min;}
   double time_max() const {return m_time_max;}
@@ -509,7 +504,6 @@ public:
   std::vector<EsbDetectorPoint*>& wc_points() {return m_wc_points;}
   std::vector<EsbDetectorPoint*>& fgd_points() {return m_fgd_points;}
   std::vector<EsbFgdHit*>& fgd_hits() {return m_fgd_hits;}
-  void set_event_index(unsigned int a_index) {m_event_index = a_index;}
 
   void initialize() {
     m_time_min = DBL_MAX;
@@ -532,7 +526,6 @@ protected:
   std::vector<EsbDetectorPoint*> m_wc_points;
   std::vector<EsbDetectorPoint*> m_fgd_points;
   std::vector<EsbFgdHit*> m_fgd_hits;
-  unsigned int m_event_index;
   double m_time_min;
   double m_time_max;
 };
@@ -589,6 +582,34 @@ inline bool FgdHits_unique_at_pos(std::ostream& a_out,
     return false;
   }
   return true;
+}
+
+inline void event_model_items(std::vector<std::string>& a_names) {
+  a_names.clear();
+  a_names.push_back("MCTrack");
+  a_names.push_back("WCDetectorPoint");
+  a_names.push_back("FgdDetectorPoint");
+  a_names.push_back("FgdHit");
+}
+
+inline bool get_location(double a_radius,double a_length,double a_epsilon,
+                         double a_x,double a_y, double a_z,
+                         int& a_location) {
+  double r = ::sqrt(a_x*a_x + a_y*a_y);
+  if(::fabs(a_z - a_length/2.0) < a_epsilon) { // front
+    a_location = 1;
+    return true;
+  }
+  if(::fabs(a_z + a_length/2.0) < a_epsilon) { // back
+    a_location = 3;
+    return true;
+  }
+  if (::fabs(r - a_radius) < a_epsilon) { // side
+    a_location = 2;
+    return true;
+  }
+  a_location = -1;
+  return false;
 }
 
 #endif

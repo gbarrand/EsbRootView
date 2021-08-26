@@ -1,13 +1,13 @@
 // Copyright (C) 2010, Guy Barrand. All rights reserved.
 // See the file EsbRootView.license for terms.
 
-#ifndef EsbRootView_EsbRootView_version
-#define EsbRootView_EsbRootView_version
+#ifndef EsbRootView_version
+#define EsbRootView_version
 
-#define ESBROOTVIEW_MAJOR_VERSION 3
+#define ESBROOTVIEW_MAJOR_VERSION 4
 #define ESBROOTVIEW_MINOR_VERSION 0
 #define ESBROOTVIEW_PATCH_VERSION 0
-#define ESBROOTVIEW_VERSION "3.0.0"
-#define ESBROOTVIEW_VERSION_VRP "v3r0p0"
+#define ESBROOTVIEW_VERSION "4.0.0"
+#define ESBROOTVIEW_VERSION_VRP "v4r0p0"
 
 #endif
