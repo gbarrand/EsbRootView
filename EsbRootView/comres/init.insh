@@ -1,0 +1,29 @@
+#!insh
+
+app_manage_geo_manager
+
+scene_create
+
+scene_clear_static
+scene_clear_dynamic
+scene_clear_static_blend
+
+scene_set_clear_color black
+scene_blend_off
+scene_light_off
+
+plots_create  # must be after scene_create
+
+plots_show
+
+plots_set_layout 0.3 0.35 0.3 0.2   # up right.
+
+plots_set_field inlib::sg::plots.border_visible 1
+plots_set_field inlib::sg::plots.border_width   0.02
+plots_set_field inlib::sg::plots.border_height  0.02
+
+gui_set_picking_mode
+
+gui_set_console_layout -width=0.5  #to show time min/max if insh_anim.
+gui_show_console
+

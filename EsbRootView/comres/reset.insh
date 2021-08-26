@@ -1,0 +1,15 @@
+#!insh
+
+doc_dir=`app_dir -doc`
+sep=`sys_file_sep`  # it handles UNIX and Windows/DOS cases.
+
+rm -f ${doc_dir}${sep}init.insh
+rm -f ${doc_dir}${sep}startup.insh
+rm -f ${doc_dir}${sep}event.insh
+rm -f ${doc_dir}${sep}anim.insh
+rm -f ${doc_dir}${sep}geo_full.root
+rm -f ${doc_dir}${sep}evetest.root
+rm -f ${doc_dir}${sep}digi.root
+
+unset doc_dir
+unset sep

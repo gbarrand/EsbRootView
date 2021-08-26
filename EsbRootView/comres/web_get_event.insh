@@ -1,0 +1,10 @@
+#!insh
+
+# get fard events:
+# To read the new geometry and events files, do a :
+#   fard_setup.insh  # if not already under the fard setup.
+#   startup.insh
+
+web_get_file -out=geo_full.root 'https://gbarrand.github.io/EsbRootView/data/nu_mu-300MeV-10events/geo_full.root'
+web_get_file -out=evetest.root 'https://gbarrand.github.io/EsbRootView/data/nu_mu-300MeV-10events/evetest.root'
+

@@ -1,0 +1,6 @@
+#!insh
+
+rroot_open -managed_name=_aleph `app_dir -res`/aleph.root
+rroot_read -file=_aleph aleph  #read the TGeoManager aleph object.
+scene_add_rroot_geo_volume -geo=aleph -min_depth=0 -max_depth=2 -color=yellow ALEF
+

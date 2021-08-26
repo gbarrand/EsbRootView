@@ -1,0 +1,22 @@
+#!insh
+
+res_dir=`app_dir -res`
+doc_dir=`app_dir -doc`
+sep=`sys_file_sep`  # it handles UNIX and Windows/DOS cases.
+
+mkdir -p ${doc_dir}
+cp ${res_dir}${sep}init.insh           ${doc_dir}${sep}init.insh
+cp ${res_dir}${sep}neard_startup.insh  ${doc_dir}${sep}startup.insh
+cp ${res_dir}${sep}event.insh          ${doc_dir}${sep}event.insh
+cp ${res_dir}${sep}anim.insh           ${doc_dir}${sep}anim.insh
+cp ${res_dir}${sep}neard_geo_full.root ${doc_dir}${sep}geo_full.root
+cp ${res_dir}${sep}neard_evetest.root  ${doc_dir}${sep}evetest.root
+
+${doc_dir}${sep}startup.insh
+
+#show_console res_dir/neard_[startup,event].insh copied to doc_dir/[startup,event].insh
+
+unset res_dir
+unset doc_dir
+unset sep
+

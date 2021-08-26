@@ -1,0 +1,16 @@
+#!insh
+
+cmd='gui_push_list '
+
+cmd="${cmd} neard   neard_setup.insh"
+cmd="${cmd} fard    fard_setup.insh"
+cmd="${cmd} fgd     fgd_setup.insh"
+cmd="${cmd} fgd_hit fgd_hit_setup.insh"
+cmd="${cmd} reset   reset.insh"
+
+${cmd}
+
+gui_show_main_menu
+
+unset cmd
+

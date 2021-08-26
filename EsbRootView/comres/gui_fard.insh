@@ -1,0 +1,15 @@
+#!insh
+
+cmd=gui_push_list
+
+cmd="${cmd} geometry      'app_open_geometry_file -doc_res fard_geo_full.root\nfard_add_geometry.insh\ngui_hide_main_menu'"
+cmd="${cmd} 'set camera'  fard_set_camera.insh\ngui_hide_main_menu"
+cmd="${cmd} floor         fard_add_floor.insh\ngui_hide_main_menu"
+cmd="${cmd} avatars       fard_add_avatars.insh\ngui_hide_main_menu"
+cmd="${cmd} axes          fard_add_axes.insh\ngui_hide_main_menu"
+
+eval ${cmd}
+
+gui_show_main_menu
+
+unset cmd

@@ -1,0 +1,10 @@
+#!insh
+
+cmds=`compgen -c`
+
+opts=`string_replace ' ' : "${cmds}"`
+
+#-combo_string to be able to give an insh file name to execute.
+gui_push_entries -combo_string="cmd:pwd:${opts}" -string=args -script='${inlib_sg_entries_value_0}'
+
+gui_show_main_menu

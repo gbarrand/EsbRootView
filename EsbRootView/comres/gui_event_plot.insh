@@ -1,0 +1,26 @@
+
+# should be sourced with previously defined variables:
+#   gui_event_plot_insh_data
+#   gui_event_plot_insh_cut
+#   gui_event_plot_insh_field
+# For example:
+#   gui_event_plot_insh_data=MCTrack
+#   gui_event_plot_insh_cut='pdg==50000050'
+#   gui_event_plot_insh_field=p
+
+fields=`${gui_event_plot_insh_data}_fields`
+fields=`string_replace ' ' : "${fields}"`
+#echo ${fields}
+
+script="gui_event_plot_insh_data=${gui_event_plot_insh_data}\n. gui_event_plot_ok.insh"
+
+gui_push_entries -script="${script}" -string="cut:${gui_event_plot_insh_cut}" -opts="filling:${gui_event_plot_insh_field}:${fields}" -string='histo_name:auto'
+
+gui_show_main_menu
+
+unset fields
+unset script
+
+unset gui_event_plot_insh_data
+unset gui_event_plot_insh_cut
+unset gui_event_plot_insh_field

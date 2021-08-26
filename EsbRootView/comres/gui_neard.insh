@@ -1,0 +1,16 @@
+#!insh
+
+cmd=gui_push_list
+
+cmd="${cmd} geometry      'app_open_geometry_file -doc_res neard_geo_full.root\nneard_add_geometry.insh\ngui_hide_main_menu'"
+cmd="${cmd} 'set camera'  neard_set_camera.insh\ngui_hide_main_menu"
+cmd="${cmd} floor         neard_add_floor.insh\ngui_hide_main_menu"
+cmd="${cmd} avatars       neard_add_avatars.insh\ngui_hide_main_menu"
+cmd="${cmd} axes          neard_add_axes.insh\ngui_hide_main_menu"
+
+eval ${cmd}
+
+gui_show_main_menu
+
+unset cmd
+

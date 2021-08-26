@@ -1,0 +1,39 @@
+#!insh
+
+rroot_open -managed_name=pawdemo `app_dir -res`/pawdemo.root
+
+#rroot_ls -file=pawdemo
+#rroot_ls -file=pawdemo NICE
+#rroot_ls -file=pawdemo NICE/NEVSKI
+
+rroot_read -file=pawdemo h110
+rroot_read -file=pawdemo h1028
+rroot_read -file=pawdemo NICE/h77006
+rroot_read -file=pawdemo -managed_name=nevski_area_51 NICE/NEVSKI/h51
+
+omanager_ls
+
+#///////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////
+#///////////////////////////////////////////////////////////////
+plots_create
+plots_full_window
+plots_set_grid 2 2
+
+plots_set_current_plotter 0
+histo_plot h110
+plots_set_current_plotter 1
+histo_plot h1028
+plots_set_current_plotter 2
+histo_plot h77006
+plots_set_current_plotter 3
+histo_plot nevski_area_51
+
+gui_hide_main_menu
+gui_hide_meta_zone
+
+scene_write_to_paper -width=700 -height=900 -format=inzb_ps out_pawdemo_insh.ps
+scene_write_to_paper -width=700 -height=900 -format=inzb_png out_pawdemo_insh.png
+
+
+

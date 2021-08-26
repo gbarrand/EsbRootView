@@ -1,0 +1,22 @@
+
+# should be sourced.
+
+opts=
+opts="${opts} -time_min=${inlib_sg_entries_value_0}"
+opts="${opts} -time_max=${inlib_sg_entries_value_1}"
+opts="${opts} -delay=${inlib_sg_entries_value_2}"
+opts="${opts} -end_begin=${inlib_sg_entries_value_3}"
+
+if [ ${inlib_sg_entries_value_4} = true ] ; then
+  scene_clear_dynamic
+fi
+
+anim.insh
+
+scene_start_anim ${opts}
+
+gui_hide_main_menu
+
+unset bof
+
+

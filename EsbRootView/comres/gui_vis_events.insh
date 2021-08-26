@@ -1,0 +1,20 @@
+#!insh
+
+cmd=gui_push_entries
+
+index=`event_index`
+
+cmd="${cmd} -uint='start at:${index}'"
+cmd="${cmd} -uint='num events:100'"
+cmd="${cmd} -bool='eof->bof:false'"
+
+cmd="${cmd} -uint='next event sleep (msec):0'"
+
+cmd="${cmd} -script='. gui_vis_events_ok.insh'"
+
+eval ${cmd}
+
+gui_show_main_menu
+
+unset cmd
+unset index

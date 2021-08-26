@@ -1,0 +1,18 @@
+
+# should be sourced.
+
+opts=
+opts="${opts} -start=${inlib_sg_entries_value_0}"
+opts="${opts} -number=${inlib_sg_entries_value_1}"
+opts="${opts} -bof=${inlib_sg_entries_value_2}"
+opts="${opts} -sleep=${inlib_sg_entries_value_3}"
+
+event_start_anim ${opts}
+
+gui_hide_main_menu
+
+unset start
+unset number
+unset bof
+unset sleep
+

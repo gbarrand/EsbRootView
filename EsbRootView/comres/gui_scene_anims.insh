@@ -1,0 +1,28 @@
+#!insh
+
+cmd=gui_push_entries
+
+time_min=`event_time_min`
+time_max=`event_time_max`
+
+cmd="${cmd} -double='event time min (nsec):${time_min}'"
+cmd="${cmd} -double='event time max (nsec):${time_max}'"
+cmd="${cmd} -double='sys delay (sec):10'"
+cmd="${cmd} -bool='end->begin:false'"
+cmd="${cmd} -bool='clear dynamic scene:true'"
+
+cherenkov_time_min=`MCTrack_stats -cut=pdg==50000050 -min t`
+cmd="${cmd} -not_editable='MCTrack cherenkov time min:${cherenkov_time_min}'"
+
+cherenkov_time_max=`MCTrack_stats -cut=pdg==50000050 -max t`
+cmd="${cmd} -not_editable='MCTrack cherenkov time max:${cherenkov_time_max}'"
+
+cmd="${cmd} -script='. gui_scene_anims_ok.insh'"
+
+eval ${cmd}
+
+gui_show_main_menu
+
+unset cmd
+unset index
+

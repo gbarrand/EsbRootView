@@ -1,0 +1,23 @@
+#!insh
+
+cmd=gui_push_list
+
+cmd="${cmd} 'plots full window'      'plots_full_window\ngui_hide_main_menu'"
+cmd="${cmd} 'plots layout defaults'  'plots_set_layout -defaults\ngui_hide_main_menu'"
+
+cmd="${cmd} 'plot MCTracks ?'          gui_event_plot_MCTracks.insh"
+cmd="${cmd} 'plot WCDetectorPoints ?'  gui_event_plot_WCDetectorPoints.insh"
+cmd="${cmd} 'plot FgdDetectorPoints ?' gui_event_plot_FgdDetectorPoints.insh"
+cmd="${cmd} 'plot FgdHits ?'           gui_event_plot_FgdHits.insh"
+
+cmd="${cmd} mctrack_secondary_plots.insh     mctrack_secondary_plots.insh\ngui_hide_main_menu"
+cmd="${cmd} mctrack_not_secondary_plots.insh mctrack_not_secondary_plots.insh\ngui_hide_main_menu"
+cmd="${cmd} mctrack_wcpoint_plots.insh       mctrack_wcpoint_plots.insh\ngui_hide_main_menu"
+cmd="${cmd} wcpoint_plots.insh               wcpoint_plots.insh\ngui_hide_main_menu"
+
+eval ${cmd}
+
+gui_show_main_menu
+
+unset cmd
+

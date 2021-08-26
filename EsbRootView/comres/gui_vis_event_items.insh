@@ -1,0 +1,27 @@
+#!insh
+
+cmd=gui_push_list
+
+cmd="${cmd} MCTrack_vis                 MCTrack_vis\ngui_hide_main_menu"
+cmd="${cmd} WCDetectorPoint_vis         WCDetectorPoint_vis\ngui_hide_main_menu"
+cmd="${cmd} FgdDetectorPoint_vis        FgdDetectorPoint_vis\ngui_hide_main_menu"
+cmd="${cmd} FgdHit_vis                  FgdHit_vis\ngui_hide_main_menu"
+cmd="${cmd} mctrack_primaries.insh      mctrack_primaries.insh\ngui_hide_main_menu"
+cmd="${cmd} mctrack_cone.insh           mctrack_cone.insh\ngui_hide_main_menu"
+cmd="${cmd} mctrack_cone_detector.insh  mctrack_cone_detector.insh\ngui_hide_main_menu"
+cmd="${cmd} mctrack_arrow.insh          mctrack_arrow.insh\ngui_hide_main_menu"
+cmd="${cmd} mctrack_mu_to_nu_mu.insh    mctrack_mu_to_nu_mu.insh\ngui_hide_main_menu"
+cmd="${cmd} fgdhit_duplicate.insh       fgdhit_duplicate.insh\ngui_hide_main_menu"
+cmd="${cmd} fgdhit_wire_frame.insh      fgdhit_wire_frame.insh\ngui_hide_main_menu"
+cmd="${cmd} wcpoint_hedgehog.insh       wcpoint_hedgehog.insh\ngui_hide_main_menu"
+
+cmd="${cmd} mctrack_wcpoint_anim.insh   mctrack_wcpoint_anim.insh\ngui_hide_main_menu"
+cmd="${cmd} cone_anim.insh              cone_anim.insh\ngui_hide_main_menu"
+cmd="${cmd} fgdpoint_anim.insh          fgdpoint_anim.insh\ngui_hide_main_menu"
+cmd="${cmd} mu_nu_e_nu_mu_anim.insh     mu_nu_e_nu_mu_anim.insh\ngui_hide_main_menu"
+
+${cmd}
+
+gui_show_main_menu
+
+unset cmd

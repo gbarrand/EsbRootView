@@ -1,0 +1,80 @@
+#!insh
+
+cmd=gui_push_list_items
+
+cmd="${cmd} -item='setups:white.jpg:gui_startups.insh'"
+cmd="${cmd} -item='neard:white.jpg:gui_neard.insh'"
+cmd="${cmd} -item='fard:white.jpg:gui_fard.insh'"
+cmd="${cmd} -item='fgd geo:white.jpg:fgd_add_geometry.insh\ngui_hide_main_menu'"
+cmd="${cmd} -item='geo infos:white.jpg:geo_infos.insh'"
+cmd="${cmd} -item='vis items:white.jpg:gui_vis_event_items.insh'"
+
+cmd="${cmd} -item='plot items:white.jpg:gui_plot_items.insh'"
+
+cmd="${cmd} -item='show plots:plot.jpg:plots_show\ngui_hide_main_menu'"
+cmd="${cmd} -item='hide plots:hide_plot.jpg:plots_hide\ngui_hide_main_menu'"
+cmd="${cmd} -item='plots:set_current_region.jpg:gui_plots.insh'"
+    
+cmd="${cmd} -item='event model:white.jpg:gui_event_model.insh'"
+
+cmd="${cmd} -item='startup.insh:white.jpg:startup.insh'"
+
+cmd="${cmd} -item='files:files.jpg:gui_menu_files'"
+if [ `gui_has_open_panel` = true ] ; then
+  cmd="${cmd} -item='open...:files.jpg:gui_open.insh'"
+fi
+    
+if [ `sys_os` = emscripten ] ; then
+  cmd="${cmd} -item='wget github fard nu_mu-300MeV-10events:white.jpg:web_get_event.insh'"
+#else
+#      if(m_ftps.size())
+#        inlib::sg::add_image_item(*this,*list,"ftp","location_ftp.jpg",inlib::ftp::action_ftp,inlib::ftp::pos_data(m_ftps,false,0,0));
+fi
+
+cmd="${cmd} -item='next event:event.jpg:event_next\ngui_hide_main_menu'"
+cmd="${cmd} -item='vis events:vis_events.jpg:gui_vis_events.insh'"
+cmd="${cmd} -item='stop events:stop_events.jpg:event_stop_anim'"
+
+cmd="${cmd} -item='scene anims:white.jpg:gui_scene_anims.insh'"
+
+#  //inlib::sg::add_image_item(*this,*list,s_edit_plots(),"edit_plot.jpg",inlib::cbk::action_edit_plot);
+
+cmd="${cmd} -item='anim:object_rotate_left.jpg:camera_start_anim move_rotate_around_focal_right\ngui_hide_main_menu'"
+
+cmd="${cmd} -item='clear event:clear_event.jpg:scene_clear_dynamic'"
+cmd="${cmd} -item='clear detector:clear_static.jpg:scene_clear_static'"
+cmd="${cmd} -item='camera reset:edit_undo.jpg:camera_reset\ngui_hide_main_menu'"
+
+cmd="${cmd} -item='insh menu:white.jpg:gui_insh_menu.insh'"
+cmd="${cmd} -item='insh keyboard:white.jpg:gui_insh_keyboard.insh'"
+
+if [ `sys_os` = emscripten ] ; then
+  cmd="${cmd} -item='show terminal:white.jpg:gui_show_terminal'"
+  cmd="${cmd} -item='hide terminal:white.jpg:gui_hide_terminal'"
+#else
+#      //if(m_walls._walls().size()) {
+#    //inlib::sg::add_image_item(*this,*list,inlib::sg::s_to_serv(),"connect_to_wall.jpg",inlib::cbk::action_menu_sg_client);
+#      inlib::sg::add_white_item(*this,*list,inlib::sg::s_to_serv(),inlib::cbk::action_menu_sg_client);
+#      //}
+#      inlib::sg::add_white_item(*this,*list,inlib::sg::s_sg_serv(),inlib::cbk::action_menu_sg_serv);
+fi
+
+cmd="${cmd} -item='export:document_export.jpg:gui_export.insh'"
+
+if [ `sys_os` = emscripten ] ; then
+  cmd="${cmd} -item='import:document_import.jpg:gui_import.insh'"
+fi
+
+cmd="${cmd} -item='colors:white.jpg:gui_show_colors\ngui_show_main_menu'"
+
+cmd="${cmd} -item='utils:tools.jpg:gui_utils.insh'"
+
+cmd="${cmd} -item='about:icon.jpg:about.insh'"
+
+if [ `sys_device_has_stop_app_button` = false ] ; then
+  cmd="${cmd} -item='exit:application_exit.jpg:gui_set_to_exit'"
+fi
+
+eval ${cmd}
+
+unset cmd

@@ -1,0 +1,28 @@
+
+# should be sourced.
+
+data=${gui_event_plot_insh_data}
+
+cut=${inlib_sg_entries_value_0}
+filling=${inlib_sg_entries_value_1}
+histo_name=${inlib_sg_entries_value_2}
+
+if [ ${histo_name} = "auto" ] ; then
+  event_index=`event_index`
+  histo_name="h_evt_${event_index}_${data}_${filling}"
+  unset event_index
+fi
+
+#echo ${histo_name}
+
+event_plot -cut=${cut} -xfill=${filling} -histo_name=${histo_name} ${data}
+
+gui_hide_main_menu
+
+unset data
+unset cut
+unset filling
+unset histo_name
+
+unset gui_event_plot_insh_data
+

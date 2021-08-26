@@ -1,0 +1,7 @@
+#!insh
+
+gui_event_plot_insh_data=WCDetectorPoint
+gui_event_plot_insh_cut='pdg==50000050'
+gui_event_plot_insh_field=p
+
+. gui_event_plot.insh

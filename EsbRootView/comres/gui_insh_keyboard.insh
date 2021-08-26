@@ -1,0 +1,6 @@
+#!insh
+
+gui_push_keyboard -script='${inlib_sg_keyboard_value}'
+
+gui_show_main_menu
+
