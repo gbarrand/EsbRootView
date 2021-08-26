@@ -35,6 +35,7 @@
 #include "../cbk/timer"
 #include "../event_timer"
 #include "../mapmanip"
+#include "../file_write"
 
 #include "fundata_cbk"
 #include "gv_cbk"
@@ -48,7 +49,6 @@
 
 #include "../sys/file" //tmpname
 
-#include "../insh"
 #include "../paper_format"
 #include "write_paper"
 #include "write_bsg"
@@ -62,7 +62,8 @@
 #include "../sglprims"
 #include "../iabs"
 
-#include "object_manager"
+#include "../omanager"
+#include "ref_data"
 
 //#ifdef _MSC_VER
 //#pragma warning(disable:4355)
@@ -85,10 +86,7 @@ public:
   static int HIDDEN() {return 1;}
 public: //Android, iPhone.
   virtual void set_size(unsigned int a_w,unsigned int a_h) {
-    //m_out << "debug : inlib::sg::gui_viewer::set_size :"
-    //      << " ww " << a_w
-    //      << " wh " << a_h
-    //      << std::endl;
+  //m_out << "debug : inlib::sg::gui_viewer::set_size : ww " << a_w << " wh " << a_h << std::endl;
     parent::set_size(a_w,a_h);
     ask_to_rebuild_gui(); //should have a set_gui_layout().
     cursor_visible.touch();
@@ -107,8 +105,9 @@ public: //alert
 public: //guib
   virtual void ask_to_rebuild_gui() {
     // invalidate cbks that contain pointer to buttons that are going to be deleted.
-    invalidate_works(arm_work::s_class());
-    invalidate_works(disarm_work::s_class());
+  //invalidate_works(arm_work::s_class());
+  //invalidate_works(disarm_work::s_class());
+    invalidate_works(bcbk::s_class());  //to rm also base_list/arrow_buttons cbks.
     gui_visible.touch();
   }
 public:
@@ -122,9 +121,6 @@ public:
   }
   virtual bool has_open_panel() {return false;}
   virtual bool open_panel(std::string& a_path) {a_path.clear();return false;}
-public: //OpenGL infos.
-  // see exlib/sg/GL_VIEWER
-  virtual void gl_infos(std::vector<std::string>& a_v) const {a_v.clear();}
 public:
   template <class T>
   void num2console(const T& a_v) {
@@ -340,7 +336,7 @@ public:
   sf<bool> camenu_view_all_visible;
 public:
   gui_viewer(std::ostream& a_out,
-             render_manager& a_gl_mgr,
+             render_manager& a_render_mgr,
              const base_freetype& a_ttf,    //template ttf node.
              const selection& a_selection,  //template selection node.
              unsigned int a_width,unsigned int a_height,
@@ -359,7 +355,7 @@ public:
   ,camenu_viewing_visible(true)
   ,camenu_view_all_visible(true)
 
-  ,m_render_manager(a_gl_mgr)
+  ,m_render_manager(a_render_mgr)
   ,m_ttf(a_ttf)
 
   ,m_scene(0)
@@ -377,11 +373,11 @@ public:
   ,m_camenu_90_text_button(a_ttf)
   ,m_camenu_focal_button(a_ttf)
   ,m_camenu_viewing_button(a_ttf)
+  ,m_camenu_plane_exam_button(a_ttf)
   ,m_camenu_gsto_text_button(a_ttf)
   ,m_camenu_light_text_button(a_ttf)
   ,m_camenu_blend_text_button(a_ttf)
   ,m_camenu_smooth_text_button(a_ttf)
-  ,m_camenu_plane_exam_button(a_ttf)
   ,m_camenu_disable_anim_text_button(a_ttf)
   ,m_console(a_ttf)
 
@@ -415,13 +411,12 @@ public:
   ,m_png_writer(0)
   ,m_jpeg_writer(0)
   ,m_vr_mode(false)
-  ,m_insh(get_me())
-  ,m_object_manager(a_out)
+  ,m_omanager(a_out)
   {
     m_scene = safe_cast<node,selection>(*(a_selection.copy()));
     m_gui = safe_cast<node,selection>(*(a_selection.copy()));
 
-    m_object_manager.add_source(m_scene,"viewer_scene"); //dangerous. m_scene must not be deleted.
+//    m_object_manager.add_source(m_scene,"viewer_scene"); //dangerous. m_scene must not be deleted.
 
     //WARNING : in m_sg, m_scene_switch expected at 0, m_gui at 1.
     //          If changing that, look at touch_[down,up]().
@@ -464,14 +459,6 @@ public:
 
     // set default gsto mode on m_params :
     gsto_mode2s(m_render_manager.get_gsto_mode(),m_params.m_gsto_mode);
-
-    ////////////////////////////////////////////
-    /// insh : /////////////////////////////////
-    ////////////////////////////////////////////
-
-   {std::string HOME;
-    dir::home(HOME);
-    m_insh.add_env("HOME",HOME);}
   }
   virtual ~gui_viewer(){
     safe_clear<std::string,base_dumper>(m_dumpers);
@@ -517,11 +504,11 @@ protected:
   ,m_camenu_90_text_button(m_ttf)
   ,m_camenu_focal_button(m_ttf)
   ,m_camenu_viewing_button(m_ttf)
+  ,m_camenu_plane_exam_button(m_ttf)
   ,m_camenu_gsto_text_button(m_ttf)
   ,m_camenu_light_text_button(m_ttf)
   ,m_camenu_blend_text_button(m_ttf)
   ,m_camenu_smooth_text_button(m_ttf)
-  ,m_camenu_plane_exam_button(m_ttf)
   ,m_camenu_disable_anim_text_button(m_ttf)
   ,m_console(m_ttf)
 
@@ -555,9 +542,7 @@ protected:
   ,m_jpeg_writer(a_from.m_jpeg_writer)
   ,m_vr_mode(a_from.m_vr_mode)
   ,m_argcv(a_from.m_argcv)
-  ,m_insh(a_from.m_insh)
-  //,m_object_manager(a_from.m_object_manager)
-  ,m_object_manager(a_from.m_out)
+  ,m_omanager(a_from.m_out)
   {
     //m_scene = safe_cast<node,selection>(*(a_from.m_scene->copy()));
     //m_gui = safe_cast<node,selection>(*(a_from.m_scene->copy()));
@@ -626,7 +611,6 @@ protected:
 
     m_vr_mode = a_from.m_vr_mode;
     m_argcv = a_from.m_argcv;
-    m_insh = a_from.m_insh;
 
     return *this;
   }
@@ -635,6 +619,9 @@ public:
   gui_viewer& get_me() {return *this;}
 
   const base_freetype& ttf() const {return m_ttf;}
+
+  const sg::render_manager& render_manager() const {return m_render_manager;}
+  sg::render_manager& render_manager() {return m_render_manager;}
 
   sg::zb_manager& zb_manager() {return m_zb_mgr;}
   sg::gl2ps_manager& gl2ps_manager() {return m_gl2ps_mgr;}
@@ -848,6 +835,20 @@ public:
     }
     return true;
   }
+
+  //insh : begin:
+  void enable_scene_light() {set_scene_light_on(true);}
+  void disable_scene_light() {set_scene_light_on(false);}
+  void enable_scene_blend() {set_scene_blend_on(true);}
+  void disable_scene_blend() {set_scene_blend_on(false);}
+  void enable_scene_smooth() {set_scene_smooth_on(true);}
+  void disable_scene_smooth() {set_scene_smooth_on(false);}
+  void enable_param_viewing() {set_param_viewing(true);}
+  void disable_param_viewing() {set_param_viewing(false);}
+  void set_to_exit() {parent::set_to_exit();}
+  void swap_kind_of_camera() {swap_camera_kind();}
+  void render_window() {win_render();}
+  //insh : end.
 
   shade_model* scene_shade_model() const {return m_scene_shade_model;}
   void set_scene_shade_model(shade_model* a_shade_model) {
@@ -1984,7 +1985,7 @@ public:
     unsigned int vp_ww = uint32(m_vr_mode?m_ww*0.5:m_ww);
     if(m_vr_mode) {if(a_x>=int(vp_ww)) a_x -= vp_ww;}
 
-    down_event e(a_x,a_y);
+    mouse_down_event e(a_x,a_y);
 
     int old_scene_switch_which = m_scene_switch.which;
     int old_cursor_switch_which = m_cursor_switch.which;
@@ -2031,7 +2032,7 @@ public:
     unsigned int vp_ww = uint32(m_vr_mode?m_ww*0.5:m_ww);
     if(m_vr_mode) {if(a_x>=int(vp_ww)) a_x -= vp_ww;}
 
-    up_event e(a_x,a_y);
+    mouse_up_event e(a_x,a_y);
 
     int old_scene_switch_which = m_scene_switch.which;
     int old_cursor_switch_which = m_cursor_switch.which;
@@ -2082,7 +2083,7 @@ public:
     if(ui_visible()) {
 
       // for sliders in the gui.
-      move_event e(a_x,a_y,m_touch_prev_x,m_touch_prev_y,true);
+      mouse_move_event e(a_x,a_y,m_touch_prev_x,m_touch_prev_y,true);
       event_action action(m_out,vp_ww,m_wh,e);
       m_gui->event(action);
       to_render = false; //Android : "true" may induce double redraw.
@@ -2093,7 +2094,7 @@ public:
 
       if(sliders_visible()) {
 
-        move_event e(a_x,a_y,m_touch_prev_x,m_touch_prev_y,true);
+        mouse_move_event e(a_x,a_y,m_touch_prev_x,m_touch_prev_y,true);
         event_action action(m_out,vp_ww,m_wh,e);
         m_gui->event(action); //on m_sg ?
         hide_meta_zone(); //should have to_render = true ?
@@ -2182,7 +2183,7 @@ public:
 
       } else { //viewer is in picking mode.
 
-        move_event e(a_x,a_y,m_touch_prev_x,m_touch_prev_y,true);
+        mouse_move_event e(a_x,a_y,m_touch_prev_x,m_touch_prev_y,true);
         event_action action(m_out,vp_ww,m_wh,e);
         m_scene_switch.event(action);
         if(action.done()) {
@@ -2208,7 +2209,7 @@ public:
 
     if(m_ww && m_wh && m_treat_mouse_motion) {
 
-      move_event e(a_x,a_y,0,0,false);
+      mouse_move_event e(a_x,a_y,0,0,false);
       event_action action(m_out,m_ww,m_wh,e);
       m_scene_switch.event(action);
       if(action.done()) {
@@ -2304,9 +2305,8 @@ public:
 
 
 public:
-  const sg::object_manager& object_manager() const {return m_object_manager;}
-  sg::object_manager& object_manager() {return m_object_manager;}
-
+  const omanager& get_omanager() const {return m_omanager;}
+  omanager& get_omanager() {return m_omanager;}
 public:
   float gui_camera_height() const {return 2;}
 
@@ -3130,7 +3130,7 @@ public:
   }
 
   bool adapt_camera_to_scene() {return adapt_camera(scene());}
-  bool view_all() {return adapt_camera(scene());}
+  void view_all() {adapt_camera(scene());}
 
   bool adapt_camera(node& a_node) {
     base_camera* cam = scene_camera();
@@ -4088,11 +4088,11 @@ public:
   void set_png_writer(png_writer a_writer) {m_png_writer = a_writer;}
   void set_jpeg_writer(jpeg_writer a_writer) {m_jpeg_writer = a_writer;}
 
-  virtual bool write_scene_to_paper(const std::string& a_path,const std::string& a_format,unsigned int a_scale) {
+  virtual bool write_scene_to_paper(const std::string& a_path,const std::string& a_format,unsigned int a_w,unsigned int a_h) {
     const inlib::colorf& bg = parent::m_clear_color;
     inlib::sg::node& _node = parent::m_sg;
     return write_paper(m_out,m_gl2ps_mgr,m_zb_mgr,m_png_writer,m_jpeg_writer,
-                       bg.r(),bg.g(),bg.b(),bg.a(),_node,a_scale*m_ww,a_scale*m_wh,a_path,a_format);
+                       bg.r(),bg.g(),bg.b(),bg.a(),_node,a_w,a_h,a_path,a_format);
   }
 
   virtual unsigned char* get_pixels(unsigned int a_w,unsigned int a_h,bool a_rgbas = true) = 0;
@@ -4227,7 +4227,7 @@ public:
     if(!a_cbk.m_node) return return_none;
     if(slider* sd = safe_cast<node,slider>(*a_cbk.m_node)){
       // we have to update the slider pos :
-      if(move_event* mevt = event_cast<event,move_event>(*a_cbk.m_event)){
+      if(mouse_move_event* mevt = event_cast<event,mouse_move_event>(*a_cbk.m_event)){
         sd->set_value(a_cbk.m_event_action->saved_state(),*mevt);
       }
       a_gv.add_work_cbks(sd->drags(),true);
@@ -4825,36 +4825,9 @@ public:
     a_sep.add(trs);
   }
 
-public: //insh:
-  const inlib::insh& insh() const {return m_insh;}
-  inlib::insh& insh() {return m_insh;}
-
-  void source_dot_insh() {
-    // home/.insh :
-    std::string home_path;
-    dir::home(home_path);
-    home_path += sep()+".insh";
-    if(file::exists(home_path)) m_insh.exec_line_reset_to_stop(". "+home_path); //sourced.
-    // doc_dir/.insh :
-    std::string doc_path = doc_dir()+sep()+".insh";
-    if( (doc_path!=home_path) && file::exists(doc_path) ) m_insh.exec_line_reset_to_stop(". "+doc_path); //sourced.
-  }
-  void source_startup_insh() {
-    // a sourced startup file :
-    if(is_doc_res_file("startup.insh")) {  //for app without a startup.insh in doc_res.
-      m_insh.exec_line_reset_to_stop(". startup.insh");
-    }
-  }
-  void exec_insh_startup() {
-    // a not sourced startup file :
-    if(is_doc_res_file("insh_startup")) {  //for app without a insh_startup in doc_res.
-      m_insh.exec_line_reset_to_stop("insh_startup");
-    }
-  }
 public:
   static void setup_anims(std::ostream& a_out,node& a_from,float a_time_min,float a_time_max,float a_delay,bool a_end_begin) {
     search_action sa(a_out);
-    typedef search_action::path_t path_t;
     const std::vector<path_t>& paths = find_paths(sa,a_from,slice_anim::s_class());
     inlib_vforcit(path_t,paths,it) {
       const path_t& p = *it;
@@ -4870,20 +4843,6 @@ public:
       //::printf("debug : start anim %lu\n",_anim);
     }
   }
-protected:
-  class gui_insh : public insh {
-    typedef insh parent;
-  public:
-    virtual void map_warn(const std::string& a_msg,bool a_warn = true) {m_gv.map_warn(a_msg,a_warn);}
-  public:
-    gui_insh(gui_viewer& a_gv):parent(a_gv.out()),m_gv(a_gv) {}
-    virtual ~gui_insh() {}
-  public:
-    gui_insh(const gui_insh& a_from):parent(a_from),m_gv(a_from.m_gv) {}
-    gui_insh& operator=(const gui_insh& a_from) {parent::operator=(a_from);return *this;}
-  protected:
-    gui_viewer& m_gv;
-  };
 
 protected:
 
@@ -4931,7 +4890,7 @@ protected:
     return true;
   }
 protected:
-  render_manager& m_render_manager;
+  sg::render_manager& m_render_manager;
   const base_freetype& m_ttf;
   sg::zb_manager m_zb_mgr; //sg is needed.
   sg::gl2ps_manager m_gl2ps_mgr;
@@ -5050,8 +5009,7 @@ protected:
   bool m_vr_mode;
   args m_argcv;
 
-  gui_insh m_insh;
-  sg::object_manager m_object_manager; //for histos created with insh commands.
+  omanager m_omanager;
 
   unsigned int m_camenu_items_0_row;
 };
@@ -5148,9 +5106,9 @@ inline void add_image_item_before(gui_viewer& a_gv,list& a_widget,const std::str
 }
 
 template <class FUNC>
-inline void add_image_item_after(gui_viewer& a_gv,list& a_widget,const std::string& a_before,
+inline void add_image_item_after(gui_viewer& a_gv,list& a_widget,const std::string& a_after,
                                  const std::string& a_label,const std::string& a_img_file,FUNC a_func) {
-  add_image_item_after<FUNC,pos_data>(a_gv,a_widget,a_before,a_label,a_img_file,a_func,pos_data(false,0,0));
+  add_image_item_after<FUNC,pos_data>(a_gv,a_widget,a_after,a_label,a_img_file,a_func,pos_data(false,0,0));
 }
 
 template <class FUNC,class DATA>
@@ -5189,6 +5147,12 @@ template <class FUNC>
 inline void add_white_item(gui_viewer& a_gv,list& a_widget,const std::string& a_label,FUNC a_func) {
   add_white_item<FUNC,pos_data>(a_gv,a_widget,a_label,a_func,pos_data(false,0,0));
 }
+
+//template <class FUNC,class DATA>
+//inline void add_white_item_ref(gui_viewer& a_gv,list& a_widget,const std::string& a_label,FUNC a_func,DATA& a_data) {
+//  typedef ref_data<DATA> ref_data_t;
+//  add_image_item<FUNC,ref_data_t>(a_gv,a_widget,a_label,s_white_jpg(),a_func,ref_data_t(a_data));
+//}
 
 }}
 
@@ -5249,48 +5213,6 @@ inline return_action action_about(gui_viewer& a_gv,const std::vector<std::string
 }
 
 inline return_action action_infos(gui_viewer& a_gv) {
-/*
-  std::vector<std::string> text;
-
-  text.push_back(" ");
-  text.push_back("data_dirs :");
-  append(text,a_gv.data_dirs());
-
-  text.push_back(" ");
-  text.push_back("res_dir :");
-  text.push_back(a_gv.res_dir());
-
-  text.push_back(" ");
-  text.push_back("out_dir :");
-  text.push_back(a_gv.out_dir());
-
-  text.push_back(" ");
-  text.push_back("tmp_dir :");
-  text.push_back(a_gv.tmp_dir());
-
-  text.push_back(" ");
-  text.push_back("start dir :");
-  text.push_back(a_gv.start_dir());
-
-  text.push_back(" ");
-  text.push_back("home :");
-  text.push_back(dir::home());
-
-  text.push_back(" ");
-  text.push_back("sizeof(void*) :");
-  text.push_back(to(int(sizeof(void*))));
-
-  text.push_back(" ");
-  text.push_back("sizeof(long long) :");
-  text.push_back(to(int(sizeof(long long))));
-
-  text.push_back(" ");
-  text.push_back("little endian :");
-  text.push_back(to(is_little_endian()));
-
-  a_gv.gui_text(text);
-*/
-
   sg::list* list = new sg::list(a_gv.ttf());
   a_gv.set_style(*list);
 
@@ -5337,9 +5259,9 @@ inline return_action action_infos(gui_viewer& a_gv) {
   bas(is_little_endian(),_s);
   add_item(a_gv,*list,_s,action_none);}
 
- {std::vector<std::string> _v;
-  a_gv.gl_infos(_v);
-  inlib_vforcit(std::string,_v,it) add_item(a_gv,*list,*it,action_none);}
+// {std::vector<std::string> _v;
+//  a_gv.gl_infos(_v);
+//  inlib_vforcit(std::string,_v,it) add_item(a_gv,*list,*it,action_none);}
 
   a_gv.push_list(list);
 
@@ -5487,97 +5409,37 @@ inline base_camera* astro_pimg_camera(gui_viewer& a_gv,double a_sky_radius) {
   return camera;
 }
 
-#define INLIB_GUI_VIEWER_GET_ARG_STRING(a__variable)\
-  INLIB_ISHELL_GET_ARG_STRING(_args,a__variable)
-
-#define INLIB_GUI_VIEWER_GET_ARG_FLOAT(a__where,a__variable,a__return)\
-  INLIB_ISHELL_GET_ARG_FLOAT(a_gv.insh(),_args,a__where,a__variable,a__return)
-
-#define INLIB_GUI_VIEWER_GET_ARG_DOUBLE(a__where,a__variable,a__return)\
-  INLIB_ISHELL_GET_ARG_DOUBLE(a_gv.insh(),_args,a__where,a__variable,a__return)
-
-#define INLIB_GUI_VIEWER_GET_ARG_UINT(a__where,a__variable,a__return)\
-  INLIB_ISHELL_GET_ARG_UINT(a_gv.insh(),_args,a__where,a__variable,a__return)
-
-#define INLIB_GUI_VIEWER_GET_ARG_BOOL(a__where,a__variable,a__return)\
-  INLIB_ISHELL_GET_ARG_BOOL(a_gv.insh(),_args,a__where,a__variable,a__return)
-
-#define INLIB_GUI_VIEWER_GET_ARG_COLOR(a__where,a__variable,a__return)\
-   {std::string svalue;\
-    std::string _key = std::string("-")+#a__variable;\
-    if(_args.find(_key,svalue)) {\
-      inlib::colorf _value;\
-      if(!inlib::sg::find_color(a_gv.styles().cmaps(),svalue,_value)) {\
-        a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not a color.");\
-        return a__return;\
-      }\
-      a__variable  = _value;\
-      _args.remove(_key);\
-    }}
-
-#define INLIB_GUI_VIEWER_GET_ARG_GL_PRIM(a__where,a__variable,a__return)\
-   {std::string svalue;\
-    std::string _key = std::string("-")+#a__variable;\
-    if(_args.find(_key,svalue)) {\
-      inlib::gl::mode_t _value;\
-      if(!inlib::gl::s2glprim(svalue,_value)) {\
-        a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not a gl primitive mode.");\
-        return a__return;\
-      }\
-      a__variable  = _value;\
-      _args.remove(_key);\
-    }}
-
-#define INLIB_GUI_VIEWER_GET_ARG_VEC3F(a__where,a__variable,a__return)\
-   {std::string svalue;\
-    std::string _key = std::string("-")+#a__variable;\
-    if(_args.find(_key,svalue)) {\
-      float x,y,z;\
-      if(!inlib::to_3(svalue,x,y,z)) {\
-        a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not three floats.");\
-        return a__return;\
-      }\
-      a__variable.set_value(x,y,z);\
-      _args.remove(_key);\
-    }}
-
-#define INLIB_GUI_VIEWER_GET_ARG_VEC4F(a__where,a__variable,a__return)\
-   {std::string svalue;\
-    std::string _key = std::string("-")+#a__variable;\
-    if(_args.find(_key,svalue)) {\
-      float x,y,z,t;\
-      if(!inlib::to_4(svalue,x,y,z,t)) {\
-        a_gv.insh().warn(std::string(#a__where)+" : "+svalue+" is not four floats.");\
-        return a__return;\
-      }\
-      a__variable.set_value(x,y,z,t);\
-      _args.remove(_key);\
-    }}
-
 #define INLIB_GUI_VIEWER_GET_WIDGET_UINT(a__header,a__index,a__variable)\
    {const std::string& svalue = a_widget.values[a__index];\
     if(!inlib::to<unsigned int>(svalue,a__variable)) {\
-      a_gv.insh().warn(std::string(#a__header)+" : "+svalue+" is not a uint.");\
+      a_gv.warn(std::string(#a__header)+" : "+svalue+" is not a uint.");\
       return inlib::sg::return_to_render;\
     }}
 #define INLIB_GUI_VIEWER_GET_WIDGET_FLOAT(a__header,a__index,a__variable)\
    {const std::string& svalue = a_widget.values[a__index];\
     if(!inlib::to<float>(svalue,a__variable)) {\
-      a_gv.insh().warn(std::string(#a__header)+" : "+svalue+" is not a float.");\
+      a_gv.warn(std::string(#a__header)+" : "+svalue+" is not a float.");\
       return inlib::sg::return_to_render;\
     }}
 #define INLIB_GUI_VIEWER_GET_WIDGET_DOUBLE(a__header,a__index,a__variable)\
    {const std::string& svalue = a_widget.values[a__index];\
     if(!inlib::to<double>(svalue,a__variable)) {\
-      a_gv.insh().warn(std::string(#a__header)+" : "+svalue+" is not a double.");\
+      a_gv.warn(std::string(#a__header)+" : "+svalue+" is not a double.");\
       return inlib::sg::return_to_render;\
     }}
 #define INLIB_GUI_VIEWER_GET_WIDGET_BOOL(a__header,a__index,a__variable)\
    {const std::string& svalue = a_widget.values[a__index];\
     if(!inlib::to(svalue,a__variable)) {\
-      a_gv.insh().warn(std::string(#a__header)+" : "+svalue+" is not a bool.");\
+      a_gv.warn(std::string(#a__header)+" : "+svalue+" is not a bool.");\
       return inlib::sg::return_to_render;\
     }}
+
+
+template <class PLOTS>
+inline PLOTS* search_plots(gui_viewer& a_gv) {
+//return search_selectable<PLOTS>(a_gv.out(),a_gv.scene());  //plots.border_visible must be true.
+  return search_node<PLOTS>(a_gv.out(),a_gv.scene());
+}
 
 }}
 

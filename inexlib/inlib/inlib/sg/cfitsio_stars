@@ -9,12 +9,13 @@
 #include "add_stars"
 
 #include "../wget"
-#include "../SDSS"
-#include "../radecs"
-#include "../simbad"
+#include "../astro/SDSS"
+#include "../astro/radecs"
+#include "../astro/simbad"
 #include "../buf2lines"
 #include "../sto"
 #include "../sout"
+#include "../astro/sastro"
 
 #ifdef EMSCRIPTEN
 #include <emscripten.h>

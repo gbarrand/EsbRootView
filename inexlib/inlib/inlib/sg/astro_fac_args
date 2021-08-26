@@ -7,7 +7,7 @@
 #include "fac_args"
 #include "gui_viewer"
 #include "view_astro"
-#include "../astro"
+#include "../astro/sastro"
 
 namespace inlib {
 namespace sg {

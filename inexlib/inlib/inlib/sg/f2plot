@@ -53,8 +53,9 @@ public: //plottable
   }
 public: //func1D
   virtual bool value(float a_x,float& a_v) const {
-    if(!m_data.in_domain(a_x)) {a_v = 0;return false;}
-    a_v = (float)m_data.value(a_x);
+    double dv;
+    if(!m_data.value(a_x,dv)) {a_v = 0;return false;}
+    a_v = (float)dv;
     return true;
   }
 
@@ -162,8 +163,9 @@ public: //plottable
   }
 public: //func2D
   virtual bool value(float a_x,float a_y,float& a_v) const {
-    if(!m_data.in_domain(a_x,a_y)) {a_v = 0;return false;}
-    a_v = (float)m_data.value(a_x,a_y);
+    double dv;
+    if(!m_data.value(a_x,a_y,dv)) {a_v = 0;return false;}
+    a_v = (float)dv;
     return true;
   }
 

@@ -18,7 +18,7 @@
 #include "../smatch"
 #include "../schar"
 #include "../sys/atime"
-#include "../vec3d"
+#include "../lina/vec3d"
 #include "../hep/polyhedron"
 
 #include "../rroot/geo_colors"
@@ -209,14 +209,14 @@ public:
   bool volume_not_found() const {return m_not_found;}
 
 protected:
-  void begin_update_sg(std::ostream& a_out) {
+  bool begin_update_sg(std::ostream& a_out) {
     clear();
 
     if(volume.value().empty()) {
       a_out << "inlib::sg::geo :"
             << " no volume name given."
             << std::endl;
-      return; //have to give something.
+      return false; //have to give something.
     }
 
     //a_out << "inlib::sg::geo::update_sg :"
@@ -241,6 +241,7 @@ protected:
     m_started_depth = -1;
 
     m_time_begin = atime::now();
+    return true;
   }
 
     //unsigned int depth = 0;

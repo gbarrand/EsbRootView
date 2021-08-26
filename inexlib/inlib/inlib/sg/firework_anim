@@ -8,8 +8,6 @@
 
 #include "noderef"
 #include "vertices"
-//#include "markers"
-//#include "rgba"
 
 namespace inlib {
 namespace sg {
@@ -152,7 +150,6 @@ public:
 protected:
   vertices m_vtxs;
   vertices m_cut_vtxs;
-//markers m_cut_vtxs;
   std::vector<float> m_xyztn;
 };
 

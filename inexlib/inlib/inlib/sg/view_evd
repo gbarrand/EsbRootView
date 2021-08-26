@@ -24,7 +24,6 @@ public:
   view_evd(gui_viewer& a_gv)
   :m_gv(a_gv)
   ,m_event_index(0)
-  ,m_next_event_sleep(0)
   {
     m_cmaps[style_default_colormap::s_default()] = style_default_colormap();
     //m_cmaps.add_colormap("ROOT",style_ROOT_colormap());
@@ -34,13 +33,11 @@ protected:
   view_evd(const view_evd& a_from)
   :m_gv(a_from.m_gv)
   ,m_event_index(a_from.m_event_index)
-  ,m_next_event_sleep(a_from.m_next_event_sleep)
   ,m_cmaps(a_from.m_cmaps)
   {}
 
   view_evd& operator=(const view_evd& a_from){
     m_event_index = a_from.m_event_index;
-    m_next_event_sleep = a_from.m_next_event_sleep;
     m_cmaps = a_from.m_cmaps;
     return *this;
   }
@@ -368,9 +365,6 @@ public:
   unsigned int& event_index() {return m_event_index;}
   unsigned int event_index() const {return m_event_index;}
 
-  unsigned int& next_event_sleep() {return m_next_event_sleep;}
-  unsigned int next_event_sleep() const {return m_next_event_sleep;}
-
   cmaps_t& cmaps() {return m_cmaps;}
 
 public:
@@ -510,7 +504,6 @@ private:
   separator m_static_sg_blend;
   separator m_screen_sg; //if wall app.
   unsigned int m_event_index;
-  unsigned int m_next_event_sleep;
   cmaps_t m_cmaps;
 };
 
@@ -635,6 +628,16 @@ inline return_action action_show_scene_title(gui_viewer& a_gv,const pos_data& a_
 */
 
 }}
+
+#define INLIB_VIEW_EVD_ADD_CAMENU_ITEMS\
+  inlib::sg::create_main_button(m_out,m_res_dir,m_params,m_image_readers,m_ttf,\
+                                m_camenu_sep,a_wcw,a_wch,a_wb,a_hb,0,\
+                                0,m_camenu_items_0_row++,"clear stat","","clear_static.jpg",\
+                                new inlib::sg::ishell_fundata_cbk<std::string>(insh(),inlib::sg::action_insh_source_script,"scene_clear_static"));\
+  inlib::sg::create_main_button(m_out,m_res_dir,m_params,m_image_readers,m_ttf,\
+                                m_camenu_sep,a_wcw,a_wch,a_wb,a_hb,0,\
+                                0,m_camenu_items_0_row++,"clear dyn","","clear_event.jpg",\
+                                new inlib::sg::ishell_fundata_cbk<std::string>(insh(),inlib::sg::action_insh_source_script,"scene_clear_dynamic"));
 
 //inlib_build_use kernel
 

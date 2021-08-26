@@ -6,7 +6,7 @@
 
 #include "../net/wget"
 #include "../xml/srvs"
-#include "../SDSS"
+#include "../astro/SDSS"
 
 namespace inlib {
 namespace sg {

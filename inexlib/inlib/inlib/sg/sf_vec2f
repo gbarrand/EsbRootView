@@ -6,7 +6,7 @@
 
 #include "sf_vec"
 
-#include "../vec2f"
+#include "../lina/vec2f"
 #include "../HEADER"
 
 namespace inlib {

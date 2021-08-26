@@ -12,7 +12,8 @@
 #include "mf"
 
 #include "../io/brbuf"
-#include "../file"
+#include "../file_read"
+#include "../fileis"
 #include "../sout"
 #include "../sto"
 #include "../platform"
