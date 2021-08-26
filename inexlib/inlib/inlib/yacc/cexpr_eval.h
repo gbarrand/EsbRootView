@@ -4,6 +4,10 @@
 #ifndef inlib_yacc_cexpr_eval_h
 #define inlib_yacc_cexpr_eval_h
 
+#ifdef INLIB_MEM
+#include "../mem"
+#endif
+
 #include "cexpr_lexer.h"
 
 #include "../valop"
@@ -25,6 +29,10 @@ namespace inlib {
 namespace yacc {
 
 class cexpr_eval {
+  static const std::string& s_class() {
+    static const std::string s_v("inlib::yacc::cexpr_eval");
+    return s_v;
+  }
 public:
   cexpr_eval(std::ostream& a_out,const std::string& a_s)
   :m_out(a_out)
@@ -34,9 +42,18 @@ public:
   ,m_lexer(a_out)
   ,m_result(0)
   ,m_success(false)
-  {}
+  {
+#ifdef INLIB_MEM
+    mem::increment(s_class().c_str());
+#endif
+  }
 
-  virtual ~cexpr_eval() {clear();}
+  virtual ~cexpr_eval() {
+    clear();
+#ifdef INLIB_MEM
+    mem::decrement(s_class().c_str());
+#endif
+  }
 
 public:
   cexpr_eval(const cexpr_eval& a_from)
@@ -47,7 +64,11 @@ public:
   ,m_result(0)
   ,m_success(false)
   ,m_funcs(a_from.m_funcs)
-  {}
+  {
+#ifdef INLIB_MEM
+    mem::increment(s_class().c_str());
+#endif
+  }
 
   cexpr_eval& operator=(const cexpr_eval& a_from){
     clear();
@@ -257,7 +278,7 @@ protected:
   bool m_success;
   std::vector<valop*> m_tmp_exps;
   std::string m_error;
-  inlib::val_funcs m_funcs;
+  val_funcs m_funcs;
 };
 
 }}
