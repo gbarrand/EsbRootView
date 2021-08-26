@@ -1,0 +1,20 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_cast_dac
+#define inlib_cast_dac
+
+//DAC is for Data ACcessor
+
+#include "safe_cast"
+
+namespace inlib {
+
+template <class DAC,class VIEWER>
+inline DAC* cast_dac(VIEWER& a_viewer) {
+  return safe_cast<VIEWER,DAC>(a_viewer);
+}
+
+}
+
+#endif
