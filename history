@@ -4,6 +4,7 @@
 - res/gui_main.insh and related insh gui scripts.
 - inlib/lina.
 - [inlib,exlib]/insh : directories gathering all insh related materials.
+- wasm: have a terminal mode. Use 'Show terminal' in the main GUI panel to activate it.
 
 3.0.1 :
  - mgr/offscreen.insh : handle new fard geom. Correct fgd geom vis.
