@@ -16,7 +16,7 @@
 <pre class="fragment">    event_model
     event_next  # have an event, if not done.
     event_vis &lt;event_model_class&gt; [options]
-</pre><p> The event_model command lists the event model classes (MCTrack, WCDetectorPoint, FgdDetectorPoint, FgdHit for 2.0.0) along their fields known by the little interpreter of the -cut option of event_vis. </p><pre class="fragment">EsbRootView_insh$ event_model
+</pre><p> The event_model command lists the event model classes (MCTrack, WCDetectorPoint, FgdDetectorPoint, FgdHit) along their fields known by the little interpreter of the -cut option of event_vis. </p><pre class="fragment">EsbRootView_insh$ event_model
 MCTrack :
 E             m             p             py            t             y             
 index         mother_id     pdg           pz            x             z             
@@ -67,17 +67,18 @@ MCTrack (49071) sum/min/max/mean/rms with cut "" :
 </pre><h1><a class="anchor" id="esbrootview_event_vis_style"></a>
 style</h1>
 <p>Each event model class has a default representation which is "point" for MCTrack, WCDetectorPoint, FgdDetectorPoint, FgdHit. You can change the color and point size with the options "-color" and "-point_size" as in: </p><pre class="fragment">    event_vis MCTrack -color=cyan -point_size=6
-</pre><p> The default values for color and point_size are the ones found in the EsbRootView.style XML file deposited in the res directory. The event_vis command will look in this style file for a style item with the name of the event model class and then, if found, for a color or point_size XML element in it. For example for MCTrack the XML style is: </p><pre class="fragment">    &lt;style name="MCTrack"&gt;
+</pre><p> You can create also a XML style file, for example a my.style in your home directory with in it: </p><pre class="fragment">  &lt;styles&gt;
+    &lt;style name="my_MCTrack_style"&gt;
       &lt;color&gt;red&lt;/color&gt;
       &lt;point_size&gt;1&lt;/point_size&gt;
     &lt;/style&gt;
-</pre><p> But the graphics attributes passed as options in the event_vis command have priority over the .style file. Note that you can create your own EsbRootView.style file in your doc directory with different default values. It will override the one in res/EsbRootView.style. Then the priority order for style is: </p><pre class="fragment">    res/EsbRootView.style
-    doc/EsbRootView.style
-    event_vis options  # highest priority
-</pre><p> With the style_load_file command, you can also load a style file of your own deposited where you want and with the name you want. For example to load a my.style file put in your home directory: </p><pre class="fragment">    home_dir=`sys_home_dir`
+  &lt;/styles&gt;
+</pre><p> With the style_load_file command, you can load it with: </p><pre class="fragment">    home_dir=`sys_home_dir`
     file_sep=`sys_file_sep`  # to cope also with the Windows/DOS file path syntax.
     style_load_file ${home_dir}${file_sep}my.style
-</pre><h1><a class="anchor" id="esbrootview_event_vis_coloring"></a>
+</pre><p> and then you can use the my_MCTrack_style in the event_vis command with: </p><pre class="fragment">    event_vis MCTrack -style=my_MCTrack_style
+</pre><p> The graphics attributes passed as options in the event_vis command have priority over the -style.</p>
+<h1><a class="anchor" id="esbrootview_event_vis_coloring"></a>
 coloring</h1>
 <p>A color can be given in various ways. It can be given by a common color name in the default colormap (for exa "blue"), by giving the name of a color in a known colormap, by giving an hexa encoding or by giving the three or four r,g,b,a (in [0,1]) of the color.</p>
 <p>The command style_print_colormaps prints the known colormaps with their colors.</p>
@@ -89,15 +90,8 @@ coloring</h1>
 </pre><h1><a class="anchor" id="esbrootview_event_vis_modeling"></a>
 modeling</h1>
 <p>An event model class can have multiple represenations or modelings. For example the MCTrack has also an "arrow" representation. You can trigger it with the "-modeling" option as in : </p><pre class="fragment">    event_vis MCTrack -modeling=arrow
-</pre><p> In this case, for each MCTrack, and arrow is added in the dynamic scene graph starting at the fields (x,y,z) and pointing in the impulse direction. The default parameters for an arrow are found in the EsbRootView.style. It is: </p><pre class="fragment">    &lt;style name="MCTrack_arrow"&gt;   &lt;!-- if MCTrack modeling is "arrow". --&gt;
-      &lt;length&gt;10&lt;/length&gt;
-      &lt;radius&gt;0.05&lt;/radius&gt;
-      &lt;text_scale&gt;4&lt;/text_scale&gt;
-      &lt;text_pos&gt;0.3&lt;/text_pos&gt;
-      &lt;base_tube&gt;false&lt;/base_tube&gt;  &lt;!-- if true, the base of the arrow is a cylinder,
-                                         and a cone if not. --&gt;
-    &lt;/style&gt;
-</pre><div class="image">
+</pre><p> In this case, for each MCTrack, and arrow is added in the dynamic scene graph starting at the fields (x,y,z) and pointing in the impulse direction.</p>
+<div class="image">
 <img src="neard_MCTrack_arrow.png" alt=""/>
 </div>
 <p>The FgdHit event model class has also the "cube" modeling: </p><pre class="fragment">    event_vis FgdHit -modeling=cube -color=skyblue

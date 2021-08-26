@@ -12,7 +12,7 @@
 </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>The EsbRootView/2.x is equipped with the core of a Bourne like shell called "insh" for INlib SHell.</p>
+<div class="textblock"><p>EsbRootView is equipped with the core of a Bourne like shell called "insh" for INlib SHell.</p>
 <p>It had been introduced to have a way to customize things by using a scripting syntax known by any UNIX pedestrian and easily implementable by a "doer" without having to embarque a million of lines of code to do that. insh has the basic mechanisms found on any bash shell: variables, env variables, dollar replacement of a variable, execute other scripts, source other scripts and, obviously, execute commands with options. For example in mctrack_wcpoint.insh, executed from event.insh at each 'next event', you can see: </p><pre class="fragment">    ...
     event_index=`event_index`
     gui_show_console ${event_index}
@@ -25,6 +25,7 @@
     ...   
 </pre><p>As for a Bourne shell, at startup of the program, the internal insh will execute, if found and in this order, the files: </p><pre class="fragment">    ~/.insh                               # sourced.
     ~/Documents/EsbRootView/.insh         # sourced.
+    ~/Documents/EsbRootView/init.insh     # not sourced.
     ~/Documents/EsbRootView/startup.insh  # not sourced.
 </pre><p> For example, in a .insh, you can have: </p><pre class="fragment">    echo 'hello my .insh'
 </pre> </div></div><!-- contents -->

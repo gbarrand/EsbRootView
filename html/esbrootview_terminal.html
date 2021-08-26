@@ -12,7 +12,7 @@
 </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>For the desktop versions (macOS, Linux, Windows/DOS, Windows/CYGWIN), you can start the program with the "-terminal" argument and then have an insh prompt:</p>
+<div class="textblock"><p>For the desktop versions (macOS, Linux, Windows/DOS, Windows/CYGWIN, Windows/WSL), you can start the program with the "-terminal" argument and then have an insh prompt:</p>
 <pre class="fragment">    Linux&gt; &lt;install_path&gt;/EsbRootView/&lt;version&gt;/bin/EsbRootView -terminal
    (macOS&gt; &lt;install_path&gt;/EsbRootView/&lt;version&gt;/EsbRootView.app/Contents/MacOS/EsbRootView -terminal)
    (  DOS&gt; &lt;install_path&gt;\EsbRootView\&lt;version&gt;\bin\EsbRootView.exe -terminal)
@@ -25,7 +25,7 @@ history</h1>
  ....
  469 scene_set_clear_color ROOT/kMagenta+3
  470 scene_clear_dynamic
- 471 event_vis FgdHit -modeling=cube -color='ROOT/kMagenta+3'
+ 471 FgdHit_vis -modeling=cube -color='ROOT/kMagenta+3'
  472 exit
  473 history
     EsbRootView$ !470
@@ -36,7 +36,7 @@ completion</h1>
 <p>By typing twice the tab key, you activate the completion and have the list of available commands.</p>
 <p>On good part of commands, you have a help text that you can read by using the help command: </p><pre class="fragment">    EsbRootView_insh$ help echo
     EsbRootView_insh$ help event_model
-</pre><p> See the "help text of commands" section for a raw dump of the commands help texts. In 2.0.0, the help texts are not available in pure GUI, but it in the joblist to have them here. </p>
+</pre><p> See the "help text of commands" section for a raw dump of the commands help texts. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 
