@@ -24,6 +24,7 @@ if [ ${build_app} = "yes" ] ; then
 
   objs=
   app_src=./test.cxx
+  app=test
   app_exe=test
 
   . ${bush_home}/application
