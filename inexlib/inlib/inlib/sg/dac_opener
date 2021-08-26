@@ -1,0 +1,98 @@
+// Copyright (C) 2010, Guy Barrand. All rights reserved.
+// See the file inlib.license for terms.
+
+#ifndef inlib_sg_dac_opener
+#define inlib_sg_dac_opener
+
+//DAC is for Data ACcessor.
+
+//used in EsbRootView and pmx.
+
+#include "view_evd"
+#include "../fileis"
+#include "../cast_dac"
+
+namespace inlib {
+namespace sg {
+
+template <class DAC>
+class dac_opener : public virtual iopener {
+  typedef iopener parent;
+  INLIB_T_SCLASS(DAC,inlib::sg::dac_opener)
+public:
+  virtual parent* copy() const {return new dac_opener(*this);}
+  virtual const std::string& s_cls() const {return s_class();}
+  virtual bool is(const std::string& a_path,bool& a_is) const {
+    return file::is_root(a_path,a_is);
+  }
+  virtual bool open(const std::string& a_path,viewer& a_viewer,const args&,bool& a_done) const {
+    a_done = false;
+    DAC* _dac = cast_dac<DAC,viewer>(a_viewer);
+    if(!_dac) return false;
+    gui_viewer* _gv = cast_gui_viewer(a_viewer);
+    if(!_gv) return false;
+    gui_viewer& a_gv = *_gv;
+    view_evd* _evd = cast_view_evd(a_viewer);
+    if(!_evd) return false;
+
+    // A root file can contain geometry and events (as ess_near_genie.root).
+
+    if(_dac->is_geometry_file(a_path)) {
+      std::string smsg;
+      if(!_dac->open_geometry_file(a_path,smsg)) {
+        a_gv.map_warn(smsg);
+        a_gv.show_console("no volumes");
+        return false;
+      } else {
+        a_gv.show_console(smsg);
+      }
+    }
+    if(_dac->is_event_file(a_path)) {
+      _evd->event_index() = 0;
+      std::string smsg;
+      if(!_dac->open_event_file(a_path,smsg)) {
+        a_gv.map_warn(smsg);
+        a_gv.show_console("no events");
+        return false;
+      } else {
+        a_gv.show_console(smsg);
+      }
+    }
+
+    a_done = true;
+    return true;
+  }
+  virtual bool is(uint64,const char*,bool& a_is) const {a_is = false;return true;}
+  virtual bool open(uint64,const char*,viewer&,const args&,bool& a_done) const {a_done = false;return true;}
+  virtual bool open(const std::string& a_path,
+                    viewer&,
+                    const xml::scenario&,
+                    cmaps_t&,
+                    const args& a_args,
+                    bool& a_done) const {
+    a_done = false;
+    return true;
+  }
+public:
+  dac_opener(){
+#ifdef INLIB_MEM
+    mem::increment(s_class().c_str());
+#endif
+  }
+  virtual ~dac_opener(){
+#ifdef INLIB_MEM
+    mem::decrement(s_class().c_str());
+#endif
+  }
+public:
+  dac_opener(const dac_opener& a_from):parent(a_from){
+#ifdef INLIB_MEM
+    mem::decrement(s_class().c_str());
+#endif
+  }
+  dac_opener& operator=(const dac_opener&){return *this;}
+};
+
+}}
+
+#endif
