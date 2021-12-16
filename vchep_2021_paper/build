@@ -1,0 +1,15 @@
+#!/bin/sh -f
+
+# to include png :
+# sudo /opt/local/bin/port install texlive-latex-extra
+# pdflatex to include png.
+
+pdflatex EsbRootView.tex
+
+#latex EsbRootView.tex
+#dvips -o EsbRootView.ps EsbRootView.dvi
+#ps2pdf EsbRootView.ps EsbRootView.pdf
+
+if [ `uname` = Darwin ] ; then
+  open EsbRootView.pdf
+fi
